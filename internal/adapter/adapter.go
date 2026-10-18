@@ -86,7 +86,7 @@ func ParseGo(r io.Reader) ([]Sample, error) {
 		if _, err := strconv.ParseUint(f[1], 10, 64); err != nil {
 			continue
 		}
-		name := procsSuffix.ReplaceAllString(f[0], "")
+		name := f[0]
 		var row []Sample
 		ok := true
 		for i := 2; i+1 < len(f); i += 2 {
@@ -113,5 +113,25 @@ func ParseGo(r io.Reader) ([]Sample, error) {
 			out = append(out, row...)
 		}
 	}
-	return out, sc.Err()
+	return stripProcs(out), sc.Err()
+}
+
+// stripProcs drops the -GOMAXPROCS suffix Go adds to benchmark names, such
+// as the -8 in BenchmarkParse-8, but only when every result line carries
+// the same one. With GOMAXPROCS=1 Go prints no suffix, and a name such as
+// BenchmarkSize-64 must then stay whole; with -cpu=1,4 the suffixes differ
+// and are what tells the results apart.
+func stripProcs(samples []Sample) []Sample {
+	suffix := ""
+	for i, s := range samples {
+		m := procsSuffix.FindString(s.Name)
+		if m == "" || (i > 0 && m != suffix) {
+			return samples
+		}
+		suffix = m
+	}
+	for i := range samples {
+		samples[i].Name = strings.TrimSuffix(samples[i].Name, suffix)
+	}
+	return samples
 }

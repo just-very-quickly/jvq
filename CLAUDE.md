@@ -39,6 +39,17 @@ Changes from the approved plan, made while building v0.1.0:
 - No golang.org/x/perf dependency: the Go benchmark parser and a small TOML
   subset reader are in the repo, so there are no third-party modules.
 
+An independent review before the release found no errors in the statistics
+and fixed: the default command on Windows (`-run=NONE`, since cmd.exe eats
+`^`), [budget.bench] tables now applied in file order, jvq.toml found through
+symlinked folders, stale-worktree cleanup limited to this host's dead runs,
+the GOMAXPROCS suffix stripped only when every line shares it, and a
+background child holding output no longer failing a good run. The accuracy
+numbers were recorded just before those fixes; none of them touch how
+verdicts are reached. Known and documented: adaptive rounds re-test at the
+same level (optional stopping), so a change exactly at the budget is flagged
+a little more often than 2.5%.
+
 Not done yet: other benchmark formats, `jvq compare`, submodules in worktrees.
 
 ## Test results

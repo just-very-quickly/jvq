@@ -238,7 +238,17 @@ func TestCleanStale(t *testing.T) {
 	if err := cmd.Run(); err != nil {
 		t.Fatal(err)
 	}
-	os.WriteFile(filepath.Join(dead.Dir, ownerFile), []byte(strconv.Itoa(cmd.Process.Pid)), 0o644)
+	host, _ := os.Hostname()
+	os.WriteFile(filepath.Join(dead.Dir, ownerFile), []byte(strconv.Itoa(cmd.Process.Pid)+" "+host), 0o644)
+
+	// Workspaces that aren't safely ours to judge: another host's, and a
+	// garbled owner file. Both must stay.
+	other, _ := r.NewWorkspace()
+	defer other.Remove()
+	os.WriteFile(filepath.Join(other.Dir, ownerFile), []byte(strconv.Itoa(cmd.Process.Pid)+" some-other-host"), 0o644)
+	garbled, _ := r.NewWorkspace()
+	defer garbled.Remove()
+	os.WriteFile(filepath.Join(garbled.Dir, ownerFile), []byte("not a pid"), 0o644)
 
 	// A workspace this process still owns, which must stay.
 	mine, err := r.NewWorkspace()
@@ -257,8 +267,10 @@ func TestCleanStale(t *testing.T) {
 	if _, err := os.Stat(dead.Dir); !os.IsNotExist(err) {
 		t.Errorf("dead workspace still there")
 	}
-	if _, err := os.Stat(mine.Dir); err != nil {
-		t.Errorf("live workspace removed: %v", err)
+	for _, keep := range []string{mine.Dir, other.Dir, garbled.Dir} {
+		if _, err := os.Stat(keep); err != nil {
+			t.Errorf("workspace %s removed: %v", keep, err)
+		}
 	}
 	trees, _ := r.Worktrees(ctx)
 	if len(trees) != 1 {

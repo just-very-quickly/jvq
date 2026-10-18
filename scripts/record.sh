@@ -42,7 +42,7 @@ if [ "${SKIP_ACCURACY:-}" != 1 ]; then
   go run ./test/accuracy -out "$out"
 fi
 
-if git fetch -q --depth 1 origin accuracy-results 2> /dev/null; then
+if git fetch -q origin accuracy-results 2> /dev/null; then
   mkdir -p "$out/github"
   for f in accuracy.json accuracy.md COMMIT; do
     git show "FETCH_HEAD:github-ubuntu-latest/$f" > "$out/github/$f"

@@ -22,7 +22,7 @@ What happens, in order:
    config's `command`. A single word after `--` is used as written (so
    `jvq run -- "go test -bench=. ./..."` works); several words are quoted
    for the shell and joined. With no command anywhere, and a `go.mod` in the
-   current folder, the command is `go test -run=^$ -bench=. -benchmem ./...`.
+   current folder, the command is `go test -run=NONE -bench=. -benchmem ./...`.
 2. Worktree folders left behind by a jvq run that was killed (its process is
    gone) are removed, and git's records of them pruned.
 3. Head is resolved (`-head`, default `HEAD`). Base is `-base`, or else:
@@ -176,7 +176,15 @@ above that (the Moses interval). It assumes only that head's distribution
 is base's shifted, not that either is normal. With budget b:
 regression if the interval's low end is above +b; pass if its high end is at
 or below +b; inconclusive otherwise. At least 3 samples a side are needed,
-and at 95% confidence at least 4 a side for any interval to exist.
+and at 95% confidence about 4 a side for an interval to exist (4 against 4, or 3 against 5).
+
+**Adding rounds.** Each extra pair of rounds is judged again at the same
+confidence level. Looking again and again lets a borderline result cross
+the line by chance more often than a single look would: in the recorded
+accuracy runs, a change of exactly the budget (+5%) was called a regression
+in 3 runs of 50. Changes well inside the budget, and no change at all, are
+almost never flagged (1 of 50 at +2%, 0 of 200 with no change). Set
+`max_rounds` equal to `rounds` for a single look.
 
 **Bytes and allocations.** Compared on medians, with no statistics: a
 regression when the head median is above the base median plus the budget
@@ -197,7 +205,7 @@ are pass, improved, regression and inconclusive.
   "base": {"ref": "merge-base(origin/main, head)", "sha": "…"},
   "head": {"ref": "HEAD", "sha": "…"},
   "note": "",
-  "command": "go test -run=^$ -bench=. -benchmem ./...",
+  "command": "go test -run=NONE -bench=. -benchmem ./...",
   "build": "",
   "adapter": "go",
   "rounds": 14,

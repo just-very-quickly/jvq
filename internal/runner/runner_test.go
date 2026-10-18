@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -243,5 +244,21 @@ func TestAdaptiveRoundsKeepTheAlternation(t *testing.T) {
 	}, base, head)
 	if res.Rounds != 3 {
 		t.Errorf("rounds %d", res.Rounds)
+	}
+}
+
+func TestBackgroundChildDoesNotFailASuccessfulRun(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses sh")
+	}
+	base, head := sides(t)
+	// The command succeeds but leaves a child holding its output open.
+	cmd := `echo "BenchmarkA-2 10 1 ns/op"; (sleep 30 &)`
+	res, err := Run(context.Background(), Options{Command: cmd, Adapter: "go", Rounds: 1}, base, head)
+	if err != nil {
+		t.Fatalf("a successful run failed: %v", err)
+	}
+	if len(res.Base) != 1 || len(res.Head) != 1 {
+		t.Errorf("samples %+v", res)
 	}
 }

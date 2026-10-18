@@ -117,3 +117,21 @@ func BenchmarkParseGo(b *testing.B) {
 		}
 	}
 }
+
+func TestProcsSuffixOnlyWhenShared(t *testing.T) {
+	// GOMAXPROCS=1: no suffix, and a trailing number is part of the name.
+	got, _ := ParseGo(strings.NewReader("BenchmarkSize-64 10 1 ns/op\nBenchmarkSize-128 10 2 ns/op\n"))
+	if got[0].Name != "BenchmarkSize-64" || got[1].Name != "BenchmarkSize-128" {
+		t.Errorf("names merged: %+v", got)
+	}
+	// -cpu=1,4: different suffixes keep the results apart.
+	got, _ = ParseGo(strings.NewReader("BenchmarkA 10 1 ns/op\nBenchmarkA-4 10 2 ns/op\n"))
+	if got[0].Name == got[1].Name {
+		t.Errorf("-cpu results merged: %+v", got)
+	}
+	// The usual case: one shared suffix is dropped.
+	got, _ = ParseGo(strings.NewReader("BenchmarkA-8 10 1 ns/op\nBenchmarkB/x-8 10 2 ns/op\n"))
+	if got[0].Name != "BenchmarkA" || got[1].Name != "BenchmarkB/x" {
+		t.Errorf("shared suffix kept: %+v", got)
+	}
+}

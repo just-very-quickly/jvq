@@ -9,7 +9,7 @@ the base commit and the change on the same machine, in the same job, taking
 turns, and then compares the two with rank statistics.
 
 ```sh
-jvq run -- go test -run='^$' -bench=. -benchmem ./...
+jvq run -- go test -run=NONE -bench=. -benchmem ./...
 ```
 
 That checks out the base and head commits into two temporary git worktrees,
@@ -60,7 +60,9 @@ so instead of guessing.
    - **pass**: the whole interval is at or below +5%.
    - **inconclusive**: the interval straddles +5%. Can't tell at this noise.
 6. **Adaptive rounds.** While any result is inconclusive, jvq adds rounds,
-   two at a time, up to `max_rounds` (30). Clear cases stop after 10.
+   two at a time, up to `max_rounds` (30). Clear cases stop after 10. Each
+   extra look is a new chance for a result right at the budget to tip
+   over, which is part of why a +5% change was flagged in 3 of 50 runs.
 7. **Exact gates.** Bytes and allocations per op hardly vary between runs, so
    they're compared on medians, without statistics. `allocs = "0"` fails a
    change that adds even one allocation per op.
@@ -73,10 +75,24 @@ Inconclusive passes by default (exit 0) with a note in the report. Set
 jvq's own test suite measures its false-alarm rate and its detection rate,
 by running the real binary hundreds of times on a fixture benchmark whose
 cost is set by a constant. [test/results/accuracy.md](test/results/accuracy.md)
-has the full table, recorded on a shared cloud VM with about 7% run-to-run
-noise, which is noisier than a typical CI runner.
+has the full table. It was recorded on a shared two-core cloud VM where the
+same benchmark binary, run 40 times in a row, spread by 7.2% from run to run
+([test/results/noise.json](test/results/noise.json)), against a 5% budget.
 
-ACCURACY_TABLE
+| Head | Runs | Flagged as regression | Right answer |
+|---|---:|---:|---|
+| no change | 200 | 0 (0%) | no regression |
+| 2% more work | 50 | 1 (2%) | no regression |
+| 5% more work | 50 | 3 (6%) | no regression, at the budget's edge |
+| 10% more work | 50 | 39 (78%) | regression |
+| 20% more work | 50 | 50 (100%) | regression |
+| 50% more work | 50 | 50 (100%) | regression |
+| one more allocation per op | 100 | 100 (100%) | regression |
+| no change, allocations gated | 100 | 0 (0%) | no regression |
+
+The runs that weren't flagged passed or came back inconclusive. Clear cases
+took the 10 starting rounds; close ones used more, up to 30 per side, and a
+time run took 1.4 to 3.6 seconds on this fixture.
 
 Near the budget, jvq would rather say "can't tell" than guess. That's the
 design: a gate that cries wolf gets switched off.
@@ -98,7 +114,7 @@ jobs:
           go-version: stable
       - uses: just-very-quickly/jvq@v0.1.0
         with:
-          command: go test -run=^$ -bench=. -benchmem ./...
+          command: go test -run=NONE -bench=. -benchmem ./...
 ```
 
 The action downloads the release binary for the runner, checks its SHA256
@@ -134,7 +150,7 @@ repository root.
 
 ```toml
 # The benchmark command, run in each worktree. Default in a Go module:
-# go test -run=^$ -bench=. -benchmem ./...
+# go test -run=NONE -bench=. -benchmem ./...
 command = "./bench.test -test.run=NONE -test.bench=. -test.benchmem"
 build   = "go test -c -o bench.test ./parser"   # once per side, optional
 adapter = "go"          # the output format; v0.1 reads Go's

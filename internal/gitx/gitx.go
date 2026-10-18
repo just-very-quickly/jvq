@@ -159,8 +159,15 @@ type Workspace struct {
 // prefix names jvq's temporary directories, so stale ones can be found.
 const prefix = "jvq-run-"
 
-// ownerFile records the process that owns a workspace.
+// ownerFile records the process that owns a workspace: its id and the
+// host name, so a run never judges a workspace made on another machine or
+// in another container that shares the temp folder.
 const ownerFile = "jvq-owner"
+
+func ownerLine() string {
+	h, _ := os.Hostname()
+	return strconv.Itoa(os.Getpid()) + " " + h
+}
 
 // NewWorkspace makes a temporary directory owned by this process.
 func (r *Repo) NewWorkspace() (*Workspace, error) {
@@ -168,7 +175,7 @@ func (r *Repo) NewWorkspace() (*Workspace, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := os.WriteFile(filepath.Join(dir, ownerFile), []byte(strconv.Itoa(os.Getpid())), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, ownerFile), []byte(ownerLine()), 0o644); err != nil {
 		os.RemoveAll(dir)
 		return nil, err
 	}
@@ -221,11 +228,13 @@ func (r *Repo) CleanStale(ctx context.Context) (int, error) {
 			// isn't ours to judge. Leave it.
 			continue
 		}
-		pid, err := strconv.Atoi(strings.TrimSpace(string(b)))
-		if err == nil && pid != os.Getpid() && alive(pid) {
-			continue
+		f := strings.Fields(string(b))
+		if len(f) != 2 {
+			continue // not written by this version of jvq: leave it
 		}
-		if pid == os.Getpid() {
+		pid, err := strconv.Atoi(f[0])
+		host, _ := os.Hostname()
+		if err != nil || f[1] != host || pid == os.Getpid() || alive(pid) {
 			continue
 		}
 		if os.RemoveAll(dir) == nil {

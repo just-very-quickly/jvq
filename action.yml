@@ -7,11 +7,11 @@ branding:
 
 inputs:
   command:
-    description: The benchmark command, such as `go test -run=^$ -bench=. -benchmem ./...`. Empty uses `command` from jvq.toml, or that default in a Go module.
+    description: The benchmark command, such as `go test -run=NONE -bench=. -benchmem ./...`. Empty uses `command` from jvq.toml, or that default in a Go module.
     required: false
     default: ""
   base:
-    description: The commit to compare against. Empty picks where the pull request branched off its base branch, or on a push, the previous commit.
+    description: The commit to compare against. Empty picks where head branched off the base branch, or head's parent when head is on the base branch itself (a push to main).
     required: false
     default: ""
   config:

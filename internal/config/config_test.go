@@ -275,3 +275,51 @@ func TestFindAndLoad(t *testing.T) {
 		t.Errorf("bad file error should name it: %v", err)
 	}
 }
+
+func TestLaterBenchTablesWin(t *testing.T) {
+	// "Benchmark*" sorts before "*Parse*" alphabetically; file order must decide.
+	c, err := Parse("[budget.bench.\"*Parse*\"]\ntime = \"2%\"\n[budget.bench.\"Benchmark*\"]\ntime = \"9%\"\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := c.BudgetFor("time", "BenchmarkParse", ""); got.Val != 0.09 {
+		t.Errorf("the later table should win: %+v", got)
+	}
+	c, _ = Parse("[budget.bench.\"Benchmark*\"]\ntime = \"9%\"\n[budget.bench.\"*Parse*\"]\ntime = \"2%\"\n")
+	if got := c.BudgetFor("time", "BenchmarkParse", ""); got.Val != 0.02 {
+		t.Errorf("the later table should win: %+v", got)
+	}
+}
+
+func TestFindThroughASymlink(t *testing.T) {
+	real := t.TempDir()
+	sub := filepath.Join(real, "a")
+	os.MkdirAll(sub, 0o755)
+	os.WriteFile(filepath.Join(real, FileName), []byte(""), 0o644)
+	link := filepath.Join(t.TempDir(), "link")
+	if err := os.Symlink(real, link); err != nil {
+		t.Skip("no symlinks here:", err)
+	}
+	// cwd through the link, root resolved (as git reports it)
+	if got := Find(filepath.Join(link, "a"), real); got == "" {
+		t.Error("jvq.toml not found through a symlinked folder")
+	}
+	// a sibling whose name starts with the root's name isn't inside it
+	sibling := real + "2"
+	os.MkdirAll(sibling, 0o755)
+	defer os.RemoveAll(sibling)
+	if got := Find(sibling, real); got != "" {
+		t.Errorf("found %q from a folder outside the root", got)
+	}
+}
+
+func TestUnderscoresOnlyBetweenDigits(t *testing.T) {
+	for _, bad := range []string{"x = 1__0", "x = _5", "x = 5_"} {
+		if _, err := parseTOML(bad); err == nil {
+			t.Errorf("%q accepted", bad)
+		}
+	}
+	if m, err := parseTOML("x = 1_000_000\ny = 1_0.5"); err != nil || m["x"] != int64(1000000) || m["y"] != 10.5 {
+		t.Errorf("%v %v", m, err)
+	}
+}

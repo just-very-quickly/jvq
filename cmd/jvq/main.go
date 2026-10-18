@@ -124,7 +124,11 @@ func cmdRun(args []string, stdout, stderr io.Writer) int {
 	code, err := run(ctx, f, fs.Args(), stdout, stderr)
 	if err != nil {
 		if ctx.Err() != nil {
-			fmt.Fprintln(stderr, "jvq: interrupted; worktrees removed")
+			if f.keep {
+				fmt.Fprintln(stderr, "jvq: interrupted")
+			} else {
+				fmt.Fprintln(stderr, "jvq: interrupted; worktrees removed")
+			}
 			return exitError
 		}
 		var se *runner.StepError
@@ -189,6 +193,9 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 			return exitError, fmt.Errorf("--max-rounds %d: use at least 3", f.maxRounds)
 		}
 		cfg.MaxRounds = f.maxRounds
+	}
+	if cfg.MaxRounds < cfg.Rounds {
+		cfg.MaxRounds = cfg.Rounds // no extra rounds, and no talk of a lower limit
 	}
 	if f.timeout != "" {
 		d, err := time.ParseDuration(f.timeout)
@@ -295,7 +302,10 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 	}
 	report.Text(stdout, rep)
 	if err := writeFiles(f, rep); err != nil {
-		return exitError, err
+		// The verdict stands; a report file that couldn't be written
+		// shouldn't turn a regression into an error, or a pass into one.
+		fmt.Fprintf(stderr, "jvq: couldn't write a report file: %v\n", err)
+		annotate(stderr, "warning", "couldn't write a report file: "+err.Error())
 	}
 	for _, r := range rows {
 		if r.Verdict == verdict.Regression {
@@ -405,7 +415,10 @@ func quoteArg(a string) string {
 		}
 		return "''"
 	}
-	// cmd.exe treats ^ and % specially, so on Windows they need quotes.
+	// cmd.exe treats ^ as an escape character, so on Windows an argument
+	// with ^ (or %, which expands variables even inside quotes) is quoted;
+	// that protects ^ but not %. A single command string after -- is the
+	// safest way to pass anything unusual.
 	plain := "-_./=:,+@%^"
 	if runtime.GOOS == "windows" {
 		plain = "-_./=:,+@\\"

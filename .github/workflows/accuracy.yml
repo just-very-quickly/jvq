@@ -15,10 +15,8 @@ on:
   push:
     branches: [main]
     paths:
-      - internal/stats/**
-      - internal/verdict/**
-      - internal/runner/**
-      - internal/config/**
+      - cmd/jvq/**
+      - internal/**
       - test/accuracy/**
       - .github/workflows/accuracy.yml
 

@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -441,8 +442,8 @@ func startSlow(t *testing.T) (*exec.Cmd, *fixture.Repo, string) {
 	cmd := exec.Command(jvqBin, "run")
 	cmd.Dir = r.Dir
 	cmd.Env = cleanEnv()
-	var se bytes.Buffer
-	cmd.Stderr = &se
+	se := &syncBuffer{}
+	cmd.Stderr = se
 	if err := cmd.Start(); err != nil {
 		t.Fatal(err)
 	}
@@ -460,6 +461,24 @@ func startSlow(t *testing.T) (*exec.Cmd, *fixture.Repo, string) {
 	cmd.Process.Kill()
 	t.Fatalf("jvq never got to its warm-up run:\n%s", se.String())
 	return nil, nil, ""
+}
+
+// syncBuffer is read by the test while exec writes the child's output.
+type syncBuffer struct {
+	mu sync.Mutex
+	b  bytes.Buffer
+}
+
+func (s *syncBuffer) Write(p []byte) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.b.Write(p)
+}
+
+func (s *syncBuffer) String() string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.b.String()
 }
 
 func TestInterruptCleansUp(t *testing.T) {

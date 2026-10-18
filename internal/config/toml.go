@@ -5,6 +5,7 @@ package config
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
@@ -22,6 +23,21 @@ import (
 // Anything else (inline tables, dates, dotted keys, multi-line strings,
 // arrays of tables) is an error that names the line, rather than a guess.
 // A key set twice and a table opened twice are errors too.
+// orderKey holds, in every table map, the names of its entries in the order
+// they first appear in the file. Readers that care about order (the
+// [budget.bench] tables, where later ones win) use it.
+const orderKey = "\x00order"
+
+func remember(m map[string]any, k string) {
+	o, _ := m[orderKey].([]string)
+	for _, x := range o {
+		if x == k {
+			return
+		}
+	}
+	m[orderKey] = append(o, k)
+}
+
 func parseTOML(src string) (map[string]any, error) {
 	root := map[string]any{}
 	cur := root
@@ -55,6 +71,7 @@ func parseTOML(src string) (map[string]any, error) {
 				if !ok {
 					m := map[string]any{}
 					t[p] = m
+					remember(t, p)
 					t = m
 					continue
 				}
@@ -101,6 +118,7 @@ func parseTOML(src string) (map[string]any, error) {
 			return nil, fmt.Errorf("line %d: %q is set twice", lineNo, key)
 		}
 		cur[key] = v
+		remember(cur, key)
 	}
 	return root, nil
 }
@@ -223,6 +241,9 @@ func parseValue(s string) (any, string, error) {
 	case "false":
 		return false, rest, nil
 	}
+	if strings.Contains(tok, "_") && !digitsWithUnderscores.MatchString(tok) {
+		return nil, "", fmt.Errorf("can't read value %q: underscores go between digits", tok)
+	}
 	clean := strings.ReplaceAll(tok, "_", "")
 	if n, err := strconv.ParseInt(clean, 10, 64); err == nil {
 		return n, rest, nil
@@ -296,3 +317,5 @@ func parseArray(s string) ([]any, string, error) {
 		}
 	}
 }
+
+var digitsWithUnderscores = regexp.MustCompile(`^[+-]?[0-9]+(_[0-9]+)*(\.[0-9]+(_[0-9]+)*)?$`)

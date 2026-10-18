@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"sync"
@@ -240,6 +241,11 @@ func step(ctx context.Context, opt Options, s Side, stage, command string, round
 	cmd.Stderr = combined
 	cmd.WaitDelay = 5 * time.Second
 	err := cmd.Run()
+	if errors.Is(err, exec.ErrWaitDelay) && cmd.ProcessState != nil && cmd.ProcessState.Success() {
+		// The command finished and succeeded, but something it started in
+		// the background kept its output open. The results are complete.
+		err = nil
+	}
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			err = fmt.Errorf("timed out after %s", opt.Timeout)

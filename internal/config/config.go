@@ -23,7 +23,7 @@ import (
 const FileName = "jvq.toml"
 
 // DefaultGoCommand is what jvq runs in a Go module when no command is given.
-const DefaultGoCommand = "go test -run=^$ -bench=. -benchmem ./..."
+const DefaultGoCommand = "go test -run=NONE -bench=. -benchmem ./..."
 
 // Config is everything a run needs, from jvq.toml, flags and defaults.
 type Config struct {
@@ -119,24 +119,44 @@ func ParseBudget(metric, s string) (Budget, error) {
 }
 
 // Find looks for jvq.toml in dir and then in each parent up to and including
-// stop (the repository root). It returns "" when there is none.
+// stop (the repository root). It returns "" when there is none. Symlinks are
+// resolved first, so a folder reached through one (such as /var on macOS,
+// which is /private/var) still finds the file.
 func Find(dir, stop string) string {
-	dir = filepath.Clean(dir)
-	stop = filepath.Clean(stop)
+	dir, stop = resolve(dir), resolve(stop)
+	rel, err := filepath.Rel(stop, dir)
+	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		// dir isn't inside stop: look in dir only.
+		if p := filepath.Join(dir, FileName); isFile(p) {
+			return p
+		}
+		return ""
+	}
 	for {
-		p := filepath.Join(dir, FileName)
-		if st, err := os.Stat(p); err == nil && !st.IsDir() {
+		if p := filepath.Join(dir, FileName); isFile(p) {
 			return p
 		}
 		if dir == stop {
 			return ""
 		}
 		parent := filepath.Dir(dir)
-		if parent == dir || !strings.HasPrefix(dir, stop) {
+		if parent == dir {
 			return ""
 		}
 		dir = parent
 	}
+}
+
+func resolve(p string) string {
+	if r, err := filepath.EvalSymlinks(p); err == nil {
+		return filepath.Clean(r)
+	}
+	return filepath.Clean(p)
+}
+
+func isFile(p string) bool {
+	st, err := os.Stat(p)
+	return err == nil && !st.IsDir()
 }
 
 // Load reads a config file on top of the defaults.
@@ -246,7 +266,7 @@ func (c *Config) readBudgets(v any) error {
 			if !ok {
 				return fmt.Errorf("budget.bench must hold tables such as [budget.bench.\"BenchmarkParse*\"]")
 			}
-			for _, pat := range sortedKeys(benches) {
+			for _, pat := range fileOrder(benches) {
 				bt, ok := benches[pat].(map[string]any)
 				if !ok {
 					return fmt.Errorf("budget.bench.%q must be a table", pat)
@@ -330,10 +350,20 @@ func (c *Config) readIgnore(v any) error {
 func sortedKeys(m map[string]any) []string {
 	ks := make([]string, 0, len(m))
 	for k := range m {
-		ks = append(ks, k)
+		if k != orderKey {
+			ks = append(ks, k)
+		}
 	}
 	sort.Strings(ks)
 	return ks
+}
+
+// fileOrder lists a table's entries in the order the file has them.
+func fileOrder(m map[string]any) []string {
+	if o, ok := m[orderKey].([]string); ok {
+		return o
+	}
+	return sortedKeys(m)
 }
 
 func str(k string, v any) (string, error) {
