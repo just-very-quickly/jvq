@@ -45,8 +45,7 @@ and fixed: the default command on Windows (`-run=NONE`, since cmd.exe eats
 symlinked folders, stale-worktree cleanup limited to this host's dead runs,
 the GOMAXPROCS suffix stripped only when every line shares it, and a
 background child holding output no longer failing a good run. The accuracy
-numbers were recorded just before those fixes; none of them touch how
-verdicts are reached. Known and documented: adaptive rounds re-test at the
+numbers in test/results were recorded again after those fixes. Known and documented: adaptive rounds re-test at the
 same level (optional stopping), so a change exactly at the budget is flagged
 a little more often than 2.5%.
 

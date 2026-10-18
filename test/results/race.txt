@@ -1,0 +1,10 @@
+ok  	github.com/just-very-quickly/jvq/cmd/jvq	19.061s
+ok  	github.com/just-very-quickly/jvq/internal/adapter	1.015s
+ok  	github.com/just-very-quickly/jvq/internal/config	1.016s
+?   	github.com/just-very-quickly/jvq/internal/fixture	[no test files]
+ok  	github.com/just-very-quickly/jvq/internal/gitx	1.571s
+ok  	github.com/just-very-quickly/jvq/internal/report	1.014s
+ok  	github.com/just-very-quickly/jvq/internal/runner	63.472s
+ok  	github.com/just-very-quickly/jvq/internal/stats	1.360s
+ok  	github.com/just-very-quickly/jvq/internal/verdict	1.385s
+?   	github.com/just-very-quickly/jvq/test/accuracy	[no test files]
