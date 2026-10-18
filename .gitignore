@@ -1,0 +1,7 @@
+/jvq
+/jvq.exe
+*.test
+*.test.exe
+coverage.out
+/dist/
+/scripts/__pycache__/

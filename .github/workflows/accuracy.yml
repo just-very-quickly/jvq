@@ -1,0 +1,65 @@
+name: accuracy
+
+# Records jvq's accuracy on a GitHub-hosted runner: the false-alarm rate on
+# no-change runs and the detection rate for injected slowdowns, with the
+# default settings (test/accuracy). It takes about half an hour, so it runs
+# when the code that decides verdicts changes, or by hand.
+#
+# The results go to the accuracy-results branch, in github-ubuntu-latest/,
+# with the commit they measured. scripts/record.sh copies them into
+# test/results/github/ on main, so the numbers quoted in the README and on
+# the site come from the repository.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - internal/stats/**
+      - internal/verdict/**
+      - internal/runner/**
+      - internal/config/**
+      - test/accuracy/**
+      - .github/workflows/accuracy.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: accuracy
+  cancel-in-progress: true
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.26.x"
+      - name: Record
+        run: go run ./test/accuracy -out "$RUNNER_TEMP/accuracy" 2> "$RUNNER_TEMP/progress.txt"
+      - name: Job summary
+        if: always()
+        run: |
+          cat "$RUNNER_TEMP/accuracy/accuracy.md" >> "$GITHUB_STEP_SUMMARY" || tail -50 "$RUNNER_TEMP/progress.txt"
+      - name: Publish to the accuracy-results branch
+        run: |
+          sha=$(git rev-parse HEAD)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch --depth 1 origin accuracy-results 2> /dev/null; then
+            git switch -c accuracy-results FETCH_HEAD
+          else
+            git switch --orphan accuracy-results
+          fi
+          mkdir -p github-ubuntu-latest
+          cp "$RUNNER_TEMP"/accuracy/accuracy.json "$RUNNER_TEMP"/accuracy/accuracy.md github-ubuntu-latest/
+          cp "$RUNNER_TEMP/progress.txt" github-ubuntu-latest/progress.txt
+          echo "$sha" > github-ubuntu-latest/COMMIT
+          git add github-ubuntu-latest
+          git commit -q -m "accuracy on ubuntu-latest for ${sha:0:10}"
+          git push origin accuracy-results

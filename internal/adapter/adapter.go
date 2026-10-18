@@ -1,0 +1,117 @@
+// Copyright JVQ.net 2026
+// SPDX-License-Identifier: Apache-2.0
+
+// Package adapter turns the output of a benchmark command into samples.
+//
+// v0.1 reads the standard Go benchmark format, the one `go test -bench`
+// prints:
+//
+//	pkg: example.com/parse
+//	BenchmarkParse/small-8   	 1234567	       912.3 ns/op	     128 B/op	       3 allocs/op
+//
+// Every result line becomes one sample per metric on it.
+package adapter
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"regexp"
+	"strconv"
+	"strings"
+)
+
+// Metric names jvq knows how to judge. Anything else on a result line is
+// kept as a custom metric and reported, not gated.
+const (
+	Time   = "time"   // ns/op, stored in nanoseconds; lower is better
+	Bytes  = "bytes"  // B/op; lower is better
+	Allocs = "allocs" // allocs/op; lower is better
+)
+
+// Sample is one measured value of one metric of one benchmark.
+type Sample struct {
+	Package string  // the Go package path from the last "pkg:" line, if any
+	Name    string  // benchmark name without the -GOMAXPROCS suffix
+	Metric  string  // Time, Bytes, Allocs, or the unit itself for custom metrics
+	Unit    string  // the unit as printed, such as "ns/op"
+	Value   float64 // the value in that unit
+}
+
+// Key identifies a benchmark across runs: package and name.
+func (s Sample) Key() string {
+	if s.Package == "" {
+		return s.Name
+	}
+	return s.Package + "." + s.Name
+}
+
+// Names lists the adapters jvq has.
+var Names = []string{"go"}
+
+// Parse reads output in the named adapter's format.
+func Parse(adapter string, r io.Reader) ([]Sample, error) {
+	switch adapter {
+	case "go", "":
+		return ParseGo(r)
+	default:
+		return nil, fmt.Errorf("unknown adapter %q (jvq %s has: %s)", adapter, "v0.1", strings.Join(Names, ", "))
+	}
+}
+
+var procsSuffix = regexp.MustCompile(`-[0-9]+$`)
+
+// ParseGo reads Go benchmark output. Lines that aren't results (PASS, ok,
+// goos:, test logs) are skipped. A result line must have the benchmark name,
+// an iteration count, and value-unit pairs.
+func ParseGo(r io.Reader) ([]Sample, error) {
+	var out []Sample
+	pkg := ""
+	sc := bufio.NewScanner(r)
+	sc.Buffer(make([]byte, 64*1024), 4*1024*1024)
+	for sc.Scan() {
+		line := sc.Text()
+		if strings.HasPrefix(line, "pkg:") {
+			pkg = strings.TrimSpace(strings.TrimPrefix(line, "pkg:"))
+			continue
+		}
+		if !strings.HasPrefix(line, "Benchmark") {
+			continue
+		}
+		f := strings.Fields(line)
+		// name, iterations, then at least one value-unit pair
+		if len(f) < 4 || (len(f)-2)%2 != 0 {
+			continue
+		}
+		if _, err := strconv.ParseUint(f[1], 10, 64); err != nil {
+			continue
+		}
+		name := procsSuffix.ReplaceAllString(f[0], "")
+		var row []Sample
+		ok := true
+		for i := 2; i+1 < len(f); i += 2 {
+			v, err := strconv.ParseFloat(f[i], 64)
+			if err != nil {
+				ok = false
+				break
+			}
+			unit := f[i+1]
+			s := Sample{Package: pkg, Name: name, Unit: unit, Value: v}
+			switch unit {
+			case "ns/op":
+				s.Metric = Time
+			case "B/op":
+				s.Metric = Bytes
+			case "allocs/op":
+				s.Metric = Allocs
+			default:
+				s.Metric = unit
+			}
+			row = append(row, s)
+		}
+		if ok {
+			out = append(out, row...)
+		}
+	}
+	return out, sc.Err()
+}

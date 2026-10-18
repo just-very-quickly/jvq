@@ -1,0 +1,102 @@
+name: jvq performance budget
+description: Fail a pull request when it makes your benchmarks slower than their budget allows. Measures base and head on the same runner, interleaved.
+author: JVQ.net
+branding:
+  icon: clock
+  color: orange
+
+inputs:
+  command:
+    description: The benchmark command, such as `go test -run=^$ -bench=. -benchmem ./...`. Empty uses `command` from jvq.toml, or that default in a Go module.
+    required: false
+    default: ""
+  base:
+    description: The commit to compare against. Empty picks where the pull request branched off its base branch, or on a push, the previous commit.
+    required: false
+    default: ""
+  config:
+    description: Path to jvq.toml, if it isn't in the working directory or a parent.
+    required: false
+    default: ""
+  args:
+    description: More flags for `jvq run`, such as `-rounds 12 -fail-on-inconclusive`.
+    required: false
+    default: ""
+  working-directory:
+    description: Where to run, such as a Go module in a subdirectory.
+    required: false
+    default: "."
+  version:
+    description: The jvq release to use, such as v0.1.0. Empty uses the tag this action was referenced by, or the latest release when referenced by a branch.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Install jvq
+      shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        ACTION_REF: ${{ github.action_ref }}
+      run: |
+        set -euo pipefail
+        ver="$INPUT_VERSION"
+        if [ -z "$ver" ]; then
+          if [[ "$ACTION_REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then ver="$ACTION_REF"; else ver=latest; fi
+        fi
+        case "$RUNNER_OS" in
+          Linux) os=linux ;;
+          macOS) os=darwin ;;
+          Windows) os=windows ;;
+          *) echo "::error title=jvq::unsupported runner OS $RUNNER_OS"; exit 2 ;;
+        esac
+        case "$RUNNER_ARCH" in
+          X64) arch=amd64 ;;
+          ARM64) arch=arm64 ;;
+          *) echo "::error title=jvq::unsupported runner architecture $RUNNER_ARCH"; exit 2 ;;
+        esac
+        ext=tar.gz
+        [ "$os" = windows ] && ext=zip
+        name="jvq_${os}_${arch}.${ext}"
+        if [ "$ver" = latest ]; then
+          base_url="https://github.com/just-very-quickly/jvq/releases/latest/download"
+        else
+          base_url="https://github.com/just-very-quickly/jvq/releases/download/${ver}"
+        fi
+        dir="$RUNNER_TEMP/jvq-bin"
+        mkdir -p "$dir"
+        curl -fsSL --retry 3 -o "$dir/$name" "$base_url/$name"
+        curl -fsSL --retry 3 -o "$dir/SHA256SUMS" "$base_url/SHA256SUMS"
+        (
+          cd "$dir"
+          want=$(grep " ${name}\$" SHA256SUMS | cut -d' ' -f1)
+          if command -v sha256sum > /dev/null; then got=$(sha256sum "$name" | cut -d' ' -f1); else got=$(shasum -a 256 "$name" | cut -d' ' -f1); fi
+          if [ -z "$want" ] || [ "$want" != "$got" ]; then
+            echo "::error title=jvq::checksum mismatch for $name"
+            exit 2
+          fi
+          if [ "$ext" = zip ]; then unzip -oq "$name"; else tar -xzf "$name"; fi
+        )
+        echo "$dir" >> "$GITHUB_PATH"
+        "$dir/jvq" version
+
+    - name: Run jvq
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        INPUT_COMMAND: ${{ inputs.command }}
+        INPUT_BASE: ${{ inputs.base }}
+        INPUT_CONFIG: ${{ inputs.config }}
+        INPUT_ARGS: ${{ inputs.args }}
+      run: |
+        set -uo pipefail
+        args=(run)
+        [ -n "$INPUT_BASE" ] && args+=(-base "$INPUT_BASE")
+        [ -n "$INPUT_CONFIG" ] && args+=(-config "$INPUT_CONFIG")
+        if [ -n "$INPUT_ARGS" ]; then
+          read -r -a extra <<< "$INPUT_ARGS"
+          args+=("${extra[@]}")
+        fi
+        [ -n "$INPUT_COMMAND" ] && args+=(-- "$INPUT_COMMAND")
+        jvq "${args[@]}"

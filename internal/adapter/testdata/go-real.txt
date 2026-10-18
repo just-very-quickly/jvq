@@ -1,0 +1,10 @@
+goos: linux
+goarch: amd64
+pkg: example.com/gb
+cpu: Intel(R) Xeon(R) Processor @ 2.10GHz
+BenchmarkAlloc-2    	 1000000	        33.53 ns/op	      64 B/op	       1 allocs/op
+BenchmarkSizes/n=10-2         	 1543737	        15.55 ns/op	 643.25 MB/s	      16 B/op	       1 allocs/op
+BenchmarkSizes/n=1000-2       	   76579	       360.2 ns/op	2776.44 MB/s	    1024 B/op	       1 allocs/op
+BenchmarkCustom-2             	179440917	         0.1308 ns/op	        42.00 widgets/op	       0 B/op	       0 allocs/op
+PASS
+ok  	example.com/gb	0.186s

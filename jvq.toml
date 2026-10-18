@@ -1,0 +1,9 @@
+# jvq checks its own speed with this file: the statistics and the output
+# parser are on the path of every run. See .github/workflows/benchmarks.yml.
+command = "go test -run=NONE -bench=. -benchmem ./internal/stats ./internal/adapter"
+rounds = 10
+max_rounds = 30
+
+[budget]
+time = "10%"
+allocs = "0"

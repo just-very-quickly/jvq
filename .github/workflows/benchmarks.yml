@@ -1,0 +1,32 @@
+name: benchmarks
+
+# jvq checking jvq: on every pull request, and after each release on main,
+# the published action runs the released jvq on this repository's own
+# benchmarks (the statistics and the output parser, see jvq.toml), comparing
+# the change with its base. It is also the check that the action and the
+# latest release work end to end.
+
+on:
+  pull_request:
+  workflow_run:
+    workflows: [release]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  jvq:
+    if: github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha || '' }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.26.x"
+      - uses: ./
+        with:
+          version: latest
