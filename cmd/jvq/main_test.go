@@ -248,7 +248,7 @@ func TestShallowCloneSaysHowToFix(t *testing.T) {
 	r := newFixture(t, "", fixture.Spec{Work: 2000})
 	commit(t, r, fixture.Spec{Work: 2001}, "two")
 	clone := filepath.Join(t.TempDir(), "clone")
-	if _, err := fixture.Git(filepath.Dir(clone), "clone", "-q", "--depth", "1", "file://"+filepath.ToSlash(r.Dir), clone); err != nil {
+	if _, err := fixture.Git(filepath.Dir(clone), "clone", "-q", "--depth", "1", fixture.FileURL(r.Dir), clone); err != nil {
 		t.Fatal(err)
 	}
 	res := jvq(t, clone, nil, "run", "--", fixture.Command("10ms"))

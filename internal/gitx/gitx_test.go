@@ -139,7 +139,7 @@ func TestShallowCloneExplainsItself(t *testing.T) {
 	commit(t, src, "a", "2")
 	commit(t, src, "a", "3")
 	clone := filepath.Join(t.TempDir(), "clone")
-	git(t, filepath.Dir(clone), "clone", "-q", "--depth", "1", "file://"+filepath.ToSlash(src), clone)
+	git(t, filepath.Dir(clone), "clone", "-q", "--depth", "1", fileURL(src), clone)
 	r, err := Open(ctx, clone)
 	if err != nil {
 		t.Fatal(err)
@@ -285,4 +285,12 @@ func TestAlive(t *testing.T) {
 	if alive(0) || alive(-1) {
 		t.Error("pid 0 or -1 alive")
 	}
+}
+
+func fileURL(path string) string {
+	p := filepath.ToSlash(path)
+	if !strings.HasPrefix(p, "/") {
+		p = "/" + p
+	}
+	return "file://" + p
 }

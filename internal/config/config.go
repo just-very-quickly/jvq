@@ -123,27 +123,36 @@ func ParseBudget(metric, s string) (Budget, error) {
 // resolved first, so a folder reached through one (such as /var on macOS,
 // which is /private/var) still finds the file.
 func Find(dir, stop string) string {
-	dir, stop = resolve(dir), resolve(stop)
-	rel, err := filepath.Rel(stop, dir)
+	orig := filepath.Clean(dir)
+	rdir, rstop := resolve(dir), resolve(stop)
+	rel, err := filepath.Rel(rstop, rdir)
 	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		// dir isn't inside stop: look in dir only.
-		if p := filepath.Join(dir, FileName); isFile(p) {
+		if p := filepath.Join(orig, FileName); isFile(p) {
 			return p
 		}
 		return ""
 	}
+	// Walk up in resolved paths, but return the file under the folder as
+	// the caller named it, so paths in messages look like the user's own.
+	up := 0
 	for {
-		if p := filepath.Join(dir, FileName); isFile(p) {
-			return p
+		if isFile(filepath.Join(rdir, FileName)) {
+			p := orig
+			for i := 0; i < up; i++ {
+				p = filepath.Dir(p)
+			}
+			return filepath.Join(p, FileName)
 		}
-		if dir == stop {
+		if rdir == rstop {
 			return ""
 		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
+		parent := filepath.Dir(rdir)
+		if parent == rdir {
 			return ""
 		}
-		dir = parent
+		rdir = parent
+		up++
 	}
 }
 

@@ -32,7 +32,18 @@ jobs:
       - if: runner.os != 'Windows'
         run: test -z "$(gofmt -l .)"
       - run: go vet ./...
-      - run: go test -count=1 ./...
+      - name: Tests
+        shell: bash
+        run: |
+          set -o pipefail
+          if ! go test -count=1 ./... 2>&1 | tee test-output.txt; then
+            # Show the failures as annotations, so they can be read without
+            # access to the raw log.
+            grep -E -- '--- FAIL|_test\.go:[0-9]+:|panic:' test-output.txt | head -30 | while IFS= read -r line; do
+              echo "::error title=go test ${RUNNER_OS}::${line}"
+            done
+            exit 1
+          fi
       - if: runner.os == 'Linux'
         run: go test -race -count=1 ./...
       - run: python3 -B -m unittest discover -s scripts -p '*_test.py'

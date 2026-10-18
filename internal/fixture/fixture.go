@@ -89,6 +89,16 @@ func Git(dir string, args ...string) (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
+// FileURL turns a local path into a file:// URL git accepts on every
+// system, so a shallow clone (--depth) works: file:///C:/x on Windows.
+func FileURL(path string) string {
+	p := filepath.ToSlash(path)
+	if !strings.HasPrefix(p, "/") {
+		p = "/" + p
+	}
+	return "file://" + p
+}
+
 // Repo is a fixture repository.
 type Repo struct {
 	Dir    string
