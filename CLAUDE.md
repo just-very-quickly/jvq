@@ -64,7 +64,8 @@ on the machine while it records.
 
 The `accuracy` workflow records the same suite on a GitHub-hosted runner when
 the deciding code changes (or by hand) and pushes it to the
-`accuracy-results` branch; record.sh copies it into `test/results/github/`.
+`accuracy-results` branch; record.sh copies it into `test/results/github/`. The first one (October 2026,
+commit e4a746f) is there: 0.4% noise, 0/200 false alarms, +10% caught 50/50.
 
 The `benchmarks` workflow runs the released action on jvq's own benchmarks
 (jvq.toml at the root) on pull requests and after each release.

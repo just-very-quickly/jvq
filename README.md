@@ -62,7 +62,8 @@ so instead of guessing.
 6. **Adaptive rounds.** While any result is inconclusive, jvq adds rounds,
    two at a time, up to `max_rounds` (30). Clear cases stop after 10. Each
    extra look is a new chance for a result right at the budget to tip
-   over, which is part of why a +5% change was flagged in 1 of 50 runs.
+   over, which is part of why a change of exactly +5% was flagged in 1 to 4
+   runs of 50.
 7. **Exact gates.** Bytes and allocations per op hardly vary between runs, so
    they're compared on medians, without statistics. `allocs = "0"` fails a
    change that adds even one allocation per op.
@@ -93,6 +94,13 @@ same benchmark binary, run 40 times in a row, spread by 8.9% from run to run
 The runs that weren't flagged passed or came back inconclusive. Clear cases
 took the 10 starting rounds; close ones used more, up to 30 per side, and a
 time run took 1.5 to 3.6 seconds on this fixture.
+
+On a GitHub-hosted runner (ubuntu-latest, 4 cores) the same suite saw only
+0.4% run-to-run noise, and every clear case was decided in the first 10
+rounds: all 200 no-change runs and all 50 at +2% passed, and every run at
++10%, +20% and +50% was caught. A change of exactly the budget, +5%, was
+flagged in 4 of 50 runs. [test/results/github/](test/results/github/accuracy.md)
+has that recording.
 
 Near the budget, jvq would rather say "can't tell" than guess. That's the
 design: a gate that cries wolf gets switched off.

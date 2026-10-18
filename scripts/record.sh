@@ -44,7 +44,7 @@ fi
 
 if git fetch -q origin accuracy-results 2> /dev/null; then
   mkdir -p "$out/github"
-  for f in accuracy.json accuracy.md COMMIT; do
+  for f in accuracy.json accuracy.md progress.txt COMMIT; do
     git show "FETCH_HEAD:github-ubuntu-latest/$f" > "$out/github/$f"
   done
   echo "record: copied the GitHub runner recording ($(cat "$out/github/COMMIT" | cut -c1-10))"
