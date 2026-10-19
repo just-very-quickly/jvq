@@ -7,6 +7,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -163,7 +164,8 @@ func TestReRunReplacesItsLine(t *testing.T) {
 	if len(entries) != 1 || entries[0].Verdict != "regression" {
 		t.Errorf("entries %+v", entries)
 	}
-	if fi, _ := os.Stat(path); fi.Mode().Perm() != 0o640 {
+	// Windows has no Unix permission bits to keep.
+	if fi, _ := os.Stat(path); runtime.GOOS != "windows" && fi.Mode().Perm() != 0o640 {
 		t.Errorf("mode %v", fi.Mode().Perm())
 	}
 	if err := Append(filepath.Join(t.TempDir(), "no", "h.jsonl"), e, 0); err == nil || !strings.Contains(err.Error(), "doesn't exist") {
