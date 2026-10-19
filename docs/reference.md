@@ -212,29 +212,42 @@ a long benchmark name that wraps
 
 The middle value, criterion's estimate, is the run's time; a name too long
 for its column is on the line before. Throughput (`thrpt:`) and change
-lines are skipped. The bencher format, from `cargo bench -- --output-format
-bencher` or Rust's own `#[bench]`, works too:
-`test parse_small ... bench: 1,873 ns/iter (+/- 21)`. Units ps, ns, µs (us),
-ms and s.
+lines are skipped, including the `change:` block, with its own `time:` line
+in percent, that criterion prints for a benchmark with a throughput. Colour
+codes (`--color always`) are removed. The bencher format, from `cargo bench
+-- --output-format bencher` or Rust's own `#[bench]`, works too:
+`test parse_small ... bench: 1,873 ns/iter (+/- 21)`. It rounds to whole
+nanoseconds, so a fast benchmark moves in coarse steps and one under half a
+nanosecond prints 0 and is left out; criterion's default output is the
+better one for jvq. Units ps, ns, µs (us), ms and s.
 
 **google-benchmark** reads the JSON that Google Benchmark writes with
 `--benchmark_format=json` (or to a file with `--benchmark_out=FILE
 --benchmark_out_format=json` and `output = "FILE"`). Each iteration entry is
 a sample of its `real_time`, in its `time_unit`; aggregate entries (mean,
-median, stddev, cv) are skipped. The name is `run_name`, so repetitions of
-one benchmark share it. An entry with `error_occurred` fails the run with
-its message. Counters aren't read.
+median, stddev, cv) are skipped, unless there are only aggregates
+(`--benchmark_report_aggregates_only`), when each benchmark's median stands
+for the run. The name is `run_name`, so repetitions of one benchmark share
+it. An entry with `error_occurred` fails the run with its message; a
+skipped one (`SkipWithMessage`) is left out. Counters aren't read, and the
+bare `NaN` and `Infinity` Google Benchmark can write for them are accepted.
+Versions old enough to mark aggregates only by a name suffix (`BM_x_mean`)
+aren't supported.
 
 **pytest-benchmark** reads the file pytest-benchmark writes with
 `--benchmark-json=FILE`; set `output` to it. Each benchmark's `stats.median`
 is its time. Its name is the test's `name` (`test_parse[small]` for a
 parametrised test), and the rest of its `fullname`, the file and any class,
-is its group, so tests of the same name in two files stay apart.
+is its group, so tests of the same name in two files stay apart. Two
+benchmarks with the same group and name in one run are an error, since
+jvq couldn't tell them apart.
 
-**vitest** reads the file `vitest bench --run --outputJson FILE` writes; set
-`output` to it. Each benchmark's `median` (or `mean`, where there's no
-median) is its time. The group is vitest's name for the file and `describe`
-blocks around it, such as `parse.bench.js > json`.
+**vitest** reads the file `vitest bench --run --outputJson FILE` writes, in
+vitest 1 to 4 (vitest 5 dropped `--outputJson`); set `output` to it. Each
+benchmark's `median` is its time, or its `mean` in vitest 1, which has no
+median. The group is vitest's name for the file and `describe` blocks
+around it, such as `parse.bench.js > json`; two benchmarks with the same
+group and name in one run are an error.
 
 For the JSON harnesses, the document may follow other output, as long as
 it starts on a line of its own.
@@ -244,12 +257,17 @@ it starts on a line of its own.
 `size = ["target/release/app", "dist/*.js"]` lists files whose size jvq
 gates. After the build (or before the first round, with no build), jvq
 measures each regular file the patterns match on each side, in the folder
-the command runs in; patterns use Go's `filepath.Glob`, where `*` matches
-within one folder name. A file matched by two patterns counts once. Each
+the command runs in. Patterns use `/` on every system, `*` matches within
+one folder name (unlike benchmark patterns, where it crosses `/`), and a
+pattern can't start with `/` or climb out with `..`; `jvq check` reports a
+bad one. A folder isn't measured: name its files. A file matched by two
+patterns counts once. `[ignore] bench` patterns hide size rows too. Each
 file is a row with metric `size` and its path as the name, judged like
 bytes: a regression when head's size is over base's plus the budget, 1% by
-default. A file on one side only is new or removed; a pattern that matches
-nothing on either side is an error.
+default, which for a small file is only a few bytes; an amount such as
+`"2000"` suits those. A file on one side only is new or removed, not
+gated; a pattern that matches nothing on either side is an error. With no
+`build`, sizes are measured before the first run.
 
 ## The time adapter
 

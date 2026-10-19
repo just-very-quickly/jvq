@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -56,14 +57,23 @@ func ParseCriterion(r io.Reader) ([]Sample, error) {
 	n := 0
 	for sc.Scan() {
 		n++
-		line := strings.TrimRight(sc.Text(), " \t\r")
+		line := strings.TrimRight(ansi.ReplaceAllString(sc.Text(), ""), " \t\r")
 		trimmed := strings.TrimSpace(line)
 		if s, ok, err := parseBencher(trimmed); ok {
 			if err != nil {
 				return nil, fmt.Errorf("line %d: %w", n, err)
 			}
-			out = append(out, s)
+			if s.Value > 0 {
+				out = append(out, s)
+			}
 		} else if i := strings.Index(line, "time:"); i >= 0 && strings.HasPrefix(strings.TrimSpace(line[i+5:]), "[") {
+			if strings.TrimSpace(prev) == "change:" || strings.Contains(line[i:], "%") {
+				// The change since criterion's last run, which a benchmark
+				// with a throughput prints as its own block; jvq measures
+				// base and head itself.
+				prev = line
+				continue
+			}
 			name := strings.TrimSpace(line[:i])
 			if name == "" {
 				name = strings.TrimSpace(prev)
@@ -83,6 +93,10 @@ func ParseCriterion(r io.Reader) ([]Sample, error) {
 	}
 	return out, sc.Err()
 }
+
+// ansi matches the colour codes criterion and cargo print with --color
+// always, and the shift-in character some terminals' resets end with.
+var ansi = regexp.MustCompile("\x1b\\[[0-9;]*[A-Za-z]|\x0f")
 
 // criterionEstimate reads "[1.8615 µs 1.8732 µs 1.8884 µs]" and returns the
 // middle value in nanoseconds.
@@ -123,9 +137,9 @@ func parseBencher(line string) (Sample, bool, error) {
 	if err != nil || !ok || v < 0 {
 		return Sample{}, true, fmt.Errorf("%s: can't read the time %q", name, f[0]+" "+f[1])
 	}
-	if v == 0 {
-		return Sample{}, true, fmt.Errorf("%s: a time of 0 ns/iter; the benchmark may have been optimised away", name)
-	}
+	// The bencher format rounds to whole units, so a benchmark under half a
+	// nanosecond prints 0. That one is left out (it gives no ratio to
+	// judge); criterion's default output keeps the fraction.
 	return Sample{Name: name, Metric: Time, Unit: "ns", Value: v * scale}, true, nil
 }
 
@@ -156,7 +170,7 @@ func ParseGoogleBenchmark(r io.Reader) ([]Sample, error) {
 	if err != nil {
 		return nil, err
 	}
-	doc, err := jsonDocument(data, "google-benchmark")
+	doc, err := jsonDocument(nonFinite(data), "google-benchmark")
 	if doc == nil || err != nil {
 		return nil, err
 	}
@@ -169,16 +183,29 @@ func ParseGoogleBenchmark(r io.Reader) ([]Sample, error) {
 			RealTime      *float64 `json:"real_time"`
 			TimeUnit      string   `json:"time_unit"`
 			ErrorOccurred bool     `json:"error_occurred"`
+			Skipped       bool     `json:"skipped"`
 			ErrorMessage  string   `json:"error_message"`
 		} `json:"benchmarks"`
 	}
 	if err := json.Unmarshal(doc, &gb); err != nil || gb.Benchmarks == nil {
 		return nil, errors.New(`google-benchmark: want Google Benchmark's JSON, with a "benchmarks" list; run the benchmark with --benchmark_format=json`)
 	}
+	// With --benchmark_report_aggregates_only there are no iteration
+	// entries; then each benchmark's median aggregate stands for the run.
+	iterations := false
+	for _, b := range *gb.Benchmarks {
+		if b.RunType != "aggregate" && b.AggregateName == "" {
+			iterations = true
+		}
+	}
 	var out []Sample
 	for _, b := range *gb.Benchmarks {
-		if b.RunType == "aggregate" || b.AggregateName != "" {
+		aggregate := b.RunType == "aggregate" || b.AggregateName != ""
+		if aggregate && (iterations || b.AggregateName != "median") {
 			continue
+		}
+		if b.Skipped {
+			continue // SkipWithMessage: nothing measured
 		}
 		name := b.RunName
 		if name == "" {
@@ -198,6 +225,65 @@ func ParseGoogleBenchmark(r io.Reader) ([]Sample, error) {
 		out = append(out, Sample{Name: name, Metric: Time, Unit: "ns", Value: *b.RealTime * scale})
 	}
 	return out, nil
+}
+
+// nonFinite turns the bare NaN and Infinity that Google Benchmark writes
+// for some counters, which aren't JSON, into null, outside strings.
+func nonFinite(b []byte) []byte {
+	if !bytes.Contains(b, []byte("NaN")) && !bytes.Contains(b, []byte("Infinity")) {
+		return b
+	}
+	out := make([]byte, 0, len(b))
+	inString, escaped := false, false
+	for i := 0; i < len(b); i++ {
+		c := b[i]
+		if inString {
+			out = append(out, c)
+			switch {
+			case escaped:
+				escaped = false
+			case c == '\\':
+				escaped = true
+			case c == '"':
+				inString = false
+			}
+			continue
+		}
+		if c == '"' {
+			inString = true
+			out = append(out, c)
+			continue
+		}
+		rest := b[i:]
+		switch {
+		case bytes.HasPrefix(rest, []byte("-Infinity")):
+			out = append(out, "null"...)
+			i += len("-Infinity") - 1
+		case bytes.HasPrefix(rest, []byte("Infinity")):
+			out = append(out, "null"...)
+			i += len("Infinity") - 1
+		case bytes.HasPrefix(rest, []byte("NaN")):
+			out = append(out, "null"...)
+			i += len("NaN") - 1
+		default:
+			out = append(out, c)
+		}
+	}
+	return out
+}
+
+// noDuplicates fails when one run reports two benchmarks under one key:
+// pytest-benchmark and vitest give exactly one value per benchmark, so a
+// repeat is two different benchmarks that would be merged.
+func noDuplicates(format string, samples []Sample) error {
+	seen := map[string]bool{}
+	for _, s := range samples {
+		if seen[s.Key()] {
+			return fmt.Errorf("%s: two benchmarks are both called %q; rename one so jvq can tell them apart", format, s.Key())
+		}
+		seen[s.Key()] = true
+	}
+	return nil
 }
 
 // ParsePytestBenchmark reads pytest-benchmark's JSON, from
@@ -235,7 +321,7 @@ func ParsePytestBenchmark(r io.Reader) ([]Sample, error) {
 		}
 		out = append(out, Sample{Package: group, Name: b.Name, Metric: Time, Unit: "ns", Value: *b.Stats.Median * 1e9})
 	}
-	return out, nil
+	return out, noDuplicates("pytest-benchmark", out)
 }
 
 // ParseVitest reads the JSON report of `vitest bench --outputJson FILE`.
@@ -264,22 +350,25 @@ func ParseVitest(r io.Reader) ([]Sample, error) {
 		} `json:"files"`
 	}
 	if err := json.Unmarshal(doc, &vt); err != nil || vt.Files == nil {
-		return nil, errors.New(`vitest: want the JSON report of vitest bench, with a "files" list; run vitest bench --run --outputJson FILE and set output to FILE`)
+		return nil, errors.New(`vitest: want the JSON report of vitest bench, with a "files" list; run vitest bench --run --outputJson FILE and set output to FILE (vitest 1 to 4; vitest 5 dropped --outputJson)`)
 	}
 	var out []Sample
 	for _, f := range *vt.Files {
 		for _, g := range f.Groups {
 			for _, b := range g.Benchmarks {
+				// vitest 1 has no median; later versions always do. The
+				// mean is used only when the median is missing, so one
+				// benchmark never mixes the two.
 				v := b.Median
-				if v == nil || *v <= 0 {
+				if v == nil {
 					v = b.Mean
 				}
 				if v == nil || *v <= 0 {
-					return nil, fmt.Errorf("vitest: %s has no median or mean time", b.Name)
+					return nil, fmt.Errorf("vitest: %s has no time above 0 (the timer may be too coarse for it)", b.Name)
 				}
 				out = append(out, Sample{Package: g.FullName, Name: b.Name, Metric: Time, Unit: "ns", Value: *v * 1e6})
 			}
 		}
 	}
-	return out, nil
+	return out, noDuplicates("vitest", out)
 }

@@ -1,0 +1,55 @@
+work                    time:   [3.8918 µs 3.9264 µs 3.9625 µs]
+                        change: [-1.4095% +0.2865% +1.7315%] (p = 0.73 > 0.05)
+                        No change in performance detected.
+Found 9 outliers among 100 measurements (9.00%)
+  8 (8.00%) high mild
+  1 (1.00%) high severe
+slope  [3.8918 µs 3.9625 µs] R^2            [0.7943076 0.7937359]
+mean   [3.8139 µs 3.8890 µs] std. dev.      [152.23 ns 229.69 ns]
+median [3.7485 µs 3.8369 µs] med. abs. dev. [81.175 ns 166.37 ns]
+
+a very long benchmark name that will surely wrap around
+                        time:   [21.520 ns 22.442 ns 23.338 ns]
+                        change: [+11.742% +15.627% +19.779%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high mild
+slope  [21.520 ns 23.338 ns] R^2            [0.1390279 0.1394217]
+mean   [19.994 ns 21.500 ns] std. dev.      [3.1999 ns 4.4715 ns]
+median [18.431 ns 20.344 ns] med. abs. dev. [1.4492 ns 3.7624 ns]
+
+grp/op/10               time:   [8.9585 ns 9.2514 ns 9.5788 ns]
+                        thrpt:  [1.0440 Gelem/s 1.0809 Gelem/s 1.1163 Gelem/s]
+                 change:
+                        time:   [+22.018% +24.499% +26.768%] (p = 0.00 < 0.05)
+                        thrpt:  [-21.116% -19.678% -18.045%]
+                        Performance has regressed.
+Found 19 outliers among 100 measurements (19.00%)
+  18 (18.00%) low severe
+  1 (1.00%) high mild
+slope  [8.9585 ns 9.5788 ns] R^2            [0.1933772 0.1909384]
+mean   [9.6417 ns 9.9761 ns] std. dev.      [699.55 ps 988.12 ps]
+median [10.145 ns 10.211 ns] med. abs. dev. [115.55 ps 241.98 ps]
+grp/op/100              time:   [166.04 ns 166.41 ns 166.86 ns]
+                        thrpt:  [599.30 Melem/s 600.93 Melem/s 602.25 Melem/s]
+                 change:
+                        time:   [-5.2945% -3.0928% -1.6085%] (p = 0.00 < 0.05)
+                        thrpt:  [+1.6348% +3.1915% +5.5905%]
+                        Performance has improved.
+Found 10 outliers among 100 measurements (10.00%)
+  1 (1.00%) low mild
+  7 (7.00%) high mild
+  2 (2.00%) high severe
+slope  [166.04 ns 166.86 ns] R^2            [0.9835072 0.9831577]
+mean   [166.04 ns 166.92 ns] std. dev.      [1.6852 ns 2.8054 ns]
+median [165.83 ns 166.46 ns] med. abs. dev. [942.03 ps 1.7919 ns]
+
+tiny                    time:   [326.29 ps 350.45 ps 375.84 ps]
+                        change: [-12.630% -7.6832% -2.6539%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 7 outliers among 100 measurements (7.00%)
+  7 (7.00%) high severe
+slope  [326.29 ps 375.84 ps] R^2            [0.3411578 0.3391997]
+mean   [320.28 ps 339.94 ps] std. dev.      [30.335 ps 65.729 ps]
+median [313.21 ps 318.51 ps] med. abs. dev. [6.8723 ps 11.612 ps]
+

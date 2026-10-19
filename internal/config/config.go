@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"math"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -251,7 +252,9 @@ func Parse(src string) (Config, error) {
 				}
 			}
 		case "size":
-			c.Size, err = strList(k, v)
+			if c.Size, err = strList(k, v); err == nil {
+				err = checkSizePatterns(c.Size)
+			}
 		case "budget":
 			err = c.readBudgets(v)
 		case "ignore":
@@ -521,4 +524,21 @@ func strList(k string, v any) ([]string, error) {
 		return nil, fmt.Errorf("%s is empty; leave it out to gate no file sizes", k)
 	}
 	return out, nil
+}
+
+// checkSizePatterns rejects patterns that can't match inside the folder the
+// command runs in: bad syntax, absolute paths, and paths that climb out.
+func checkSizePatterns(ps []string) error {
+	for _, p := range ps {
+		if _, err := path.Match(p, ""); err != nil {
+			return fmt.Errorf("size pattern %q: %v", p, err)
+		}
+		if strings.Contains(p, "\\") {
+			return fmt.Errorf("size pattern %q: write paths with / on every system", p)
+		}
+		if !fs.ValidPath(p) {
+			return fmt.Errorf("size pattern %q: use a path inside the folder the command runs in, such as \"bin/app\", without a leading / or ..", p)
+		}
+	}
+	return nil
 }

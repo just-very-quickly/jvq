@@ -146,14 +146,18 @@ func compare(f runFlags, oldPath, newPath string, stdout, stderr io.Writer) (int
 	return exitPass, nil
 }
 
-// compareAdapter picks the files' format: the flag, then an adapter set in
-// jvq.toml (a harness's JSON files end in .json too), then json for files
-// ending in .json or .jsonl, then go.
+// compareAdapter picks the files' format: the flag; then an adapter in
+// jvq.toml that reads JSON (a harness's JSON files end in .json too); then
+// json for files ending in .json or .jsonl; then a text adapter in jvq.toml
+// (go or criterion); then go.
 func compareAdapter(flagValue, configured string, fromFile bool, paths ...string) string {
 	if flagValue != "" {
 		return flagValue
 	}
-	if fromFile && configured != "" && !adapter.Timed(configured) {
+	if fromFile && jsonFormat(configured) {
+		return configured
+	}
+	if fromFile && configured != "" && !adapter.Timed(configured) && !jsonFormat(configured) && !anyJSON(paths) {
 		return configured
 	}
 	allJSON := true
@@ -168,6 +172,25 @@ func compareAdapter(flagValue, configured string, fromFile bool, paths ...string
 		return "json"
 	}
 	return "go"
+}
+
+func anyJSON(paths []string) bool {
+	for _, p := range paths {
+		switch strings.ToLower(filepath.Ext(p)) {
+		case ".json", ".jsonl":
+			return true
+		}
+	}
+	return false
+}
+
+// jsonFormat reports whether an adapter reads JSON files.
+func jsonFormat(name string) bool {
+	switch name {
+	case "json", "google-benchmark", "pytest-benchmark", "vitest":
+		return true
+	}
+	return false
 }
 
 func readSamples(name, path string) ([]adapter.Sample, error) {

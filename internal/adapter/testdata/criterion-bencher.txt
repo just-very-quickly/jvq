@@ -1,0 +1,9 @@
+test work ... bench:        3754 ns/iter (+/- 145)
+
+test a very long benchmark name that will surely wrap around ... bench:          14 ns/iter (+/- 2)
+
+test grp/op/10 ... bench:           8 ns/iter (+/- 1)
+test grp/op/100 ... bench:         168 ns/iter (+/- 8)
+
+test tiny ... bench:           0 ns/iter (+/- 0)
+

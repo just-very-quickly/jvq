@@ -67,17 +67,18 @@ func harnesses() []*harness {
 const WORK = %d
 
 function op(n) {
-  let x = 88172645463325252n & 0xffffffffn
+  let x = 2463534242
   for (let i = 0; i < n; i++) {
-    x ^= (x << 13n) & 0xffffffffn
-    x ^= x >> 7n
-    x ^= (x << 17n) & 0xffffffffn
+    x ^= x << 13
+    x ^= x >>> 17
+    x ^= x << 5
   }
   return x
 }
 
-bench('work', () => { op(WORK) }, { time: 200 })
-`, w/100)}
+let sink = 0
+bench('work', () => { sink ^= op(WORK) }, { time: 300 })
+`, w)}
 			},
 			// The worktrees have no node_modules; the build links the
 			// shared one, installed once.

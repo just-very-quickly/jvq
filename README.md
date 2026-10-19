@@ -185,7 +185,7 @@ for _ in range(5):
 | `criterion` | Rust's [criterion](https://github.com/bheisler/criterion.rs) | `cargo bench` | the `time: [low estimate high]` lines it prints; also `test x ... bench: N ns/iter` lines |
 | `google-benchmark` | [Google Benchmark](https://github.com/google/benchmark), C++ or its Python bindings | `./bench --benchmark_format=json` | each repetition's real time |
 | `pytest-benchmark` | [pytest-benchmark](https://github.com/ionelmc/pytest-benchmark) | `pytest --benchmark-json=bench.json`, with `output = "bench.json"` | each test's median |
-| `vitest` | [vitest bench](https://vitest.dev/guide/features.html#benchmarking) | `vitest bench --run --outputJson bench.json`, with `output = "bench.json"` | each benchmark's median |
+| `vitest` | [vitest bench](https://vitest.dev/guide/features.html#benchmarking), versions 1 to 4 | `vitest bench --run --outputJson bench.json`, with `output = "bench.json"` | each benchmark's median |
 
 For example, a Rust crate:
 
@@ -216,8 +216,13 @@ has run (or before the first round, with no build), and fails the run when
 one grows by more than its budget. Patterns are relative to where the
 command runs, `*` matches within one folder, and `[budget.bench."dist/*"]`
 can set a different budget for some files. A file on one side only is
-reported as new or removed. A pattern that matches nothing on either side
-is an error.
+reported as new or removed, and not gated, so a renamed binary slips
+through. A pattern that matches nothing on either side is an error, and so
+is a folder: name the files, since jvq doesn't add sizes up. 1% of a small
+file is only a few bytes, so give small files an amount such as `"2000"`.
+With no `build`, sizes are measured before the first run, so a command
+that builds its own output needs a `build` step for the size gate to see
+it.
 
 ## Two saved outputs: jvq compare
 

@@ -205,3 +205,13 @@ func TestSizeGate(t *testing.T) {
 	r.WriteConfig(fixture.ProgConfig("time", 3, 10, "size = [\""+exe+"\"]\n[budget]\ntime = \"off\"\nsize = \"50%\"\n"))
 	expect(t, jvq(t, r.Dir, nil, "run"), 0)
 }
+
+func TestCompareJSONWithAGoConfig(t *testing.T) {
+	// A jvq.toml that names a text adapter doesn't stop .json files being
+	// read as json.
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "jvq.toml"), []byte("adapter = \"go\"\n"), 0o644)
+	os.WriteFile(filepath.Join(dir, "a.json"), []byte(`{"name": "x", "unit": "ms", "values": [10, 10.2, 9.9, 10.1, 10]}`), 0o644)
+	os.WriteFile(filepath.Join(dir, "b.json"), []byte(`{"name": "x", "unit": "ms", "values": [10, 10.1, 9.9, 10.2, 10]}`), 0o644)
+	expect(t, jvq(t, dir, nil, "compare", "a.json", "b.json"), 0)
+}

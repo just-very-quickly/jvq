@@ -366,9 +366,13 @@ func TestSizeSettings(t *testing.T) {
 		t.Errorf("default size budget %v", d.Budget.Size)
 	}
 	for src, want := range map[string]string{
-		`size = "bin/app"`: "list of strings",
-		`size = []`:        "empty",
-		`size = [1]`:       "file names",
+		`size = "bin/app"`:  "list of strings",
+		`size = []`:         "empty",
+		`size = [1]`:        "file names",
+		`size = ["dist/["]`: "syntax error",
+		`size = ["/etc/x"]`: "without a leading /",
+		`size = ["../x"]`:   "without a leading /",
+		`size = ["a\\b"]`:   "write paths with /",
 	} {
 		if _, err := Parse(src); err == nil || !strings.Contains(err.Error(), want) {
 			t.Errorf("%s: %v, want %q", src, err, want)

@@ -17,6 +17,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -152,7 +153,7 @@ func Run(ctx context.Context, opt Options, base, head Side) (*Result, error) {
 		}
 		for _, p := range opt.Size {
 			if !bhit[p] && !hhit[p] {
-				return nil, fmt.Errorf("size: %q matches no file on base or head (after the build, in the folder the command runs in)", p)
+				return nil, fmt.Errorf("size: %q matches no file on base or head (after the build, in the folder the command runs in; a folder's contents aren't added up, so name the files)", p)
 			}
 		}
 		res.Base = append(res.Base, b...)
@@ -235,21 +236,19 @@ func sizes(opt Options, s Side) (out []adapter.Sample, hit map[string]bool, err 
 	seen := map[string]bool{}
 	hit = map[string]bool{}
 	for _, p := range opt.Size {
-		matches, err := filepath.Glob(filepath.Join(dir, filepath.FromSlash(p)))
+		// Globbing inside the folder keeps its own path out of the
+		// pattern, and keeps the pattern inside the worktree.
+		matches, err := fs.Glob(os.DirFS(dir), p)
 		if err != nil {
 			return nil, nil, fmt.Errorf("size pattern %q: %w", p, err)
 		}
 		sort.Strings(matches)
 		for _, m := range matches {
-			fi, err := os.Stat(m)
+			fi, err := os.Stat(filepath.Join(dir, filepath.FromSlash(m)))
 			if err != nil || !fi.Mode().IsRegular() {
 				continue
 			}
-			rel, err := filepath.Rel(dir, m)
-			if err != nil {
-				rel = m
-			}
-			name := filepath.ToSlash(rel)
+			name := m
 			hit[p] = true
 			if seen[name] {
 				continue

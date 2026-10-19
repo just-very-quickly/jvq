@@ -71,7 +71,6 @@ func TestCriterionBencherAndErrors(t *testing.T) {
 	for in, msg := range map[string]string{
 		"x  time:   [1 ns 2 ns]":                    "three values",
 		"x  time:   [1 ns 2 parsecs 3 ns]":          "can't read",
-		"test a ... bench: 0 ns/iter (+/- 0)":       "optimised away",
 		"         time:   [1.0 ns 1.1 ns 1.2 ns]\n": "no benchmark name",
 	} {
 		if _, err := Parse("criterion", strings.NewReader(in)); err == nil || !strings.Contains(err.Error(), msg) {
@@ -139,5 +138,61 @@ func TestHarnessOutputAfterLogs(t *testing.T) {
 	got, err := Parse("google-benchmark", strings.NewReader("Running ./bench\n{\n  \"benchmarks\": [{\"name\": \"a\", \"real_time\": 3, \"time_unit\": \"ns\"}]\n}\n"))
 	if err != nil || len(got) != 1 {
 		t.Errorf("got %+v %v", got, err)
+	}
+}
+
+func TestCriterionChangeBlocksColourAndBencher(t *testing.T) {
+	// A second run with throughput benchmarks: their change since the last
+	// run comes as a block of its own, with a time: line in percent.
+	ws := []want{
+		{"", "work", 3926.4}, {"", "a very long benchmark name that will surely wrap around", 22.442},
+		{"", "grp/op/10", 9.2514}, {"", "grp/op/100", 166.41}, {"", "tiny", 0.35045},
+	}
+	check(t, parseFile(t, "criterion", "criterion-throughput-change.txt"), ws)
+	// --color always.
+	got := parseFile(t, "criterion", "criterion-color.txt")
+	if len(got) != 5 || got[0].Name != "work" || !near(got[0].Value, 3910.1) || got[1].Name != "a very long benchmark name that will surely wrap around" {
+		t.Errorf("colour: %+v", got)
+	}
+	// --output-format bencher: whole nanoseconds, and the sub-nanosecond
+	// benchmark, printed as 0, left out.
+	check(t, parseFile(t, "criterion", "criterion-bencher.txt"), []want{
+		{"", "work", 3754}, {"", "a very long benchmark name that will surely wrap around", 14},
+		{"", "grp/op/10", 8}, {"", "grp/op/100", 168},
+	})
+}
+
+func TestGoogleBenchmarkEdges(t *testing.T) {
+	// A skipped benchmark, and a counter Google Benchmark writes as a bare
+	// NaN, which isn't JSON.
+	got, err := Parse("google-benchmark", strings.NewReader(`{"benchmarks": [
+  {"name": "a", "run_name": "a", "run_type": "iteration", "real_time": 0, "time_unit": "ns", "skipped": true, "skip_message": "no AVX"},
+  {"name": "b", "run_name": "b", "run_type": "iteration", "real_time": 5, "time_unit": "us", "items_per_second": NaN, "label": "NaN is fine in a string"},
+  {"name": "c", "run_name": "c", "run_type": "iteration", "real_time": 7, "time_unit": "ns", "bytes_per_second": -Infinity}
+]}`))
+	if err != nil || len(got) != 2 || got[0].Name != "b" || got[0].Value != 5000 {
+		t.Errorf("got %+v %v", got, err)
+	}
+	// --benchmark_report_aggregates_only: the median aggregate stands in.
+	got, err = Parse("google-benchmark", strings.NewReader(`{"benchmarks": [
+  {"name": "a_mean", "run_name": "a", "run_type": "aggregate", "aggregate_name": "mean", "real_time": 11, "time_unit": "ns"},
+  {"name": "a_median", "run_name": "a", "run_type": "aggregate", "aggregate_name": "median", "real_time": 10, "time_unit": "ns"},
+  {"name": "a_stddev", "run_name": "a", "run_type": "aggregate", "aggregate_name": "stddev", "real_time": 1, "time_unit": "ns"}
+]}`))
+	if err != nil || len(got) != 1 || got[0].Name != "a" || got[0].Value != 10 {
+		t.Errorf("aggregates only: %+v %v", got, err)
+	}
+}
+
+func TestOneValuePerBenchmarkHarnesses(t *testing.T) {
+	_, err := Parse("vitest", strings.NewReader(`{"files": [{"groups": [
+  {"fullName": "a > g", "benchmarks": [{"name": "x", "median": 1}]},
+  {"fullName": "a > g", "benchmarks": [{"name": "x", "median": 2}]}]}]}`))
+	if err == nil || !strings.Contains(err.Error(), "rename one") {
+		t.Errorf("vitest duplicate: %v", err)
+	}
+	_, err = Parse("vitest", strings.NewReader(`{"files": [{"groups": [{"fullName": "g", "benchmarks": [{"name": "x", "median": 0, "mean": 3}]}]}]}`))
+	if err == nil || !strings.Contains(err.Error(), "coarse") {
+		t.Errorf("vitest zero median: %v", err)
 	}
 }
