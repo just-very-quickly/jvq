@@ -45,6 +45,8 @@ jobs:
         run: go run ./test/accuracy -out "$RUNNER_TEMP/accuracy" 2> "$RUNNER_TEMP/progress.txt"
       - name: Install the benchmark harnesses the scenarios run
         run: python3 -m pip install --user --break-system-packages pytest pytest-benchmark google-benchmark
+      - name: Install valgrind, for the instruction counts
+        run: sudo apt-get update -q && sudo apt-get install -y -q valgrind
       - name: Record the scenarios
         run: go run ./test/scenarios -out "$RUNNER_TEMP/accuracy" 2> "$RUNNER_TEMP/scenarios-progress.txt"
       - name: Job summary

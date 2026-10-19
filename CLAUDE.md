@@ -165,9 +165,11 @@ The `accuracy` workflow records the same suite on a GitHub-hosted runner when
 the deciding code changes (or by hand) and pushes it to the
 `accuracy-results` branch; record.sh copies it into `test/results/github/`. The first one (October 2026,
 commit e4a746f) showed 0.4% noise, 0/200 false alarms, +10% caught 50/50. The
-one in test/results/github now (commit b32c46d, the 0.2 code) adds the
-scenarios: 0.2% noise, the same clean accuracy, and every scenario case
-settled correctly except drift in ABBA order, which is inconclusive.
+one in test/results/github now (commit fd8e8fc, 0.5.1) has the scenarios
+too: 0.2% noise, 0/200 false alarms, +10% caught 50/50, +5% flagged 5/50,
+and every scenario case settled correctly except drift in ABBA order,
+which is inconclusive. The workflow installs valgrind from 0.6.0, so the
+next one adds the instruction-count cases.
 
 The `benchmarks` workflow runs the released action on jvq's own benchmarks
 (jvq.toml at the root) on pull requests and after each release.

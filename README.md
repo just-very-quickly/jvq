@@ -111,10 +111,10 @@ depends on that noise: earlier recordings on the same kind of VM caught
 them raised a false alarm.
 
 On a GitHub-hosted runner (ubuntu-latest, 4 cores) the same suite saw only
-0.6% run-to-run noise, and every clear case was decided in the first 10
+0.2% run-to-run noise, and every clear case was decided in the first 10
 rounds: all 200 no-change runs and all 50 at +2% passed, and every run at
 +10%, +20% and +50% was caught. A change of exactly the budget, +5%, was
-flagged in 6 of 50 runs: with so little noise, adding rounds gives a change
+flagged in 5 of 50 runs: with so little noise, adding rounds gives a change
 sitting on the line more chances to tip over (see docs/reference.md).
 [test/results/github/](test/results/github/accuracy.md) has that recording.
 
@@ -129,37 +129,42 @@ situations, each with a known answer, on the same two machines:
 | Setting | Cloud VM (2 cores) | GitHub runner (4 cores) |
 |---|---|---|
 | A neighbour keeping half the CPUs busy and churning 512 MB: no change, 100 runs | 0 false alarms | 0 false alarms |
-| The same neighbour, 10% more work, 50 runs | 38 caught, 12 inconclusive | 50 caught |
+| The same neighbour, 10% more work, 50 runs | 26 caught, 24 inconclusive | 50 caught |
 | Every run 2% slower than the one before, no change, base and head taking turns (ABBA), 50 runs | 0 false alarms | 0 false alarms |
-| The same drift with all of base run before all of head, 50 runs | 44 false alarms | 50 false alarms |
-| A Python script timed whole (time adapter): no change, 60 runs; 20% more work, 30 runs | 0 false alarms; 28 caught | 0 false alarms; 30 caught |
-| The same script reporting its own timings (json adapter): no change, 60 runs; 20% more work, 30 runs | 0 false alarms; 29 caught | 0 false alarms; 30 caught |
+| The same drift with all of base run before all of head, 50 runs | 38 false alarms | 50 false alarms |
+| A Python script timed whole (time adapter): no change, 60 runs; 20% more work, 30 runs | 0 false alarms; 25 caught | 0 false alarms; 30 caught |
+| The same script reporting its own timings (json adapter): no change, 60 runs; 20% more work, 30 runs | 0 false alarms; 27 caught | 0 false alarms; 30 caught |
+| Instruction counts (instructions adapter, 1% budget): no change, +0.5% and +2% work, 20 runs each | 0 false alarms, 0 at +0.5%, 20 caught at +2%, all in 5 rounds | not yet recorded |
+| The same beside the neighbour: no change and +2%; and a Go program with 8 allocating goroutines, no change; 20 runs each | 0 false alarms, 20 caught, 0 false alarms | not yet recorded |
 
 The drift rows are why jvq takes turns. A machine that slows down during a
 job makes whatever runs second look slower; run in sequence, that faked a
 regression in most runs, while taking turns faked none. Taking turns can't
 remove the extra spread such drift causes, though: most of those runs came
 back inconclusive rather than pass. The Python rows at 10% more work, where
-the VM caught 8 and 20 of 30 and the GitHub runner all 30, are in the file.
+the VM caught 8 and 12 of 30 and the GitHub runner all 30, are in the file.
+Instruction counts shrug off the neighbour that halves what time can catch:
++2% work measured +1.9% beside it and was caught in all 20 runs.
 
 The real harnesses, end to end through `jvq run`, 10 runs each:
 
 | Harness | Cloud VM: no change | VM: 20% more work | GitHub runner: no change | GitHub: 20% more work |
 |---|---|---|---|---|
-| pytest-benchmark | 1 false alarm, 2 pass, 7 inconclusive | 10 caught | 10 pass | 10 caught |
-| Google Benchmark (Python bindings) | 0 false alarms | 8 caught, 2 inconclusive | 10 pass | 10 caught |
+| pytest-benchmark | 0 false alarms (6 pass, 4 inconclusive) | 10 caught | 10 pass | 10 caught |
+| Google Benchmark (Python bindings) | 0 false alarms | 10 caught | 10 pass | 10 caught |
 | vitest bench | 0 false alarms | 10 caught | 10 pass | 10 caught |
 | criterion | 0 false alarms | 10 caught | 10 pass | 10 caught |
 
 pytest-benchmark was the noisiest: with a short time budget per test
-(`--benchmark-max-time=0.2`), its medians wandered enough on this VM that
-one no-change run came out 26% slower, with its whole interval over the
-budget. A longer `--benchmark-max-time` is the first thing to raise if it's
+(`--benchmark-max-time=0.2`), its medians wander on this VM, and in the
+0.3 recording one no-change run came out 26% slower, with its whole
+interval over the budget. A longer `--benchmark-max-time` is the first thing to raise if it's
 noisy for you; this recording didn't try one.
 
-The VM's accuracy table is from jvq 0.4.0 and its scenarios from 0.3.0;
-nothing those scenarios measure changed in 0.4. The GitHub runner's are
-from the 0.3.0 release commit (0fa5121).
+The VM's accuracy table and scenarios are from jvq 0.6.0. The GitHub
+runner's are from the 0.5.1 release commit (fd8e8fc), before the
+instructions adapter, so the counts are the VM's only for now; the
+accuracy workflow installs valgrind from 0.6.0 on.
 
 ## Any language
 
