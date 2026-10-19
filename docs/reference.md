@@ -498,7 +498,7 @@ it and renames it into place, so a crash can't leave it half written. Two
 runs writing at once can lose one of their lines. A line is a JSON object:
 
 ```json
-{"jvq": "0.5.0", "date": "2026-10-19T08:00:00Z",
+{"jvq": "0.5.1", "date": "2026-10-19T08:00:00Z",
  "base": {"ref": "head^", "sha": "…"}, "head": {"ref": "HEAD", "sha": "…"},
  "verdict": "pass", "confidence": 0.95,
  "results": [{"package": "example.com/parse", "name": "BenchmarkParse",

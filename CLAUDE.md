@@ -113,6 +113,14 @@ test at +1% each gave -4%), commits skipped between pushes, re-runs
 counted twice, pull requests failing on the default branch's creep, and
 caches shared between jobs.
 
+v0.5.1 (October 2026), a display fix found while writing the site's case
+studies: the summary note for an exact regression printed bytes in
+scientific notation ("+6.44254e+06 over the limit of 2.3072e+06"). It now
+uses the metric's unit, as the table does ("+6.443 MB over the limit of
+2.307 MB", "+104 B over the limit of 0 B"). The formatters moved from
+internal/report to internal/units so verdict can use them. No change to
+any verdict, so test/results weren't recorded again.
+
 Not done yet: submodules in worktrees.
 
 ## Test results

@@ -28,6 +28,7 @@ import (
 	"github.com/just-very-quickly/jvq/internal/adapter"
 	"github.com/just-very-quickly/jvq/internal/config"
 	"github.com/just-very-quickly/jvq/internal/stats"
+	"github.com/just-very-quickly/jvq/internal/units"
 )
 
 // Outcomes, per row and overall.
@@ -287,7 +288,7 @@ func judgeExact(r *Row, se *series, b config.Budget) {
 	switch {
 	case mh > limit:
 		r.Verdict = Regression
-		r.Note = fmt.Sprintf("%s over the limit of %s", formatDelta(mh-mb), trim(limit))
+		r.Note = fmt.Sprintf("%s over the limit of %s", formatDelta(r.Metric, r.Unit, mh-mb), units.Value(r.Metric, r.Unit, limit))
 	case mh < mb:
 		r.Verdict = Improved
 	default:
@@ -295,15 +296,14 @@ func judgeExact(r *Row, se *series, b config.Budget) {
 	}
 }
 
-func formatDelta(d float64) string {
+// formatDelta formats a change in the metric's own unit, with a plus sign
+// when it grew: "+2", "+104 B", "+6.443 MB".
+func formatDelta(metric, unit string, d float64) string {
+	s := units.Value(metric, unit, d)
 	if d > 0 {
-		return "+" + trim(d)
+		return "+" + s
 	}
-	return trim(d)
-}
-
-func trim(f float64) string {
-	return fmt.Sprintf("%.6g", f)
+	return s
 }
 
 // Overall is the run's verdict: regression if any gated row is a

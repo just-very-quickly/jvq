@@ -153,6 +153,30 @@ func TestAllocsAndBytes(t *testing.T) {
 	}
 }
 
+// The note on an exact regression is in the metric's own unit, as in the
+// table: a size in MB, not 6.44254e+06.
+func TestExactNoteUnits(t *testing.T) {
+	cfg, _ := config.Parse("[budget]\nallocs = \"0\"\nbytes = \"0\"\n")
+	cases := []struct {
+		metric, unit string
+		base, head   float64
+		want         string
+	}{
+		{adapter.Allocs, "allocs/op", 0, 2, "+2 over the limit of 0"},
+		{adapter.Bytes, "B/op", 0, 104, "+104 B over the limit of 0 B"},
+		{adapter.Size, "B", 2284431, 8726940, "+6.443 MB over the limit of 2.307 MB"},
+		{adapter.Size, "B", 900, 1200, "+300 B over the limit of 909 B"},
+	}
+	for _, c := range cases {
+		base := []adapter.Sample{{Name: "x", Metric: c.metric, Unit: c.unit, Value: c.base}}
+		head := []adapter.Sample{{Name: "x", Metric: c.metric, Unit: c.unit, Value: c.head}}
+		row := one(t, Compare(base, head, cfg), "x", c.metric)
+		if row.Verdict != Regression || row.Note != c.want {
+			t.Errorf("%s %v -> %v: %s %q, want %q", c.metric, c.base, c.head, row.Verdict, row.Note, c.want)
+		}
+	}
+}
+
 func TestNewRemovedCustomIgnored(t *testing.T) {
 	cfg, _ := config.Parse("[ignore]\nbench = [\"BenchmarkSkip*\"]\n")
 	base := append(exact("BenchmarkOld", adapter.Time, 1, 1, 1), exact("BenchmarkSkipMe", adapter.Time, 1, 1, 1)...)

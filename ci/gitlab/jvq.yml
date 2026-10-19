@@ -1,7 +1,7 @@
 # jvq for GitLab CI: a hidden job to extend.
 #
 #   include:
-#     - remote: https://raw.githubusercontent.com/just-very-quickly/jvq/v0.5.0/ci/gitlab/jvq.yml
+#     - remote: https://raw.githubusercontent.com/just-very-quickly/jvq/v0.5.1/ci/gitlab/jvq.yml
 #
 #   benchmarks:
 #     extends: .jvq
@@ -22,7 +22,7 @@
 .jvq:
   variables:
     GIT_DEPTH: "0"           # jvq needs the base commit, not a shallow clone
-    JVQ_VERSION: v0.5.0      # a release tag, or "latest"
+    JVQ_VERSION: v0.5.1      # a release tag, or "latest"
     JVQ_COMMAND: ""          # the benchmark command; empty uses jvq.toml or the Go default
     JVQ_ARGS: ""             # more flags for jvq run, such as -adapter json
     JVQ_DIR: "."             # where to run, relative to the repository
