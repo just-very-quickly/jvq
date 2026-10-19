@@ -7,4 +7,4 @@ package main
 // test workflow passes on that commit, the release workflow builds the
 // binaries, tags the commit vX.Y.Z and publishes the release. See
 // RELEASING.md.
-const Version = "0.4.0"
+const Version = "0.5.0"

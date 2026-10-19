@@ -272,7 +272,7 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: stable
-      - uses: just-very-quickly/jvq@v0.4.0
+      - uses: just-very-quickly/jvq@v0.5.0
         with:
           command: go test -run=NONE -bench=. -benchmem ./...
 ```
@@ -289,7 +289,7 @@ in small steps, each inside the budget, passes every time. Keep a history
 and it shows:
 
 ```yaml
-      - uses: just-very-quickly/jvq@v0.4.0
+      - uses: just-very-quickly/jvq@v0.5.0
         with:
           history: jvq-history.jsonl
           history-fail-over: 10%     # optional: fail when anything has moved more than this in all
@@ -323,7 +323,7 @@ and keeps the newest 1000 (`history_keep`).
 
 ```yaml
 include:
-  - remote: https://raw.githubusercontent.com/just-very-quickly/jvq/v0.4.0/ci/gitlab/jvq.yml
+  - remote: https://raw.githubusercontent.com/just-very-quickly/jvq/v0.5.0/ci/gitlab/jvq.yml
 
 benchmarks:
   extends: .jvq
