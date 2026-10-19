@@ -121,6 +121,19 @@ uses the metric's unit, as the table does ("+6.443 MB over the limit of
 internal/report to internal/units so verdict can use them. No change to
 any verdict, so test/results weren't recorded again.
 
+v0.6.0 (October 2026), instruction counts on Linux: an `instructions`
+adapter (planned as `measure = "instructions"`; an adapter fitted the code
+better) runs each measured run under `valgrind --tool=cachegrind
+--cache-sim=no --trace-children=yes`, sums every process's "I refs", and
+judges the total like time against `[budget] instructions` (1%, percent
+only). No warm-up; GOMAXPROCS=1 unless set (with more Ps, Go's spinning
+idle threads made one program count 0.66 G to 23.7 G; at 1, 215.0 to
+215.1 M); valgrind's log tail shown on errors. JSON results in the unit
+`instructions` are the same metric. Its review caught the GOMAXPROCS
+problem, fork-without-exec counting the parent twice (documented), json
+instruction units gated without checks, and `jvq check` missing the
+budget. test.yml installs valgrind on Linux.
+
 Not done yet: submodules in worktrees.
 
 ## Test results
@@ -134,7 +147,9 @@ taking half the CPUs and churning 512 MB, drift of 2% per run in ABBA and
 sequential order through the runner directly, and a Python script through
 the time and json adapters, and the real harnesses end to end: pytest-benchmark,
 Google Benchmark's Python bindings, vitest and criterion, 10 runs each,
-skipped and listed when a tool is missing) into scenarios.json and
+skipped and listed when a tool is missing, and the instructions adapter,
+20 runs each of no change, +0.5%, +2%, both beside the neighbour, and a Go
+program with 8 allocating goroutines) into scenarios.json and
 scenarios.md. The scenarios take over an hour on the VM, so run them as their
 own background job (`go run ./test/scenarios -out test/results`) rather than
 inside record.sh, whose background run may hit a 2-hour limit. Every
@@ -185,7 +200,8 @@ own release with a review, a fresh recording and site posts:
 - **v0.5.0, history.** Released October 2026 (see above). An optional history file (`-history`), one line per
   run, kept between CI runs as a cache or artifact, and `jvq history` to
   show each benchmark's trend.
-- **v0.6.0, instruction counts on Linux.** `measure = "instructions"`: count
+- **v0.6.0, instruction counts on Linux.** Released October 2026 (see
+  above). `measure = "instructions"`: count
   the instructions the command runs instead of timing it, nearly free of
   noise. CI machines (this VM, GitHub's runners) don't expose hardware
   counters, so it runs the command under valgrind's cachegrind, which
