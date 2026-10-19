@@ -1,6 +1,6 @@
 smoke: ok: jvq 0.1.0 (go1.24.7, linux/amd64)
 smoke: ok: check reads jvq.toml
-smoke: ok: 3x slower head is a regression (measured +211%)
+smoke: ok: 3x slower head is a regression (measured +170%)
 smoke: ok: unchanged head passes
 smoke: ok: missing base is an error
 smoke: ok: no worktrees left behind

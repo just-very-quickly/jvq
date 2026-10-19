@@ -49,7 +49,25 @@ numbers in test/results were recorded again after those fixes. Known and documen
 same level (optional stopping), so a change exactly at the budget is flagged
 a little more often than 2.5%.
 
-Not done yet: other benchmark formats, `jvq compare`, submodules in worktrees.
+v0.2.0 (October 2026) works for any language: a `time` adapter (jvq times
+the whole command; its clock stops when the command exits, even if a child
+keeps the output open), a documented `json` adapter (lines, a document, an
+array; log lines and JSON log lines skipped; spelled-out units; BOM handled,
+UTF-16 refused), `output` / `-output` for results written to a file, and
+`jvq compare OLD NEW` for two saved outputs (go or json). Each run is now
+reduced to one value per benchmark and metric, the median of what it
+printed, so several values from one run can't narrow the interval. A run
+where nothing is gated says why in its note.
+
+The v0.2 review found no statistics errors in the old code; it fixed the
+time adapter counting a background child's lifetime, BOMs, `[INFO]` log
+lines, pretty JSON after logs, JSON log lines, unknown time units passing
+silently, `compare -- -file`, the README's sample config, and a noisy
+neighbour that could outlive the scenario harness. Pooling several values
+per run was the one design change (now one median per run).
+
+Not done yet: the v0.3 harness adapters and size gate (in progress on the
+v03-work branch until released), submodules in worktrees.
 
 ## Test results
 
@@ -57,10 +75,17 @@ Not done yet: other benchmark formats, `jvq compare`, submodules in worktrees.
 cases, the smoke check on a static build, and the accuracy suite
 (`test/accuracy`: 200 no-change runs, 50 runs each at +2/5/10/20/50% work,
 100 runs each for one extra allocation and its control), and writes them to
-`test/results/`. Every number in the README and on the site comes from those
-files; record again after any change that could move them. The accuracy suite
-takes 20 to 40 minutes; `SKIP_ACCURACY=1` skips it. Don't run other heavy jobs
-on the machine while it records.
+`test/results/`, then the scenarios (`test/scenarios`: a noisy neighbour
+taking half the CPUs and churning 512 MB, drift of 2% per run in ABBA and
+sequential order through the runner directly, and a Python script through
+the time and json adapters) into scenarios.json and scenarios.md. Every
+number in the README and on the site comes from those files; record again
+after any change that could move them. The accuracy suite takes 20 to 40
+minutes and the scenarios about as long again; `SKIP_ACCURACY=1` skips both.
+Don't run other heavy jobs on the machine while it records, not even
+`go test ./...`: a concurrent test run once disturbed a recording, and
+another run's stale-worktree cleanup removed a test's workspace. Raise the
+version before recording a release, so the files name the right version.
 
 The `accuracy` workflow records the same suite on a GitHub-hosted runner when
 the deciding code changes (or by hand) and pushes it to the

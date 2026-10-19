@@ -27,7 +27,7 @@ inputs:
     required: false
     default: "."
   version:
-    description: The jvq release to use, such as v0.1.0. Empty uses the tag this action was referenced by, or the latest release when referenced by a branch.
+    description: The jvq release to use, such as v0.2.0. Empty uses the tag this action was referenced by, or the latest release when referenced by a branch.
     required: false
     default: ""
 

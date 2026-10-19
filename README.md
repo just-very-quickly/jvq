@@ -72,7 +72,7 @@ so instead of guessing.
 6. **Adaptive rounds.** While any result is inconclusive, jvq adds rounds,
    two at a time, up to `max_rounds` (30). Clear cases stop after 10. Each
    extra look is a new chance for a result right at the budget to tip
-   over, which is part of why a change of exactly +5% was flagged in 1 to 4
+   over, which is part of why a change of exactly +5% was flagged in 1 to 5
    runs of 50.
 7. **Exact gates.** Bytes and allocations per op hardly vary between runs, so
    they're compared on medians, without statistics. `allocs = "0"` fails a
@@ -87,7 +87,7 @@ jvq's own test suite measures its false-alarm rate and its detection rate,
 by running the real binary hundreds of times on a fixture benchmark whose
 cost is set by a constant. [test/results/accuracy.md](test/results/accuracy.md)
 has the full table. It was recorded on a shared two-core cloud VM where the
-same benchmark binary, run 40 times in a row, spread by 8.9% from run to run
+same benchmark binary, run 40 times in a row, spread by 7.2% from run to run
 ([test/results/noise.json](test/results/noise.json)), against a 5% budget.
 
 | Head | Runs | Flagged as regression | Right answer |
@@ -95,7 +95,7 @@ same benchmark binary, run 40 times in a row, spread by 8.9% from run to run
 | no change | 200 | 0 (0%) | no regression |
 | 2% more work | 50 | 0 (0%) | no regression |
 | 5% more work | 50 | 1 (2%) | no regression, at the budget's edge |
-| 10% more work | 50 | 42 (84%) | regression |
+| 10% more work | 50 | 34 (68%) | regression |
 | 20% more work | 50 | 50 (100%) | regression |
 | 50% more work | 50 | 50 (100%) | regression |
 | one more allocation per op | 100 | 100 (100%) | regression |
@@ -103,17 +103,44 @@ same benchmark binary, run 40 times in a row, spread by 8.9% from run to run
 
 The runs that weren't flagged passed or came back inconclusive. Clear cases
 took the 10 starting rounds; close ones used more, up to 30 per side, and a
-time run took 1.5 to 3.6 seconds on this fixture.
+time run took 1.4 to 3.5 seconds on this fixture. On a machine this noisy,
+a 10% slowdown is close to what 10 to 30 rounds can settle: an earlier
+recording on the same kind of VM, at 8.9% noise, caught 42 of 50.
 
 On a GitHub-hosted runner (ubuntu-latest, 4 cores) the same suite saw only
 0.4% run-to-run noise, and every clear case was decided in the first 10
 rounds: all 200 no-change runs and all 50 at +2% passed, and every run at
 +10%, +20% and +50% was caught. A change of exactly the budget, +5%, was
-flagged in 4 of 50 runs. [test/results/github/](test/results/github/accuracy.md)
+flagged in 5 of 50 runs. [test/results/github/](test/results/github/accuracy.md)
 has that recording.
 
 Near the budget, jvq would rather say "can't tell" than guess. That's the
 design: a gate that cries wolf gets switched off.
+
+### Harder settings
+
+[test/results/scenarios.md](test/results/scenarios.md) records three more
+situations, each with a known answer, on the same two machines:
+
+| Setting | Cloud VM (2 cores) | GitHub runner (4 cores) |
+|---|---|---|
+| A neighbour keeping half the CPUs busy and churning 512 MB: no change, 100 runs | 0 false alarms | 0 false alarms |
+| The same neighbour, 10% more work, 50 runs | 43 caught, 7 inconclusive | 50 caught |
+| Every run 2% slower than the one before, no change, base and head taking turns (ABBA), 50 runs | 0 false alarms | 0 false alarms |
+| The same drift with all of base run before all of head, 50 runs | 37 false alarms | 50 false alarms |
+| A Python script timed whole (time adapter): no change, 60 runs; 20% more work, 30 runs | 0 false alarms; 26 caught | 0 false alarms; 30 caught |
+| The same script reporting its own timings (json adapter): no change, 60 runs; 20% more work, 30 runs | 0 false alarms; 30 caught | 0 false alarms; 30 caught |
+
+The drift rows are why jvq takes turns. A machine that slows down during a
+job makes whatever runs second look slower; run in sequence, that faked a
+regression in most runs, while taking turns faked none. Taking turns can't
+remove the extra spread such drift causes, though: most of those runs came
+back inconclusive rather than pass. The Python rows at 10% more work, where
+the VM caught about 4 in 10 and the GitHub runner all 30, are in the file.
+
+These recordings were made from the 0.2.0 code (commit 82bd6c5 on the VM,
+b32c46d on GitHub, which differ only in a test) just before its version
+number was raised, so the files name it 0.1.0.
 
 ## Any language
 
