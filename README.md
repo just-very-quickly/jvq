@@ -300,15 +300,21 @@ SHA256SUMS, and runs `jvq run`. A regression fails the job; the result
 shows in the merge request's test summary through a JUnit report, and
 jvq.md and jvq.json are kept as artifacts. Set `JVQ_ARGS` for more flags,
 `JVQ_DIR` to run in a subfolder, and `JVQ_VERSION` to pin a release. The
-image needs `curl`, `git` and whatever your benchmarks need. If your
-GitLab can't reach raw.githubusercontent.com, copy the file into your
-repository and `include: local:` it.
+image needs `curl`, `git`, `tar`, `sha256sum` and whatever your benchmarks
+need; Debian-based images such as `golang:1.26` have them, and on Alpine
+add `before_script: apk add --no-cache curl git`. If your GitLab can't
+reach raw.githubusercontent.com, copy the file into your repository and
+`include: local:` it. The merge request rule gives you merge request
+pipelines beside branch pipelines; GitLab's `workflow:rules` can keep one
+of the two.
 
 jvq picks the base from GitLab's own variables: in a merged results
-pipeline, the target branch head was merged into; otherwise the merge
-request's diff base (`CI_MERGE_REQUEST_DIFF_BASE_SHA`); on the default
-branch, the commit before. This was tested with GitLab's variables set by
-hand and with gitlab-ci-local, not yet on gitlab.com itself.
+pipeline or merge train, the target branch the change was merged into or
+rebased onto; otherwise the merge request's diff base
+(`CI_MERGE_REQUEST_DIFF_BASE_SHA`); on the default branch, the commit
+before. This was tested with GitLab's variables set by hand and with
+gitlab-ci-local, which ran the template end to end and downloaded and
+checked a real release, but not yet on gitlab.com itself.
 
 ## Anywhere else
 

@@ -137,8 +137,8 @@ func cmdRun(args []string, stdout, stderr io.Writer) int {
 			}
 			return exitError
 		}
-		if os.Getenv("GITLAB_CI") == "true" && strings.Contains(err.Error(), "fetch-depth: 0") {
-			err = fmt.Errorf("%w (in GitLab: %s)", err, gitx.GitLabHint)
+		if os.Getenv("GITLAB_CI") == "true" && strings.Contains(err.Error(), gitx.ShallowHint) {
+			err = errors.New(strings.Replace(err.Error(), gitx.ShallowHint, gitx.GitLabShallowHint, 1))
 		}
 		var se *runner.StepError
 		if errors.As(err, &se) {

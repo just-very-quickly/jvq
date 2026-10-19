@@ -1,6 +1,6 @@
 # jvq reference
 
-Everything jvq v0.3 does, in one place. The [README](../README.md) is the
+Everything jvq v0.4 does, in one place. The [README](../README.md) is the
 introduction.
 
 ## Commands
@@ -31,8 +31,10 @@ What happens, in order:
    - in a GitLab merge request pipeline (`CI_MERGE_REQUEST_IID` set): in a
      merged results pipeline or merge train
      (`CI_MERGE_REQUEST_EVENT_TYPE` is `merged_result` or `merge_train`),
-     head's first parent, the target branch GitLab merged into; otherwise
-     `CI_MERGE_REQUEST_DIFF_BASE_SHA`; failing both, the merge base with
+     head's first parent when head is a merge commit (the target branch
+     GitLab merged into), or else `CI_MERGE_REQUEST_TARGET_BRANCH_SHA`
+     (fast-forward and semi-linear projects rebase instead of merging);
+     otherwise `CI_MERGE_REQUEST_DIFF_BASE_SHA`; failing both, the merge base with
      `origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME`. A commit GitLab names
      that isn't in the clone is an error saying to set `GIT_DEPTH: "0"` and
      fetch the target branch;
@@ -462,7 +464,12 @@ It runs on `merge_request_event` pipelines and on the default branch,
 fetches the merge request's target branch, downloads
 `jvq_linux_<arch>.tar.gz` for x86-64 or ARM64, checks it against the
 release's SHA256SUMS, and writes jvq.xml (a `junit` report), jvq.md and
-jvq.json as artifacts, kept even when the job fails.
+jvq.json as artifacts, kept even when the job fails. When jvq stops with
+an error before its report (exit 2), those files don't exist and GitLab
+warns that the artifacts are missing, beside the real error. It fetches
+the merge request's target branch only when GitLab names no base commit,
+and carries on if that fetch fails. The image needs `curl`, `git`, `tar`
+with gzip, `sha256sum`, `grep`, `mktemp` and `uname`.
 
 ## Worktrees and cleanup
 

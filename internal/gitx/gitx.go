@@ -161,7 +161,10 @@ func (r *Repo) DefaultBase(ctx context.Context, headSHA string, env func(string)
 }
 
 // GitLabHint says what a GitLab job needs for jvq to find the base.
-const GitLabHint = `in .gitlab-ci.yml set GIT_DEPTH: "0", and fetch the target branch first: git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"`
+const GitLabHint = `in .gitlab-ci.yml set GIT_DEPTH: "0", and fetch the target branch first: git fetch origin "+refs/heads/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME:refs/remotes/origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"`
+
+// GitLabShallowHint replaces ShallowHint in a GitLab job.
+const GitLabShallowHint = "this is a shallow clone, so older commits aren't here; " + GitLabHint
 
 // gitlabBase picks the base in a GitLab merge request pipeline. In a
 // merged results pipeline (or a merge train) head is GitLab's merge of the
@@ -172,11 +175,23 @@ const GitLabHint = `in .gitlab-ci.yml set GIT_DEPTH: "0", and fetch the target b
 func (r *Repo) gitlabBase(ctx context.Context, headSHA string, env func(string) string) (Pick, bool, error) {
 	switch env("CI_MERGE_REQUEST_EVENT_TYPE") {
 	case "merged_result", "merge_train":
-		parent, err := r.Resolve(ctx, headSHA+"^1")
-		if err != nil {
-			return Pick{}, false, fmt.Errorf("head is GitLab's merged result, but its first parent isn't in this clone; %s", GitLabHint)
+		// A merge commit: its first parent is the target branch it was
+		// merged into.
+		if _, err := r.Resolve(ctx, headSHA+"^2"); err == nil {
+			parent, err := r.Resolve(ctx, headSHA+"^1")
+			if err == nil {
+				return Pick{Ref: "head^1", SHA: parent, Note: "head is GitLab's merged result, so it is compared with the target branch it was merged into"}, true, nil
+			}
 		}
-		return Pick{Ref: "head^1", SHA: parent, Note: "head is GitLab's merged result, so it is compared with the target branch it was merged into"}, true, nil
+		// Fast-forward and semi-linear projects rebase instead of merging:
+		// head is the change rebased onto the target, which GitLab names.
+		if sha := env("CI_MERGE_REQUEST_TARGET_BRANCH_SHA"); sha != "" {
+			got, err := r.Resolve(ctx, sha)
+			if err != nil {
+				return Pick{}, false, fmt.Errorf("the target branch commit %s isn't in this clone; %s", Short(sha), GitLabHint)
+			}
+			return Pick{Ref: "CI_MERGE_REQUEST_TARGET_BRANCH_SHA", SHA: got, Note: "head is GitLab's result rebased onto the target branch, so it is compared with that branch"}, true, nil
+		}
 	}
 	if sha := env("CI_MERGE_REQUEST_DIFF_BASE_SHA"); sha != "" {
 		got, err := r.Resolve(ctx, sha)

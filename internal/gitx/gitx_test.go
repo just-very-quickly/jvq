@@ -351,3 +351,20 @@ func TestGitLabDefaultBranch(t *testing.T) {
 		t.Errorf("CI_DEFAULT_BRANCH: %+v %v", p, err)
 	}
 }
+
+func TestGitLabRebasedMergeTrain(t *testing.T) {
+	// A fast-forward project's merge train: head is the change rebased onto
+	// the target, with no merge commit, and GitLab names the target commit.
+	ctx := context.Background()
+	dir := newRepo(t)
+	commit(t, dir, "a", "1")
+	target := commit(t, dir, "b", "target tip")
+	commit(t, dir, "a", "2")
+	commit(t, dir, "a", "3")
+	r, _ := Open(ctx, dir)
+	head, _ := r.Resolve(ctx, "HEAD")
+	p, err := r.DefaultBase(ctx, head, envOf(map[string]string{"CI_MERGE_REQUEST_IID": "7", "CI_MERGE_REQUEST_EVENT_TYPE": "merge_train", "CI_MERGE_REQUEST_TARGET_BRANCH_SHA": target}))
+	if err != nil || p.SHA != target {
+		t.Errorf("rebased train: %+v %v, want the target %s, not head^1", p, err, target)
+	}
+}

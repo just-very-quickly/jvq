@@ -5,7 +5,7 @@
 #
 #   benchmarks:
 #     extends: .jvq
-#     image: golang:1.26          # whatever your benchmarks need, plus curl and git
+#     image: golang:1.26          # whatever your benchmarks need, plus curl, git, tar and sha256sum
 #     variables:
 #       JVQ_COMMAND: go test -run=NONE -bench=. -benchmem ./...
 #
@@ -14,7 +14,10 @@
 # SHA256SUMS), and runs `jvq run`. The table goes to the job log, the JUnit
 # report to the merge request's test summary, and jvq.md and jvq.json are
 # kept as artifacts. Exit codes: 0 pass, 1 regression (the job fails), 2
-# error. https://jvq.net has the rest.
+# error. On an Alpine image, add before_script: apk add --no-cache curl git.
+# The merge request rule adds merge request pipelines beside branch
+# pipelines; GitLab's workflow:rules can keep one of the two.
+# https://jvq.net has the rest.
 
 .jvq:
   variables:
@@ -43,23 +46,22 @@
       bin="$(mktemp -d)"
       curl -fsSL --retry 3 -o "$bin/$name" "$url/$name"
       curl -fsSL --retry 3 -o "$bin/SHA256SUMS" "$url/SHA256SUMS"
-      (cd "$bin" && grep " ${name}\$" SHA256SUMS | sha256sum -c - && tar -xzf "$name" jvq)
+      (cd "$bin" && grep " ${name}\$" SHA256SUMS | sha256sum -c - && tar -xzf "$name")
       export PATH="$bin:$PATH"
       jvq version
-      # Merge request pipelines may not have fetched the target branch.
-      if [ -n "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-}" ]; then
-        git fetch --quiet origin "+refs/heads/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME:refs/remotes/origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+      # Only the last fallback needs the target branch by name; fetch it
+      # when GitLab names no base commit, and carry on if that fails.
+      if [ -n "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-}" ] && [ -z "${CI_MERGE_REQUEST_DIFF_BASE_SHA:-}" ]; then
+        git fetch --quiet origin "+refs/heads/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME:refs/remotes/origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" ||
+          echo "jvq: couldn't fetch the target branch; carrying on"
       fi
       out="$CI_PROJECT_DIR"
       cd "$JVQ_DIR"
-      set +e
       if [ -n "$JVQ_COMMAND" ]; then
         jvq run -junit "$out/jvq.xml" -markdown "$out/jvq.md" -json "$out/jvq.json" $JVQ_ARGS -- "$JVQ_COMMAND"
       else
         jvq run -junit "$out/jvq.xml" -markdown "$out/jvq.md" -json "$out/jvq.json" $JVQ_ARGS
       fi
-      code=$?
-      exit $code
   artifacts:
     when: always
     paths:

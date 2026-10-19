@@ -83,6 +83,18 @@ Known from the 0.3 recording: pytest-benchmark with a short
 no-change runs); a change exactly at the budget is flagged in 5 or 6 of 50
 on a quiet GitHub runner (optional stopping, documented).
 
+v0.4.0 (October 2026), GitLab CI: base detection from GitLab's merge
+request variables (merged results and merge trains use head^1 when head is
+a merge, else CI_MERGE_REQUEST_TARGET_BRANCH_SHA; detached pipelines use
+CI_MERGE_REQUEST_DIFF_BASE_SHA; else the target branch; CI_DEFAULT_BRANCH
+as a candidate), `-junit FILE` on run and compare, and ci/gitlab/jvq.yml,
+a hidden `.jvq` job to include remotely. Tested with gitlab-ci-local
+(installed with npm; needs rsync), not on gitlab.com. Its review caught the
+template's tar extraction failing on every run (the archive holds ./jvq),
+rebased merge trains, and an unneeded fetch that could kill fork MR jobs.
+cmd/jvq/docs_test.go fails until the README, action.yml and the GitLab
+template name the version being released.
+
 Not done yet: submodules in worktrees.
 
 ## Test results
