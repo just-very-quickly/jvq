@@ -94,8 +94,8 @@ func cli(args []string, stdout, stderr io.Writer) int {
 
 type runFlags struct {
 	base, head, configPath, build, adapter, output, jsonPath, mdPath, junitPath, historyPath, timeout string
-	rounds, maxRounds                                                                    int
-	baseMayFail, failOnInconclusive, keep, quiet, noWarmup                               bool
+	rounds, maxRounds                                                                                 int
+	baseMayFail, failOnInconclusive, keep, quiet, noWarmup                                            bool
 }
 
 func cmdRun(args []string, stdout, stderr io.Writer) int {
