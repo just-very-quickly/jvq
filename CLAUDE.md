@@ -90,7 +90,10 @@ version before recording a release, so the files name the right version.
 The `accuracy` workflow records the same suite on a GitHub-hosted runner when
 the deciding code changes (or by hand) and pushes it to the
 `accuracy-results` branch; record.sh copies it into `test/results/github/`. The first one (October 2026,
-commit e4a746f) is there: 0.4% noise, 0/200 false alarms, +10% caught 50/50.
+commit e4a746f) showed 0.4% noise, 0/200 false alarms, +10% caught 50/50. The
+one in test/results/github now (commit b32c46d, the 0.2 code) adds the
+scenarios: 0.2% noise, the same clean accuracy, and every scenario case
+settled correctly except drift in ABBA order, which is inconclusive.
 
 The `benchmarks` workflow runs the released action on jvq's own benchmarks
 (jvq.toml at the root) on pull requests and after each release.
@@ -101,7 +104,8 @@ JVQ.net is in `photozeitgeist/jvq.net`, rebuilt in October 2026 from the old
 blog (wiped at the owner's request) with the Hugo Launch template copied
 unchanged from taskfused.com: content and config values only. Pages: about,
 contact, quick start, download, reference. Posts: the launch, performance
-budgets in CI explained, how jvq was tested, the name. Images are drawn into
+budgets in CI explained, how jvq was tested, the name, then for 0.2 the
+release post and the harder-settings post (scenarios). Images are drawn into
 static/images. Every number comes from `test/results/`; when a recording
 changes a number, update the site too.
 
@@ -109,11 +113,7 @@ changes a number, update the site too.
 
 Approved with the plan (October 2026), in this order:
 
-- **v0.2.0, any language.** A `time` adapter (jvq times the whole command
-  itself) and a small documented `json` adapter; `jvq compare old.json
-  new.json`; recorded tests for a noisy neighbour (a CPU and memory hog
-  running alongside), for drift (ABBA against a sequential order, using the
-  runner's test-only Sequential mode), and for non-Go commands.
+- **v0.2.0, any language.** Released October 2026 (see above).
 - **v0.3.0, more harnesses.** Adapters for Rust criterion, Google Benchmark
   JSON, pytest-benchmark and vitest bench; a binary-size gate.
 

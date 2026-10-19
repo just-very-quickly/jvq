@@ -108,7 +108,7 @@ a 10% slowdown is close to what 10 to 30 rounds can settle: an earlier
 recording on the same kind of VM, at 8.9% noise, caught 42 of 50.
 
 On a GitHub-hosted runner (ubuntu-latest, 4 cores) the same suite saw only
-0.4% run-to-run noise, and every clear case was decided in the first 10
+0.2% run-to-run noise, and every clear case was decided in the first 10
 rounds: all 200 no-change runs and all 50 at +2% passed, and every run at
 +10%, +20% and +50% was caught. A change of exactly the budget, +5%, was
 flagged in 5 of 50 runs. [test/results/github/](test/results/github/accuracy.md)
