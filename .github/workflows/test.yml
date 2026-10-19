@@ -48,7 +48,16 @@ jobs:
             exit 1
           fi
       - if: runner.os == 'Linux'
-        run: go test -race -count=1 ./...
+        name: Tests with the race detector
+        shell: bash
+        run: |
+          set -o pipefail
+          if ! go test -race -count=1 ./... 2>&1 | tee race-output.txt; then
+            grep -E -- '--- FAIL|_test\.go:[0-9]+:|panic:|WARNING: DATA RACE|FAIL' race-output.txt | head -30 | while IFS= read -r line; do
+              echo "::error title=go test -race::${line}"
+            done
+            exit 1
+          fi
       - run: python3 -B -m unittest discover -s scripts -p '*_test.py'
         if: runner.os != 'Windows'
       - name: Smoke check on a release-style build
