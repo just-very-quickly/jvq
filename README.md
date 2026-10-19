@@ -94,8 +94,8 @@ same benchmark binary, run 40 times in a row, spread by 7.2% from run to run
 |---|---:|---:|---|
 | no change | 200 | 0 (0%) | no regression |
 | 2% more work | 50 | 0 (0%) | no regression |
-| 5% more work | 50 | 1 (2%) | no regression, at the budget's edge |
-| 10% more work | 50 | 48 (96%) | regression |
+| 5% more work | 50 | 4 (8%) | no regression, at the budget's edge |
+| 10% more work | 50 | 38 (76%) | regression |
 | 20% more work | 50 | 50 (100%) | regression |
 | 50% more work | 50 | 50 (100%) | regression |
 | one more allocation per op | 100 | 100 (100%) | regression |
@@ -103,13 +103,14 @@ same benchmark binary, run 40 times in a row, spread by 7.2% from run to run
 
 The runs that weren't flagged passed or came back inconclusive. Clear cases
 took the 10 starting rounds; close ones used more, up to 30 per side, and a
-time run took 1.5 to 3.6 seconds on this fixture. How much a 10% slowdown
-gets caught depends on the machine's noise that day: earlier recordings on
-the same kind of VM caught 42 of 50 at 8.9% noise and 34 of 50 at 7.2%.
-None of them raised a false alarm.
+time run took 1.5 to 3.5 seconds on this fixture, on a day the VM's
+timings spread 7.1% from run to run. How much a 10% slowdown gets caught
+depends on that noise: earlier recordings on the same kind of VM caught
+42 of 50 at 8.9%, 34 of 50 at 7.2% and 48 of 50 at 4.6%. None of them
+raised a false alarm.
 
 On a GitHub-hosted runner (ubuntu-latest, 4 cores) the same suite saw only
-0.8% run-to-run noise, and every clear case was decided in the first 10
+0.6% run-to-run noise, and every clear case was decided in the first 10
 rounds: all 200 no-change runs and all 50 at +2% passed, and every run at
 +10%, +20% and +50% was caught. A change of exactly the budget, +5%, was
 flagged in 6 of 50 runs: with so little noise, adding rounds gives a change
@@ -140,14 +141,14 @@ remove the extra spread such drift causes, though: most of those runs came
 back inconclusive rather than pass. The Python rows at 10% more work, where
 the VM caught 8 and 20 of 30 and the GitHub runner all 30, are in the file.
 
-The real harnesses, end to end through `jvq run`, on the VM, 10 runs each:
+The real harnesses, end to end through `jvq run`, 10 runs each:
 
-| Harness | No change | 20% more work |
-|---|---|---|
-| pytest-benchmark | 1 false alarm, 2 pass, 7 inconclusive | 10 caught |
-| Google Benchmark (Python bindings) | 0 false alarms | 8 caught, 2 inconclusive |
-| vitest bench | 0 false alarms | 10 caught |
-| criterion | 0 false alarms | 10 caught |
+| Harness | Cloud VM: no change | VM: 20% more work | GitHub runner: no change | GitHub: 20% more work |
+|---|---|---|---|---|
+| pytest-benchmark | 1 false alarm, 2 pass, 7 inconclusive | 10 caught | 10 pass | 10 caught |
+| Google Benchmark (Python bindings) | 0 false alarms | 8 caught, 2 inconclusive | 10 pass | 10 caught |
+| vitest bench | 0 false alarms | 10 caught | 10 pass | 10 caught |
+| criterion | 0 false alarms | 10 caught | 10 pass | 10 caught |
 
 pytest-benchmark was the noisiest: with a short time budget per test
 (`--benchmark-max-time=0.2`), its medians wandered enough on this VM that
@@ -155,8 +156,9 @@ one no-change run came out 26% slower, with its whole interval over the
 budget. A longer `--benchmark-max-time` is the first thing to raise if it's
 noisy for you; this recording didn't try one.
 
-The VM numbers are from jvq 0.3.0. The GitHub runner's are from the same
-suite on the 0.2.0 code (commit 08aab29), before the harness rows existed.
+The VM's accuracy table is from jvq 0.4.0 and its scenarios from 0.3.0;
+nothing those scenarios measure changed in 0.4. The GitHub runner's are
+from the 0.3.0 release commit (0fa5121).
 
 ## Any language
 
