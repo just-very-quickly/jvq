@@ -182,7 +182,9 @@ unchanged from taskfused.com: content and config values only. Pages: about,
 contact, quick start, download, reference. Posts: the launch, performance
 budgets in CI explained, how jvq was tested, the name, then for 0.2 the
 release post and the harder-settings post (scenarios), then a release
-post for each of 0.3, 0.4 and 0.5. Images are drawn into
+post for each of 0.3, 0.4, 0.5 and 0.6. The site also hosts jvqq, the
+query tool (repo just-very-quickly/query), with its own pages and case
+studies. Images are drawn into
 static/images. Every number comes from `test/results/`; when a recording
 changes a number, update the site too.
 
