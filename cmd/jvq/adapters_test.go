@@ -240,3 +240,36 @@ func TestGitLabMergeRequestWithJUnit(t *testing.T) {
 		t.Errorf("missing base: %d %s", res.code, res.stderr)
 	}
 }
+
+func TestHistory(t *testing.T) {
+	r := newFixture(t, "", fixture.Spec{Work: base})
+	commit(t, r, fixture.Spec{Work: base * 3 / 2}, "slower")
+	hist := filepath.Join(t.TempDir(), "jvq-history.jsonl")
+	r.WriteConfig(fixture.Config(3, "10ms", "history = \""+filepath.ToSlash(hist)+"\"\n"))
+	// Two runs add two lines, whatever their verdicts: one through the
+	// config's history, one through -history, which takes its place.
+	jvq(t, r.Dir, nil, "run")
+	jvq(t, r.Dir, nil, "run", "-history", hist)
+	b, err := os.ReadFile(hist)
+	if err != nil || strings.Count(string(b), "\n") != 2 {
+		t.Fatalf("history %v:\n%s", err, b)
+	}
+	res := jvq(t, r.Dir, nil, "history", hist)
+	expect(t, res, 0)
+	if !strings.Contains(res.stdout, "BenchmarkWork  time") || !strings.Contains(res.stdout, "2 runs") {
+		t.Errorf("history:\n%s", res.stdout)
+	}
+	// Each run measured about +50%; chained over two runs that's over 100%.
+	res = jvq(t, r.Dir, nil, "history", "-fail-over", "60%", hist)
+	expect(t, res, 1)
+	if !strings.Contains(res.stdout, "OVER 60%") {
+		t.Errorf("fail-over:\n%s", res.stdout)
+	}
+	expect(t, jvq(t, r.Dir, nil, "history", "-metric", "allocs", "-fail-over", "60%", hist), 0)
+	if res := jvq(t, r.Dir, nil, "history", filepath.Join(t.TempDir(), "none.jsonl")); res.code != 2 {
+		t.Errorf("missing file: %d", res.code)
+	}
+	if res := jvq(t, r.Dir, nil, "history", "-fail-over", "lots", hist); res.code != 2 {
+		t.Errorf("bad -fail-over: %d", res.code)
+	}
+}

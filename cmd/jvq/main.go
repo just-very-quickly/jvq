@@ -30,6 +30,7 @@ import (
 
 	"github.com/just-very-quickly/jvq/internal/config"
 	"github.com/just-very-quickly/jvq/internal/gitx"
+	"github.com/just-very-quickly/jvq/internal/history"
 	"github.com/just-very-quickly/jvq/internal/report"
 	"github.com/just-very-quickly/jvq/internal/runner"
 	"github.com/just-very-quickly/jvq/internal/verdict"
@@ -47,6 +48,7 @@ const usage = `jvq: a performance budget gate for CI
 Usage:
   jvq run [flags] [-- command]   compare base and head; fail on a regression
   jvq compare [flags] OLD NEW    compare two saved benchmark outputs
+  jvq history [flags] FILE       show how benchmarks moved across runs
   jvq check [--config FILE]      read jvq.toml and show the settings
   jvq version                    print the version
 
@@ -75,6 +77,8 @@ func cli(args []string, stdout, stderr io.Writer) int {
 		return cmdRun(args[1:], stdout, stderr)
 	case "compare":
 		return cmdCompare(args[1:], stdout, stderr)
+	case "history":
+		return cmdHistory(args[1:], stdout, stderr)
 	case "check":
 		return cmdCheck(args[1:], stdout, stderr)
 	case "version", "--version", "-version", "-v":
@@ -89,7 +93,7 @@ func cli(args []string, stdout, stderr io.Writer) int {
 }
 
 type runFlags struct {
-	base, head, configPath, build, adapter, output, jsonPath, mdPath, junitPath, timeout string
+	base, head, configPath, build, adapter, output, jsonPath, mdPath, junitPath, historyPath, timeout string
 	rounds, maxRounds                                                                    int
 	baseMayFail, failOnInconclusive, keep, quiet, noWarmup                               bool
 }
@@ -110,6 +114,7 @@ func cmdRun(args []string, stdout, stderr io.Writer) int {
 	fs.StringVar(&f.jsonPath, "json", "", "also write the report as JSON to this file")
 	fs.StringVar(&f.mdPath, "markdown", "", "also write the report as Markdown to this file")
 	fs.StringVar(&f.junitPath, "junit", "", "also write the report as JUnit XML to this file, for GitLab or Jenkins")
+	fs.StringVar(&f.historyPath, "history", "", "add a line for this run to this history file (see jvq history)")
 	fs.BoolVar(&f.baseMayFail, "base-may-fail", false, "if base fails to build or run, pass with nothing compared instead of failing")
 	fs.BoolVar(&f.failOnInconclusive, "fail-on-inconclusive", false, "exit 1 when the result is inconclusive")
 	fs.BoolVar(&f.noWarmup, "no-warmup", false, "skip the warm-up run on each side")
@@ -323,6 +328,17 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 		Seconds: time.Since(started).Seconds(), Counts: verdict.Counts(rows), Rows: rows,
 	}
 	report.Text(stdout, rep)
+	historyPath := f.historyPath
+	if historyPath == "" {
+		historyPath = cfg.History
+	}
+	if historyPath != "" {
+		e := history.FromRows(Version, time.Now(), history.Commit{Ref: pick.Ref, SHA: pick.SHA}, history.Commit{Ref: f.head, SHA: headSHA}, rep.Verdict, rows)
+		if err := history.Append(historyPath, e, cfg.HistoryKeep); err != nil {
+			fmt.Fprintf(stderr, "jvq: couldn't add to the history file: %v\n", err)
+			annotate(stderr, "warning", "couldn't add to the history file: "+err.Error())
+		}
+	}
 	if err := writeFiles(f, rep); err != nil {
 		// The verdict stands; a report file that couldn't be written
 		// shouldn't turn a regression into an error, or a pass into one.

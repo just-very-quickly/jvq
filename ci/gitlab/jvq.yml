@@ -26,6 +26,8 @@
     JVQ_COMMAND: ""          # the benchmark command; empty uses jvq.toml or the Go default
     JVQ_ARGS: ""             # more flags for jvq run, such as -adapter json
     JVQ_DIR: "."             # where to run, relative to the repository
+    JVQ_HISTORY: "false"     # "true" keeps jvq-history.jsonl in the GitLab cache; default-branch runs add to it
+    JVQ_HISTORY_FAIL_OVER: "" # with history, fail when a result has moved more than this in all, such as 10%
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -56,16 +58,38 @@
           echo "jvq: couldn't fetch the target branch; carrying on"
       fi
       out="$CI_PROJECT_DIR"
-      cd "$JVQ_DIR"
-      if [ -n "$JVQ_COMMAND" ]; then
-        jvq run -junit "$out/jvq.xml" -markdown "$out/jvq.md" -json "$out/jvq.json" $JVQ_ARGS -- "$JVQ_COMMAND"
-      else
-        jvq run -junit "$out/jvq.xml" -markdown "$out/jvq.md" -json "$out/jvq.json" $JVQ_ARGS
+      hist=""
+      if [ "$JVQ_HISTORY" = true ] && [ "${CI_COMMIT_BRANCH:-}" = "$CI_DEFAULT_BRANCH" ]; then
+        hist="-history $out/jvq-history.jsonl"
       fi
+      cd "$JVQ_DIR"
+      set +e
+      if [ -n "$JVQ_COMMAND" ]; then
+        jvq run -junit "$out/jvq.xml" -markdown "$out/jvq.md" -json "$out/jvq.json" $hist $JVQ_ARGS -- "$JVQ_COMMAND"
+      else
+        jvq run -junit "$out/jvq.xml" -markdown "$out/jvq.md" -json "$out/jvq.json" $hist $JVQ_ARGS
+      fi
+      code=$?
+      if [ "$JVQ_HISTORY" = true ] && [ -f "$out/jvq-history.jsonl" ]; then
+        if [ -n "$JVQ_HISTORY_FAIL_OVER" ]; then
+          jvq history -markdown "$out/jvq-history.md" -fail-over "$JVQ_HISTORY_FAIL_OVER" "$out/jvq-history.jsonl"
+          hcode=$?
+          if [ $code -eq 0 ]; then code=$hcode; fi
+        else
+          jvq history -markdown "$out/jvq-history.md" "$out/jvq-history.jsonl"
+        fi
+      fi
+      exit $code
+  cache:
+    key: jvq-history
+    paths:
+      - jvq-history.jsonl
+    when: always
   artifacts:
     when: always
     paths:
       - jvq.md
       - jvq.json
+      - jvq-history.md
     reports:
       junit: jvq.xml

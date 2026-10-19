@@ -26,6 +26,14 @@ inputs:
     description: Where to run, such as a Go module in a subdirectory.
     required: false
     default: "."
+  history:
+    description: A file name, such as jvq-history.jsonl, to keep a history of runs between workflow runs, through the Actions cache. Runs on the default branch add a line; every run shows the trend in the job summary. Empty keeps no history.
+    required: false
+    default: ""
+  history-fail-over:
+    description: With history, fail when any result has moved more than this across the kept runs, such as 10%. Empty only shows the trend.
+    required: false
+    default: ""
   version:
     description: The jvq release to use, such as v0.4.0. Empty uses the tag this action was referenced by, or the latest release when referenced by a branch.
     required: false
@@ -81,6 +89,14 @@ runs:
         echo "$dir" >> "$GITHUB_PATH"
         "$dir/jvq" version
 
+    - name: Restore the jvq history
+      if: inputs.history != ''
+      uses: actions/cache/restore@v5
+      with:
+        path: ${{ inputs.working-directory }}/${{ inputs.history }}
+        key: jvq-history-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: jvq-history-
+
     - name: Run jvq
       shell: bash
       working-directory: ${{ inputs.working-directory }}
@@ -89,9 +105,12 @@ runs:
         INPUT_BASE: ${{ inputs.base }}
         INPUT_CONFIG: ${{ inputs.config }}
         INPUT_ARGS: ${{ inputs.args }}
+        INPUT_HISTORY: ${{ inputs.history }}
+        ON_DEFAULT_BRANCH: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.ref_name == github.event.repository.default_branch }}
       run: |
         set -uo pipefail
         args=(run)
+        [ -n "$INPUT_HISTORY" ] && [ "$ON_DEFAULT_BRANCH" = true ] && args+=(-history "$INPUT_HISTORY")
         [ -n "$INPUT_BASE" ] && args+=(-base "$INPUT_BASE")
         [ -n "$INPUT_CONFIG" ] && args+=(-config "$INPUT_CONFIG")
         if [ -n "$INPUT_ARGS" ]; then
@@ -100,3 +119,27 @@ runs:
         fi
         [ -n "$INPUT_COMMAND" ] && args+=(-- "$INPUT_COMMAND")
         jvq "${args[@]}"
+
+    - name: Save the jvq history
+      if: always() && inputs.history != '' && github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.ref_name == github.event.repository.default_branch
+      uses: actions/cache/save@v5
+      with:
+        path: ${{ inputs.working-directory }}/${{ inputs.history }}
+        key: jvq-history-${{ github.run_id }}-${{ github.run_attempt }}
+
+    - name: Show the jvq history
+      if: always() && inputs.history != ''
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        INPUT_HISTORY: ${{ inputs.history }}
+        INPUT_FAIL_OVER: ${{ inputs.history-fail-over }}
+      run: |
+        set -uo pipefail
+        if [ ! -f "$INPUT_HISTORY" ]; then
+          echo "jvq: no history yet; runs on the default branch start it"
+          exit 0
+        fi
+        args=(history)
+        [ -n "$INPUT_FAIL_OVER" ] && args+=(-fail-over "$INPUT_FAIL_OVER")
+        jvq "${args[@]}" "$INPUT_HISTORY"

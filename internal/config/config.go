@@ -33,6 +33,8 @@ type Config struct {
 	Build              string
 	Output             string   // a file the command writes its results to, instead of stdout
 	Size               []string // files (glob patterns) whose size is gated, measured after the build
+	History            string   // a history file to add each run to, if set
+	HistoryKeep        int      // how many entries the history file keeps
 	Rounds             int      // rounds per side to start with
 	MaxRounds          int      // the most rounds per side while results are undecided
 	Warmup             bool
@@ -84,12 +86,13 @@ func (b Budget) String() string {
 // Default returns the settings used when there's no jvq.toml.
 func Default() Config {
 	return Config{
-		Adapter:    "go",
-		Rounds:     10,
-		MaxRounds:  30,
-		Warmup:     true,
-		Confidence: 0.95,
-		Timeout:    10 * time.Minute,
+		Adapter:     "go",
+		HistoryKeep: 1000,
+		Rounds:      10,
+		MaxRounds:   30,
+		Warmup:      true,
+		Confidence:  0.95,
+		Timeout:     10 * time.Minute,
 		Budget: Budgets{
 			Time:   Budget{Pct: true, Val: 0.05, Raw: "5%"},
 			Bytes:  Budget{Off: true, Raw: "off"},
@@ -255,6 +258,18 @@ func Parse(src string) (Config, error) {
 			if c.Size, err = strList(k, v); err == nil {
 				err = checkSizePatterns(c.Size)
 			}
+		case "history":
+			c.History, err = str(k, v)
+			if err == nil && strings.TrimSpace(c.History) == "" {
+				err = errors.New("history is empty; leave it out to keep no history")
+			}
+		case "history_keep":
+			var n int64
+			n, err = integer(k, v)
+			if err == nil && (n < 1 || n > 1000000) {
+				err = fmt.Errorf("history_keep = %d: use 1 to 1000000", n)
+			}
+			c.HistoryKeep = int(n)
 		case "budget":
 			err = c.readBudgets(v)
 		case "ignore":

@@ -6,7 +6,8 @@ name: benchmarks
 # the published action runs the released jvq on this repository's own
 # benchmarks (the statistics and the output parser, see jvq.toml), comparing
 # the change with its base. It is also the check that the action and the
-# latest release work end to end.
+# latest release work end to end. Runs after a release add a line to a
+# history kept in the Actions cache, and every run shows the trend.
 
 on:
   pull_request:
@@ -42,3 +43,4 @@ jobs:
         uses: ./
         with:
           version: latest
+          history: jvq-history.jsonl

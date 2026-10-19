@@ -1,6 +1,6 @@
 # jvq reference
 
-Everything jvq v0.4 does, in one place. The [README](../README.md) is the
+Everything jvq v0.5 does, in one place. The [README](../README.md) is the
 introduction.
 
 ## Commands
@@ -88,6 +88,7 @@ that doesn't write it is an error.
 | `-json FILE` | none | also write the report as JSON |
 | `-markdown FILE` | none | also write the report as Markdown |
 | `-junit FILE` | none | also write the report as JUnit XML |
+| `-history FILE` | `history` in jvq.toml | add a line for this run to a history file |
 | `-base-may-fail` | off | if base fails to build or run, print a note and exit 0 with nothing compared |
 | `-fail-on-inconclusive` | off | exit 1 when the overall verdict is inconclusive |
 | `-no-warmup` | off | skip the warm-up runs |
@@ -126,6 +127,38 @@ machine that changed between them looks like a change in the code. The
 report says so in its note and has `"mode": "compare"`, the file names as
 the base and head `ref`, and no commit hashes or rounds.
 
+### jvq history
+
+```
+jvq history [flags] FILE
+```
+
+Reads a history file and prints, for each benchmark and metric, how many
+runs measured it, its change in all, how many runs called it a
+regression, and its change run by run for the latest 30.
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `-n N` | all | only the newest N runs |
+| `-bench PATTERN` | all | only benchmarks matching the pattern |
+| `-metric NAME` | all | only this metric |
+| `-fail-over PCT` | none | exit 1 if any time, bytes, allocs or size result has moved more than this in all |
+| `-markdown FILE` | none | also write the table as Markdown |
+
+It also appends the Markdown table to `$GITHUB_STEP_SUMMARY` when that's
+set. Exit codes: 0, or 1 with `-fail-over` when something is over, or 2
+for an error (no file, a bad flag). Lines that aren't history entries are
+skipped with a note, so one damaged line doesn't lose the rest.
+
+**In all** is the product of (1 + change) over the runs that had a change
+for the result, minus one. Each run's change compares base and head
+measured together on one machine; medians from different runs may come
+from different machines, so they are kept but not compared. A run with no
+change for a result (new, removed, or base 0) doesn't count for it.
+**Run by run** draws each run's change as a block: `·` for no change
+(under 0.05%), `▁` for faster or smaller, and taller blocks for slower or
+bigger, scaled to the largest change shown.
+
 ### jvq check
 
 ```
@@ -159,6 +192,8 @@ back to a default quietly.
 | `adapter` | string | `"go"` | how to read results: `go`, `json`, `time`, `criterion`, `google-benchmark`, `pytest-benchmark` or `vitest` |
 | `output` | string | none | a file the command writes its results to, read instead of its standard output; not with `time` |
 | `size` | list of patterns | none | files whose size is gated, measured once per side after the build |
+| `history` | string | none | a history file each run adds a line to |
+| `history_keep` | integer, 1 to 1000000 | 1000 | how many runs the history file keeps, the newest |
 | `rounds` | integer, 3 to 1000 | 10 | rounds per side to start with |
 | `max_rounds` | integer, 3 to 1000 | 30 | most rounds per side while undecided |
 | `warmup` | boolean | true | one thrown-away run per side first |
@@ -437,6 +472,35 @@ Mann-Whitney p-value for no difference) appear for time only. `change` is
 left out when base was zero. `note` explains a non-obvious verdict or base.
 Medians are in the metric's unit (nanoseconds for time).
 
+## History file
+
+`jvq run -history FILE` (or `history` in jvq.toml) adds one line to FILE
+after the report, whatever the verdict, creating the file if needed and
+keeping the newest `history_keep` lines. It writes a temporary file beside
+it and renames it into place, so a crash can't leave it half written. Two
+runs writing at once can lose one of their lines. A line is a JSON object:
+
+```json
+{"jvq": "0.5.0", "date": "2026-10-19T08:00:00Z",
+ "base": {"ref": "head^", "sha": "…"}, "head": {"ref": "HEAD", "sha": "…"},
+ "verdict": "pass",
+ "results": [{"package": "example.com/parse", "name": "BenchmarkParse",
+              "metric": "time", "unit": "ns/op", "base_median": 912.3,
+              "head_median": 920.1, "change": 0.0085, "verdict": "pass"}]}
+```
+
+(Shown over several lines here; in the file it's one.) `change` is left
+out when there is none, such as for a new benchmark.
+
+In GitHub Actions, the action's `history` input keeps the file in the
+Actions cache: it restores the newest saved copy before the run, adds a
+line on runs that aren't pull requests on the default branch, saves it
+under a new key, and runs `jvq history` (with `history-fail-over`, if set)
+on every run. In GitLab, `JVQ_HISTORY: "true"` keeps `jvq-history.jsonl`
+in the job's cache and writes `jvq-history.md` as an artifact. GitLab keeps
+protected branches' caches apart from others by default, so merge request
+pipelines may not see the default branch's history.
+
 ## JUnit report
 
 `-junit FILE` (on `run` and `compare`) writes one test suite named `jvq`
@@ -459,6 +523,8 @@ include and extend. Its variables:
 | `JVQ_ARGS` | empty | more flags for `jvq run`, split on spaces |
 | `JVQ_DIR` | `.` | where to run, relative to the repository |
 | `GIT_DEPTH` | `"0"` | a full clone, so the base commit is there |
+| `JVQ_HISTORY` | `"false"` | `"true"` keeps a history in the cache; default-branch pipelines add to it |
+| `JVQ_HISTORY_FAIL_OVER` | empty | with history, fail when anything has moved more than this in all |
 
 It runs on `merge_request_event` pipelines and on the default branch,
 fetches the merge request's target branch, downloads
@@ -495,5 +561,7 @@ runs `jvq run` with the inputs:
 | `args` | more flags, split on spaces |
 | `working-directory` | where jvq runs |
 | `version` | which release to download |
+| `history` | a history file kept in the Actions cache (see History file) |
+| `history-fail-over` | with `history`, `jvq history -fail-over` |
 
 Check out with `fetch-depth: 0` so the base commit is there.

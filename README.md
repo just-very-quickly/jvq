@@ -282,6 +282,43 @@ against the release's SHA256SUMS, and runs `jvq run`. It needs no token and
 no extra permissions; the report goes to the job summary. Inputs: `command`,
 `base`, `config`, `args` (more flags), `working-directory` and `version`.
 
+## A history across runs
+
+Each run judges one change against its base, so a slowdown that arrives
+in small steps, each inside the budget, passes every time. Keep a history
+and it shows:
+
+```yaml
+      - uses: just-very-quickly/jvq@v0.4.0
+        with:
+          history: jvq-history.jsonl
+          history-fail-over: 10%     # optional: fail when anything has moved more than this in all
+```
+
+With `history`, the action keeps the file in the Actions cache. Runs on
+the default branch add a line to it, pull requests don't, and every run
+prints the trend to the job summary:
+
+```
+jvq history: 24 runs, 2026-10-01 (4be1c0f2a9) to 2026-10-19 (9d01e77c3b) in jvq-history.jsonl
+
+BENCHMARK       METRIC  RUNS  IN ALL  REGRESSIONS  RUN BY RUN
+BenchmarkParse  time    24    +11.8%  0            ··▂·▃▁·▂▂·▃·▂·▁▂··▃▂·▂▂·
+BenchmarkWrite  time    24    -2.1%   0            ·▁··▁·▂▁··▁···▁·▂··▁···▁
+```
+
+*In all* chains each run's own change, base to head. Medians from
+different runs come from different machines and can't be compared, but
+each run's change was measured on one machine, so the changes can be
+multiplied together: ten runs at +1% each make about +10.5%.
+
+Anywhere else, `jvq run -history FILE` adds a line to FILE (or set
+`history = "FILE"` in jvq.toml), and `jvq history FILE` shows the trend,
+with `-n 30` for the latest 30 runs, `-bench` and `-metric` to narrow it,
+`-markdown` to write it as Markdown, and `-fail-over 10%` to exit 1 when
+something has moved more than that. The file is JSON, one line per run,
+and keeps the newest 1000 (`history_keep`).
+
 ## In GitLab CI
 
 ```yaml
@@ -301,7 +338,9 @@ fetches the target branch, downloads the release and checks it against
 SHA256SUMS, and runs `jvq run`. A regression fails the job; the result
 shows in the merge request's test summary through a JUnit report, and
 jvq.md and jvq.json are kept as artifacts. Set `JVQ_ARGS` for more flags,
-`JVQ_DIR` to run in a subfolder, and `JVQ_VERSION` to pin a release. The
+`JVQ_DIR` to run in a subfolder, and `JVQ_VERSION` to pin a release.
+`JVQ_HISTORY: "true"` keeps a history in the GitLab cache, added to by
+default-branch pipelines, with `JVQ_HISTORY_FAIL_OVER` as the limit. The
 image needs `curl`, `git`, `tar`, `sha256sum` and whatever your benchmarks
 need; Debian-based images such as `golang:1.26` have them, and on Alpine
 add `before_script: apk add --no-cache curl git`. If your GitLab can't
@@ -353,6 +392,8 @@ build   = "go test -c -o bench.test ./parser"   # once per side, optional
 adapter = "go"          # go, json, time, criterion, google-benchmark, pytest-benchmark, vitest
 # output = "results.json"  # a file the command writes its results to, if not stdout
 # size = ["bin/app"]       # files whose size is gated, measured after the build
+# history = "jvq-history.jsonl"  # add a line per run to this file
+history_keep = 1000     # how many runs the history file keeps
 
 rounds     = 10         # per side, to start with
 max_rounds = 30         # per side, at most, while undecided
@@ -397,6 +438,7 @@ jvq run [flags] [-- command]
   -json FILE             also write the report as JSON
   -markdown FILE         also write the report as Markdown
   -junit FILE            also write the report as JUnit XML (GitLab, Jenkins)
+  -history FILE          add a line for this run to a history file
   -base-may-fail         if base doesn't build or run, pass with nothing compared
   -fail-on-inconclusive  exit 1 when the result is inconclusive
   -no-warmup             skip the warm-up runs
@@ -407,6 +449,12 @@ jvq compare [flags] OLD NEW
                          else json for .json files, else go)
   -config FILE           config file, for budgets and ignores
   -json FILE, -markdown FILE, -fail-on-inconclusive    as for run
+jvq history [flags] FILE
+  -n N                   only the newest N runs
+  -bench PATTERN         only matching benchmarks
+  -metric NAME           only this metric
+  -fail-over PCT         exit 1 if anything has moved more than this in all
+  -markdown FILE         also write the table as Markdown
 jvq check [-config FILE]
 jvq version
 ```
