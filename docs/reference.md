@@ -363,7 +363,7 @@ and at 95% confidence about 4 a side for an interval to exist (4 against 4, or 3
 confidence level. Looking again and again lets a borderline result cross
 the line by chance more often than a single look would: in the recorded
 accuracy runs, a change of exactly the budget (+5%) was called a regression
-in 1 run of 50 on a noisy cloud VM and in 5 of 50 on a quiet GitHub-hosted
+in 1 run of 50 on a noisy cloud VM and in 5 or 6 of 50 on a quiet GitHub-hosted
 runner. Changes well inside the budget, and no change at all, were never
 flagged on either (0 of 50 at +2%, 0 of 200 with no change). Set
 `max_rounds` equal to `rounds` for a single look.

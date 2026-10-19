@@ -66,8 +66,24 @@ silently, `compare -- -file`, the README's sample config, and a noisy
 neighbour that could outlive the scenario harness. Pooling several values
 per run was the one design change (now one median per run).
 
-Not done yet: the v0.3 harness adapters and size gate (in progress on the
-v03-work branch until released), submodules in worktrees.
+v0.3.0 (October 2026) reads the real harnesses as they are: `criterion`
+(cargo bench's time lines, wrapped names, change blocks and colours
+skipped, and the bencher format), `google-benchmark` (JSON, repetitions,
+skipped entries, NaN counters, aggregates-only), `pytest-benchmark` and
+`vitest` (1 to 4) from the files they write via `output`. Testdata in
+internal/adapter/testdata is real captured output. A file-size gate:
+`size = [patterns]` measured once per side after the build, `[budget] size`
+defaulting to 1%, globbed inside the run folder (no absolute or `..`
+patterns). Its review fixed criterion's change blocks, colours, Google
+Benchmark skips/NaN/aggregates, duplicate names, size globbing, and
+compare's choice of format.
+
+Known from the 0.3 recording: pytest-benchmark with a short
+`--benchmark-max-time` is noisy on the 2-core VM (1 false alarm in 10
+no-change runs); a change exactly at the budget is flagged in 5 or 6 of 50
+on a quiet GitHub runner (optional stopping, documented).
+
+Not done yet: submodules in worktrees.
 
 ## Test results
 
@@ -78,7 +94,12 @@ cases, the smoke check on a static build, and the accuracy suite
 `test/results/`, then the scenarios (`test/scenarios`: a noisy neighbour
 taking half the CPUs and churning 512 MB, drift of 2% per run in ABBA and
 sequential order through the runner directly, and a Python script through
-the time and json adapters) into scenarios.json and scenarios.md. Every
+the time and json adapters, and the real harnesses end to end: pytest-benchmark,
+Google Benchmark's Python bindings, vitest and criterion, 10 runs each,
+skipped and listed when a tool is missing) into scenarios.json and
+scenarios.md. The scenarios take over an hour on the VM, so run them as their
+own background job (`go run ./test/scenarios -out test/results`) rather than
+inside record.sh, whose background run may hit a 2-hour limit. Every
 number in the README and on the site comes from those files; record again
 after any change that could move them. The accuracy suite takes 20 to 40
 minutes and the scenarios about as long again; `SKIP_ACCURACY=1` skips both.
@@ -114,8 +135,7 @@ changes a number, update the site too.
 Approved with the plan (October 2026), in this order:
 
 - **v0.2.0, any language.** Released October 2026 (see above).
-- **v0.3.0, more harnesses.** Adapters for Rust criterion, Google Benchmark
-  JSON, pytest-benchmark and vitest bench; a binary-size gate.
+- **v0.3.0, more harnesses.** Released October 2026 (see above).
 
 After v0.3.0, only with the owner's approval: an instruction-count mode on
 Linux, a GitLab CI example, an optional history file kept as a CI artifact.
