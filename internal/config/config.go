@@ -30,9 +30,10 @@ type Config struct {
 	Command            string
 	Adapter            string
 	Build              string
-	Output             string // a file the command writes its results to, instead of stdout
-	Rounds             int    // rounds per side to start with
-	MaxRounds          int    // the most rounds per side while results are undecided
+	Output             string   // a file the command writes its results to, instead of stdout
+	Size               []string // files (glob patterns) whose size is gated, measured after the build
+	Rounds             int      // rounds per side to start with
+	MaxRounds          int      // the most rounds per side while results are undecided
 	Warmup             bool
 	Confidence         float64
 	Timeout            time.Duration // per command run
@@ -48,6 +49,7 @@ type Budgets struct {
 	Time   Budget
 	Bytes  Budget
 	Allocs Budget
+	Size   Budget
 }
 
 // BenchBudgets overrides budgets for benchmarks whose name matches Pattern.
@@ -57,6 +59,7 @@ type BenchBudgets struct {
 	Time    *Budget
 	Bytes   *Budget
 	Allocs  *Budget
+	Size    *Budget
 }
 
 // Budget is how much worse a metric may get before jvq calls it a
@@ -90,6 +93,7 @@ func Default() Config {
 			Time:   Budget{Pct: true, Val: 0.05, Raw: "5%"},
 			Bytes:  Budget{Off: true, Raw: "off"},
 			Allocs: Budget{Off: true, Raw: "off"},
+			Size:   Budget{Pct: true, Val: 0.01, Raw: "1%"},
 		},
 	}
 }
@@ -246,6 +250,8 @@ func Parse(src string) (Config, error) {
 					err = fmt.Errorf("timeout %q: want a duration such as \"10m\"", s)
 				}
 			}
+		case "size":
+			c.Size, err = strList(k, v)
 		case "budget":
 			err = c.readBudgets(v)
 		case "ignore":
@@ -301,6 +307,8 @@ func (c *Config) readBudgets(v any) error {
 						bb.Bytes = &b
 					case adapter.Allocs:
 						bb.Allocs = &b
+					case adapter.Size:
+						bb.Size = &b
 					}
 				}
 				c.Bench = append(c.Bench, bb)
@@ -318,6 +326,8 @@ func (c *Config) readBudgets(v any) error {
 			c.Budget.Bytes = b
 		case adapter.Allocs:
 			c.Budget.Allocs = b
+		case adapter.Size:
+			c.Budget.Size = b
 		}
 	}
 	return nil
@@ -325,9 +335,9 @@ func (c *Config) readBudgets(v any) error {
 
 func budgetValue(metric string, v any) (Budget, error) {
 	switch metric {
-	case adapter.Time, adapter.Bytes, adapter.Allocs:
+	case adapter.Time, adapter.Bytes, adapter.Allocs, adapter.Size:
 	default:
-		return Budget{}, fmt.Errorf("unknown budget %q (jvq gates time, bytes and allocs)", metric)
+		return Budget{}, fmt.Errorf("unknown budget %q (jvq gates time, bytes, allocs and size)", metric)
 	}
 	switch x := v.(type) {
 	case string:
@@ -438,6 +448,8 @@ func (c Config) BudgetFor(metric, name, key string) Budget {
 		b, ok = c.Budget.Bytes, true
 	case adapter.Allocs:
 		b, ok = c.Budget.Allocs, true
+	case adapter.Size:
+		b, ok = c.Budget.Size, true
 	}
 	if !ok {
 		return Budget{Off: true, Raw: "off"}
@@ -454,6 +466,8 @@ func (c Config) BudgetFor(metric, name, key string) Budget {
 			o = bb.Bytes
 		case adapter.Allocs:
 			o = bb.Allocs
+		case adapter.Size:
+			o = bb.Size
 		}
 		if o != nil {
 			b = *o
@@ -488,4 +502,23 @@ func Match(pattern, name string) bool {
 		pi++
 	}
 	return pi == len(p)
+}
+
+func strList(k string, v any) ([]string, error) {
+	arr, ok := v.([]any)
+	if !ok {
+		return nil, fmt.Errorf("%s must be a list of strings such as [\"bin/app\"]", k)
+	}
+	var out []string
+	for _, x := range arr {
+		s, ok := x.(string)
+		if !ok || strings.TrimSpace(s) == "" {
+			return nil, fmt.Errorf("%s entries must be file names or patterns, as strings", k)
+		}
+		out = append(out, s)
+	}
+	if len(out) == 0 {
+		return nil, fmt.Errorf("%s is empty; leave it out to gate no file sizes", k)
+	}
+	return out, nil
 }

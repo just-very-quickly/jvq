@@ -90,7 +90,9 @@ func main() {
 		pyAA      = flag.Int("python-aa", 60, "no-change runs per Python adapter")
 		pyAB      = flag.Int("python-ab", 30, "runs per Python slowdown")
 		pyWork    = flag.Int("python-work", 800000, "loop rounds in the Python script")
-		only      = flag.String("only", "", "run only these scenarios: noisy, drift, python (comma-separated)")
+		harnessAA = flag.Int("harness-aa", 20, "no-change runs per benchmark harness")
+		harnessAB = flag.Int("harness-ab", 20, "+20% runs per benchmark harness")
+		only      = flag.String("only", "", "run only these scenarios: noisy, drift, python, harness (comma-separated)")
 		out       = flag.String("out", "test/results", "where to write scenarios.json and scenarios.md")
 		jvqPath   = flag.String("jvq", "", "jvq binary (default: build ./cmd/jvq)")
 	)
@@ -118,9 +120,10 @@ func main() {
 		Date: time.Now().UTC().Format("2006-01-02"), JVQ: strings.TrimSpace(string(ver)), Machine: machine(),
 		Settings: map[string]any{
 			"budget": "5% time (the default)", "confidence": 0.95,
-			"noisy":  fmt.Sprintf("the Go fixture benchmark (20 ms a round, 10 rounds to start, up to 30), beside a process keeping %d of the %d CPUs busy and churning through %d MB", *hogCPUs, runtime.NumCPU(), *hogMB),
-			"drift":  fmt.Sprintf("the fixture program with the json adapter, each run %g%% slower than the one before, 10 rounds a side, no warm-up, no added rounds", *driftPct),
-			"python": fmt.Sprintf("a Python script running a %d-round loop: timed whole by the time adapter, or timing 5 batches of a tenth of it with the json adapter; 10 rounds to start, up to 30", *pyWork),
+			"noisy":   fmt.Sprintf("the Go fixture benchmark (20 ms a round, 10 rounds to start, up to 30), beside a process keeping %d of the %d CPUs busy and churning through %d MB", *hogCPUs, runtime.NumCPU(), *hogMB),
+			"drift":   fmt.Sprintf("the fixture program with the json adapter, each run %g%% slower than the one before, 10 rounds a side, no warm-up, no added rounds", *driftPct),
+			"harness": "the real harnesses through jvq run with their adapters: pytest-benchmark, Google Benchmark (its Python bindings), vitest bench and Rust's criterion, each timing a loop whose length is set per commit; 10 rounds to start, up to 30",
+			"python":  fmt.Sprintf("a Python script running a %d-round loop: timed whole by the time adapter, or timing 5 batches of a tenth of it with the json adapter; 10 rounds to start, up to 30", *pyWork),
 		},
 	}
 
@@ -135,6 +138,13 @@ func main() {
 			fail("the python scenario needs %s on the PATH", python())
 		}
 		o.Trials = append(o.Trials, pythonRuns(bin, *pyWork, *pyAA, *pyAB)...)
+	}
+	if want("harness") {
+		trials, skipped := harnessRuns(bin, *harnessAA, *harnessAB)
+		o.Trials = append(o.Trials, trials...)
+		if len(skipped) > 0 {
+			o.Settings["harness_skipped"] = skipped
+		}
 	}
 	o.Summary = summarise(o.Trials)
 	o.TotalSecs = time.Since(start).Seconds()
@@ -436,8 +446,11 @@ func markdown(o output) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "# jvq in harder settings\n\nRecorded %s with %s on %s, %v CPUs (%s). Total time %s. The time budget is the default 5%%, at 95%% confidence.\n\n",
 		o.Date, o.JVQ, o.Machine["cpu"], o.Machine["cpus"], o.Machine["os"], (time.Duration(o.TotalSecs) * time.Second).String())
-	for _, k := range []string{"noisy", "drift", "python"} {
+	for _, k := range []string{"noisy", "drift", "python", "harness"} {
 		fmt.Fprintf(&b, "- **%s**: %s.\n", k, o.Settings[k])
+	}
+	if sk, ok := o.Settings["harness_skipped"].([]string); ok {
+		fmt.Fprintf(&b, "- Skipped, for want of the tool: %s.\n", strings.Join(sk, "; "))
 	}
 	fmt.Fprintln(&b, "\n| Scenario | Head | Runs | Regression | Pass | Inconclusive | Median measured change | Median rounds | Right answer |")
 	fmt.Fprintln(&b, "|---|---|---:|---:|---:|---:|---:|---:|---|")

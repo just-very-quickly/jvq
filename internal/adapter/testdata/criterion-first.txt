@@ -1,0 +1,13 @@
+xorshift 1000           time:   [1.8615 µs 1.8732 µs 1.8884 µs]
+Found 6 outliers among 100 measurements (6.00%)
+  2 (2.00%) high mild
+  4 (4.00%) high severe
+
+sizes/10                time:   [8.3779 ns 8.6654 ns 8.9277 ns]
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high mild
+sizes/10000             time:   [18.771 µs 18.952 µs 19.198 µs]
+Found 6 outliers among 100 measurements (6.00%)
+  3 (3.00%) high mild
+  3 (3.00%) high severe
+

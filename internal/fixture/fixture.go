@@ -23,6 +23,9 @@ type Spec struct {
 	Name   string // benchmark name; "" means BenchmarkWork
 	Broken bool   // the package doesn't compile
 	Extra  string // a comment, to make a commit that changes nothing measured
+	// Ballast is how many bytes of data the program carries, to change
+	// its binary's size and nothing else.
+	Ballast int
 }
 
 const goMod = "module example.com/fixture\n\ngo 1.21\n"
@@ -97,6 +100,8 @@ const Work = %d
 
 var sink uint64
 
+var ballast = [%d]byte{1}
+
 func op() {
 	x := uint64(88172645463325252)
 	for i := 0; i < Work; i++ {
@@ -125,6 +130,9 @@ func main() {
 	reps := flag.Int("reps", 1000, "ops per run, or per batch with -json")
 	asJSON := flag.Bool("json", false, "time 5 batches and print them as jvq json results")
 	flag.Parse()
+	if *reps < 0 {
+		fmt.Println(ballast[0]) // keeps the ballast in the binary
+	}
 	n := int(float64(*reps) * drift())
 	if !*asJSON {
 		for i := 0; i < n; i++ {
@@ -141,7 +149,7 @@ func main() {
 		fmt.Printf("{\"name\": \"work\", \"unit\": \"ns\", \"value\": %%.1f}\n", ns)
 	}
 }
-`, s.Extra, s.Work)
+`, s.Extra, s.Work, s.Ballast+1)
 }
 
 // Git runs git in dir with a clean identity and no user or system config,

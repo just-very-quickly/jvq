@@ -30,7 +30,7 @@ func cmdCompare(args []string, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("jvq compare", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.StringVar(&f.configPath, "config", "", "config file for budgets and ignores (default: jvq.toml here or in a parent)")
-	fs.StringVar(&f.adapter, "adapter", "", "format of the files: go or json (default: json for .json and .jsonl files, else the config's adapter, else go)")
+	fs.StringVar(&f.adapter, "adapter", "", "format of the files: go, json, criterion, google-benchmark, pytest-benchmark or vitest (default: the adapter in jvq.toml, else json for .json and .jsonl files, else go)")
 	fs.StringVar(&f.jsonPath, "json", "", "also write the report as JSON to this file")
 	fs.StringVar(&f.mdPath, "markdown", "", "also write the report as Markdown to this file")
 	fs.BoolVar(&f.failOnInconclusive, "fail-on-inconclusive", false, "exit 1 when the result is inconclusive")
@@ -146,11 +146,15 @@ func compare(f runFlags, oldPath, newPath string, stdout, stderr io.Writer) (int
 	return exitPass, nil
 }
 
-// compareAdapter picks the files' format: the flag, then the extension,
-// then an adapter set in jvq.toml, then go.
+// compareAdapter picks the files' format: the flag, then an adapter set in
+// jvq.toml (a harness's JSON files end in .json too), then json for files
+// ending in .json or .jsonl, then go.
 func compareAdapter(flagValue, configured string, fromFile bool, paths ...string) string {
 	if flagValue != "" {
 		return flagValue
+	}
+	if fromFile && configured != "" && !adapter.Timed(configured) {
+		return configured
 	}
 	allJSON := true
 	for _, p := range paths {
@@ -162,9 +166,6 @@ func compareAdapter(flagValue, configured string, fromFile bool, paths ...string
 	}
 	if allJSON {
 		return "json"
-	}
-	if fromFile && configured != "" && !adapter.Timed(configured) {
-		return configured
 	}
 	return "go"
 }

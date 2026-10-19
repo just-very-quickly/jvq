@@ -11,7 +11,9 @@
 //
 // Every result line becomes one sample per metric on it. The json adapter
 // reads jvq's own small JSON format (json.go), and the time adapter reads
-// nothing: the runner times the whole command (TimeSample).
+// nothing: the runner times the whole command (TimeSample). harness.go has
+// adapters for Rust's criterion, Google Benchmark, pytest-benchmark and
+// vitest, each reading that harness's own output.
 package adapter
 
 import (
@@ -32,6 +34,7 @@ const (
 	Time   = "time"   // ns/op, stored in nanoseconds; lower is better
 	Bytes  = "bytes"  // B/op; lower is better
 	Allocs = "allocs" // allocs/op; lower is better
+	Size   = "size"   // a file's size in bytes, measured once per side; lower is better
 )
 
 // Sample is one measured value of one metric of one benchmark.
@@ -52,7 +55,7 @@ func (s Sample) Key() string {
 }
 
 // Names lists the adapters jvq has.
-var Names = []string{"go", "json", "time"}
+var Names = []string{"go", "json", "time", "criterion", "google-benchmark", "pytest-benchmark", "vitest"}
 
 // TimeName is the benchmark name the time adapter reports.
 const TimeName = "command"
@@ -91,6 +94,14 @@ func Parse(adapter string, r io.Reader) ([]Sample, error) {
 		return ParseGo(r)
 	case "json":
 		return ParseJSON(r)
+	case "criterion":
+		return ParseCriterion(r)
+	case "google-benchmark":
+		return ParseGoogleBenchmark(r)
+	case "pytest-benchmark":
+		return ParsePytestBenchmark(r)
+	case "vitest":
+		return ParseVitest(r)
 	case "time":
 		return nil, fmt.Errorf("the time adapter reads no output; jvq times the command itself")
 	default:

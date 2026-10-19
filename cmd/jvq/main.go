@@ -286,7 +286,7 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 	}
 
 	res, err := runner.Run(ctx, runner.Options{
-		Command: cfg.Command, Build: cfg.Build, Adapter: cfg.Adapter, Output: cfg.Output,
+		Command: cfg.Command, Build: cfg.Build, Adapter: cfg.Adapter, Output: cfg.Output, Size: cfg.Size,
 		Rounds: cfg.Rounds, MaxRounds: cfg.MaxRounds, Warmup: cfg.Warmup, Timeout: cfg.Timeout,
 		Subdir: sub, Progress: progress,
 		More: func(r *runner.Result) bool {
@@ -497,7 +497,12 @@ func cmdCheck(args []string, stdout, stderr io.Writer) int {
 	fmt.Fprintf(stdout, "rounds:      %d, up to %d while undecided (warm-up %v)\n", cfg.Rounds, cfg.MaxRounds, cfg.Warmup)
 	fmt.Fprintf(stdout, "confidence:  %g\n", cfg.Confidence)
 	fmt.Fprintf(stdout, "timeout:     %s per run\n", cfg.Timeout)
-	fmt.Fprintf(stdout, "budgets:     time %s, bytes %s, allocs %s\n", cfg.Budget.Time, cfg.Budget.Bytes, cfg.Budget.Allocs)
+	if len(cfg.Size) > 0 {
+		fmt.Fprintf(stdout, "size:        %s (measured after the build)\n", strings.Join(cfg.Size, ", "))
+		fmt.Fprintf(stdout, "budgets:     time %s, bytes %s, allocs %s, size %s\n", cfg.Budget.Time, cfg.Budget.Bytes, cfg.Budget.Allocs, cfg.Budget.Size)
+	} else {
+		fmt.Fprintf(stdout, "budgets:     time %s, bytes %s, allocs %s\n", cfg.Budget.Time, cfg.Budget.Bytes, cfg.Budget.Allocs)
+	}
 	for _, b := range cfg.Bench {
 		var parts []string
 		if b.Time != nil {
@@ -508,6 +513,9 @@ func cmdCheck(args []string, stdout, stderr io.Writer) int {
 		}
 		if b.Allocs != nil {
 			parts = append(parts, "allocs "+b.Allocs.String())
+		}
+		if b.Size != nil {
+			parts = append(parts, "size "+b.Size.String())
 		}
 		fmt.Fprintf(stdout, "  %s: %s\n", b.Pattern, strings.Join(parts, ", "))
 	}

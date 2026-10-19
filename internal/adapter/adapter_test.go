@@ -95,7 +95,7 @@ func TestParseGoNoProcsSuffix(t *testing.T) {
 }
 
 func TestParseUnknownAdapter(t *testing.T) {
-	if _, err := Parse("criterion", strings.NewReader("")); err == nil {
+	if _, err := Parse("hyperfine", strings.NewReader("")); err == nil {
 		t.Error("unknown adapter accepted")
 	}
 	if got, err := Parse("", strings.NewReader("BenchmarkA-2 1 1 ns/op\n")); err != nil || len(got) != 1 {

@@ -20,6 +20,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"sync"
 	"time"
@@ -50,8 +51,11 @@ type Options struct {
 	// More is asked after the first Rounds and after every extra pair of
 	// rounds; while it returns true and MaxRounds allows, two more rounds
 	// run (one ABBA block, so the order stays balanced). Nil means never.
-	More     func(*Result) bool
-	Warmup   bool
+	More   func(*Result) bool
+	Warmup bool
+	// Size lists files, as glob patterns relative to where the command
+	// runs, whose sizes are measured once per side after the build.
+	Size     []string
 	Timeout  time.Duration // per command run; 0 means none
 	Subdir   string        // where to run, relative to the worktree root
 	Progress io.Writer     // progress lines; nil for none
@@ -137,6 +141,24 @@ func Run(ctx context.Context, opt Options, base, head Side) (*Result, error) {
 			progress("jvq: built %s in %s", s.Name, time.Since(start).Round(time.Millisecond))
 		}
 	}
+	if len(opt.Size) > 0 {
+		b, bhit, err := sizes(opt, sides[0])
+		if err != nil {
+			return nil, err
+		}
+		h, hhit, err := sizes(opt, sides[1])
+		if err != nil {
+			return nil, err
+		}
+		for _, p := range opt.Size {
+			if !bhit[p] && !hhit[p] {
+				return nil, fmt.Errorf("size: %q matches no file on base or head (after the build, in the folder the command runs in)", p)
+			}
+		}
+		res.Base = append(res.Base, b...)
+		res.Head = append(res.Head, h...)
+		progress("jvq: measured %d file size(s) on base and %d on head", len(b), len(h))
+	}
 	if opt.Warmup {
 		for _, s := range sides {
 			progress("jvq: warm-up run on %s", s.Name)
@@ -203,6 +225,42 @@ func Run(ctx context.Context, opt Options, base, head Side) (*Result, error) {
 	return res, nil
 }
 
+// sizes measures the files the Size patterns match on one side. A file two
+// patterns match is measured once. hit says which patterns matched a file.
+func sizes(opt Options, s Side) (out []adapter.Sample, hit map[string]bool, err error) {
+	dir := s.Dir
+	if opt.Subdir != "" && opt.Subdir != "." {
+		dir = filepath.Join(s.Dir, opt.Subdir)
+	}
+	seen := map[string]bool{}
+	hit = map[string]bool{}
+	for _, p := range opt.Size {
+		matches, err := filepath.Glob(filepath.Join(dir, filepath.FromSlash(p)))
+		if err != nil {
+			return nil, nil, fmt.Errorf("size pattern %q: %w", p, err)
+		}
+		sort.Strings(matches)
+		for _, m := range matches {
+			fi, err := os.Stat(m)
+			if err != nil || !fi.Mode().IsRegular() {
+				continue
+			}
+			rel, err := filepath.Rel(dir, m)
+			if err != nil {
+				rel = m
+			}
+			name := filepath.ToSlash(rel)
+			hit[p] = true
+			if seen[name] {
+				continue
+			}
+			seen[name] = true
+			out = append(out, adapter.Sample{Name: name, Metric: adapter.Size, Unit: "B", Value: float64(fi.Size())})
+		}
+	}
+	return out, hit, nil
+}
+
 // PerRun reduces one run's samples to one per benchmark and metric: the
 // median of what the run printed for it. Values from one run share that
 // run's state of the machine (its caches, its neighbours, its clock speed),
@@ -253,8 +311,17 @@ func hint(opt Options) string {
 	if opt.Output != "" {
 		where = opt.Output
 	}
-	if opt.Adapter == "json" {
+	switch opt.Adapter {
+	case "json":
 		return "the json adapter reads results such as {\"name\": \"parse\", \"unit\": \"ns\", \"value\": 912} from " + where
+	case "criterion":
+		return "the criterion adapter reads cargo bench's time: [...] lines from " + where
+	case "google-benchmark":
+		return "the google-benchmark adapter reads --benchmark_format=json output from " + where
+	case "pytest-benchmark":
+		return "the pytest-benchmark adapter reads the file --benchmark-json writes; set output to it"
+	case "vitest":
+		return "the vitest adapter reads the file vitest bench --outputJson writes; set output to it"
 	}
 	return "the go adapter reads `go test -bench` output from " + where + "; check the command prints Benchmark lines"
 }

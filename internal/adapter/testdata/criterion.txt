@@ -1,0 +1,29 @@
+xorshift 1000           time:   [1.8243 µs 1.8440 µs 1.8647 µs]
+                        change: [-6.8619% -4.7294% -2.6253%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 3 outliers among 100 measurements (3.00%)
+  3 (3.00%) high severe
+
+a rather long benchmark name that wraps
+                        time:   [191.47 ns 193.63 ns 195.52 ns]
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) low mild
+
+throughput/hash 4k      time:   [817.00 ns 823.22 ns 830.02 ns]
+                        thrpt:  [4.5959 GiB/s 4.6339 GiB/s 4.6692 GiB/s]
+
+sizes/10                time:   [7.2956 ns 7.3142 ns 7.3386 ns]
+                        change: [-2.0702% +0.5932% +3.1004%] (p = 0.66 > 0.05)
+                        No change in performance detected.
+Found 13 outliers among 100 measurements (13.00%)
+  1 (1.00%) low mild
+  8 (8.00%) high mild
+  4 (4.00%) high severe
+sizes/10000             time:   [18.861 µs 19.196 µs 19.562 µs]
+                        change: [+0.7530% +3.8575% +6.8256%] (p = 0.01 < 0.05)
+                        Change within noise threshold.
+Found 29 outliers among 100 measurements (29.00%)
+  11 (11.00%) low mild
+  15 (15.00%) high mild
+  3 (3.00%) high severe
+

@@ -63,8 +63,24 @@ func Value(metric, unit string, v float64) string {
 		return trim(v) + " B"
 	case adapter.Allocs:
 		return trim(v)
+	case adapter.Size:
+		return Size(v)
 	}
 	return trim(v) + " " + unit
+}
+
+// Size formats a file size in bytes, in decimal units as file managers
+// show them.
+func Size(b float64) string {
+	switch a := math.Abs(b); {
+	case a >= 1e9:
+		return fmt.Sprintf("%.4g GB", b/1e9)
+	case a >= 1e6:
+		return fmt.Sprintf("%.4g MB", b/1e6)
+	case a >= 1e4:
+		return fmt.Sprintf("%.4g kB", b/1e3)
+	}
+	return trim(b) + " B"
 }
 
 // Duration formats nanoseconds.

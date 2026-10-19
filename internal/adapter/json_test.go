@@ -115,8 +115,8 @@ func TestTimeAdapter(t *testing.T) {
 			t.Errorf("%s not known", n)
 		}
 	}
-	if Known("criterion") {
-		t.Error("criterion known")
+	if Known("hyperfine") {
+		t.Error("hyperfine known")
 	}
 }
 

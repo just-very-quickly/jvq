@@ -109,7 +109,7 @@ func TestErrorsNameTheProblem(t *testing.T) {
 		`confidence = 1`:                      "confidence",
 		`timeout = "soon"`:                    "timeout",
 		`timeout = "-1s"`:                     "above zero",
-		`adapter = "criterion"`:               `adapter "criterion"`,
+		`adapter = "hyperfine"`:               `adapter "hyperfine"`,
 		"[budget]\ntime = \"5ms\"":            "percentage",
 		"[budget]\nspeed = \"5%\"":            `unknown budget "speed"`,
 		"[budget]\nallocs = \"lots\"":         "allocs budget",
@@ -345,5 +345,33 @@ func TestAdaptersAndOutput(t *testing.T) {
 	c.Adapter = "nope"
 	if c.Check() == nil {
 		t.Error("Check let an unknown adapter through")
+	}
+}
+
+func TestSizeSettings(t *testing.T) {
+	c, err := Parse("size = [\"bin/app\", \"dist/*.js\"]\n[budget]\nsize = \"2%\"\n[budget.bench.\"dist/*\"]\nsize = \"10000\"\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(c.Size) != 2 || c.Size[1] != "dist/*.js" {
+		t.Errorf("size %v", c.Size)
+	}
+	if b := c.BudgetFor("size", "bin/app", "bin/app"); b.Raw != "2%" {
+		t.Errorf("bin/app budget %v", b)
+	}
+	if b := c.BudgetFor("size", "dist/a.js", "dist/a.js"); b.Raw != "10000" || b.Pct {
+		t.Errorf("dist budget %v", b)
+	}
+	if d := Default(); d.Budget.Size.Raw != "1%" {
+		t.Errorf("default size budget %v", d.Budget.Size)
+	}
+	for src, want := range map[string]string{
+		`size = "bin/app"`: "list of strings",
+		`size = []`:        "empty",
+		`size = [1]`:       "file names",
+	} {
+		if _, err := Parse(src); err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("%s: %v, want %q", src, err, want)
+		}
 	}
 }

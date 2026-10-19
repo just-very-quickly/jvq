@@ -162,8 +162,10 @@ func metricOrder(m string) int {
 		return 1
 	case adapter.Allocs:
 		return 2
+	case adapter.Size:
+		return 3
 	}
-	return 3
+	return 4
 }
 
 func side(xs []float64) *Side {
@@ -191,7 +193,7 @@ func judge(se *series, b config.Budget, level float64) Row {
 	switch se.metric {
 	case adapter.Time:
 		judgeTime(&r, se, b, level)
-	case adapter.Bytes, adapter.Allocs:
+	case adapter.Bytes, adapter.Allocs, adapter.Size:
 		judgeExact(&r, se, b)
 	default:
 		r.Verdict = Info

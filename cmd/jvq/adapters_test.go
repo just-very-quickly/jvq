@@ -74,7 +74,7 @@ func TestOutputFlagAndCheck(t *testing.T) {
 	if res := jvq(t, r.Dir, nil, "run", "-adapter", "time", "-output", "x"); res.code != 2 || !strings.Contains(res.stderr, "time adapter") {
 		t.Errorf("time with output: %d %s", res.code, res.stderr)
 	}
-	if res := jvq(t, r.Dir, nil, "run", "-adapter", "criterion"); res.code != 2 || !strings.Contains(res.stderr, "go, json, time") {
+	if res := jvq(t, r.Dir, nil, "run", "-adapter", "hyperfine"); res.code != 2 || !strings.Contains(res.stderr, "go, json, time") {
 		t.Errorf("unknown adapter: %d %s", res.code, res.stderr)
 	}
 	os.WriteFile(filepath.Join(r.Dir, "jvq.toml"), []byte("adapter = \"json\"\noutput = \"out.json\"\n"), 0o644)
@@ -180,4 +180,28 @@ func TestNothingGatedSaysWhy(t *testing.T) {
 	if !strings.Contains(res.stdout, "nothing was gated") || !strings.Contains(res.stdout, `"frames"`) {
 		t.Errorf("stdout:\n%s", res.stdout)
 	}
+}
+
+func TestSizeGate(t *testing.T) {
+	r := newFixture(t, "", fixture.Spec{Work: 2000})
+	commit(t, r, fixture.Spec{Work: 2000, Ballast: 400000}, "400 kB more data")
+	exe := strings.TrimPrefix(fixture.ProgExe(), "./")
+	r.WriteConfig(fixture.ProgConfig("time", 3, 10, "size = [\""+exe+"\"]\n[budget]\ntime = \"off\"\n"))
+	res := jvq(t, r.Dir, nil, "run")
+	expect(t, res, 1)
+	row := find(rows(t, res), exe, "size")
+	if row == nil || row["verdict"] != "regression" {
+		t.Fatalf("size row %v\n%s", row, res.stdout)
+	}
+	if b := row["head"].(map[string]any)["median"].(float64) - row["base"].(map[string]any)["median"].(float64); b < 390000 || b > 450000 {
+		t.Errorf("grew %v bytes, want about 400000", b)
+	}
+	// A pattern that matches nothing on either side is an error.
+	r.WriteConfig(fixture.ProgConfig("time", 3, 10, "size = [\"nothing-*\"]\n"))
+	if res := jvq(t, r.Dir, nil, "run"); res.code != 2 || !strings.Contains(res.stderr, "matches no file") {
+		t.Errorf("no match: %d %s", res.code, res.stderr)
+	}
+	// A looser budget passes it.
+	r.WriteConfig(fixture.ProgConfig("time", 3, 10, "size = [\""+exe+"\"]\n[budget]\ntime = \"off\"\nsize = \"50%\"\n"))
+	expect(t, jvq(t, r.Dir, nil, "run"), 0)
 }

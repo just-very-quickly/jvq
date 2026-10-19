@@ -154,3 +154,11 @@ func TestCompareMode(t *testing.T) {
 		t.Errorf("markdown:\n%s", b.String())
 	}
 }
+
+func TestSizeFormatting(t *testing.T) {
+	for v, want := range map[float64]string{512: "512 B", 9999: "9999 B", 12345: "12.35 kB", 2.5e6: "2.5 MB", 3.25e9: "3.25 GB"} {
+		if got := Value("size", "B", v); got != want {
+			t.Errorf("%v: %q, want %q", v, got, want)
+		}
+	}
+}
