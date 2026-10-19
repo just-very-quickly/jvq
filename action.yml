@@ -27,11 +27,19 @@ inputs:
     required: false
     default: "."
   history:
-    description: A file name, such as jvq-history.jsonl, to keep a history of runs between workflow runs, through the Actions cache. Runs on the default branch add a line; every run shows the trend in the job summary. Empty keeps no history.
+    description: A file name relative to working-directory, such as jvq-history.jsonl, to keep a history of runs between workflow runs, through the Actions cache. Runs that write (see history-write) add a line; every run shows the trend in the job summary. Empty keeps no history.
     required: false
     default: ""
+  history-write:
+    description: Which runs add to the history. auto, the default, is push, workflow_run and workflow_dispatch runs on the default branch; true is every run (use it for scheduled runs); false is none.
+    required: false
+    default: auto
   history-fail-over:
-    description: With history, fail when any result has moved more than this across the kept runs, such as 10%. Empty only shows the trend.
+    description: With history, on runs that write it, fail when a gated result has moved more than this in all, beyond its noise, such as 10%. Empty only shows the trend.
+    required: false
+    default: ""
+  history-key:
+    description: The Actions cache key prefix for the history. Empty uses one per workflow, job and runner OS, so separate jobs keep separate histories.
     required: false
     default: ""
   version:
@@ -89,13 +97,31 @@ runs:
         echo "$dir" >> "$GITHUB_PATH"
         "$dir/jvq" version
 
+    - name: Decide about the jvq history
+      id: hist
+      if: inputs.history != ''
+      shell: bash
+      env:
+        WRITE: ${{ inputs.history-write }}
+        AUTO: ${{ (github.event_name == 'push' || github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch') && github.ref_name == github.event.repository.default_branch }}
+        KEY: ${{ inputs.history-key }}
+        DEFAULT_KEY: jvq-history-${{ github.workflow }}-${{ github.job }}-${{ runner.os }}
+      run: |
+        case "$WRITE" in
+          auto) write="$AUTO" ;;
+          true|false) write="$WRITE" ;;
+          *) echo "::error title=jvq::history-write must be auto, true or false"; exit 2 ;;
+        esac
+        echo "write=$write" >> "$GITHUB_OUTPUT"
+        echo "key=${KEY:-$DEFAULT_KEY}" >> "$GITHUB_OUTPUT"
+
     - name: Restore the jvq history
       if: inputs.history != ''
       uses: actions/cache/restore@v5
       with:
         path: ${{ inputs.working-directory }}/${{ inputs.history }}
-        key: jvq-history-${{ github.run_id }}-${{ github.run_attempt }}
-        restore-keys: jvq-history-
+        key: ${{ steps.hist.outputs.key }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: ${{ steps.hist.outputs.key }}-
 
     - name: Run jvq
       shell: bash
@@ -106,11 +132,15 @@ runs:
         INPUT_CONFIG: ${{ inputs.config }}
         INPUT_ARGS: ${{ inputs.args }}
         INPUT_HISTORY: ${{ inputs.history }}
-        ON_DEFAULT_BRANCH: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.ref_name == github.event.repository.default_branch }}
+        HISTORY_WRITE: ${{ steps.hist.outputs.write }}
       run: |
         set -uo pipefail
         args=(run)
-        [ -n "$INPUT_HISTORY" ] && [ "$ON_DEFAULT_BRANCH" = true ] && args+=(-history "$INPUT_HISTORY")
+        if [ -n "$INPUT_HISTORY" ] && [ "$HISTORY_WRITE" = true ]; then
+          args+=(-history "$INPUT_HISTORY")
+        elif [ -n "$INPUT_HISTORY" ]; then
+          args+=(-history -)   # this run doesn't add to the history
+        fi
         [ -n "$INPUT_BASE" ] && args+=(-base "$INPUT_BASE")
         [ -n "$INPUT_CONFIG" ] && args+=(-config "$INPUT_CONFIG")
         if [ -n "$INPUT_ARGS" ]; then
@@ -121,25 +151,31 @@ runs:
         jvq "${args[@]}"
 
     - name: Save the jvq history
-      if: always() && inputs.history != '' && github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.ref_name == github.event.repository.default_branch
+      if: ${{ !cancelled() && inputs.history != '' && steps.hist.outputs.write == 'true' }}
       uses: actions/cache/save@v5
       with:
         path: ${{ inputs.working-directory }}/${{ inputs.history }}
-        key: jvq-history-${{ github.run_id }}-${{ github.run_attempt }}
+        key: ${{ steps.hist.outputs.key }}-${{ github.run_id }}-${{ github.run_attempt }}
 
     - name: Show the jvq history
-      if: always() && inputs.history != ''
+      if: ${{ !cancelled() && inputs.history != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
         INPUT_HISTORY: ${{ inputs.history }}
         INPUT_FAIL_OVER: ${{ inputs.history-fail-over }}
+        HISTORY_WRITE: ${{ steps.hist.outputs.write }}
       run: |
         set -uo pipefail
         if [ ! -f "$INPUT_HISTORY" ]; then
-          echo "jvq: no history yet; runs on the default branch start it"
+          echo "jvq: no history yet; the runs that write it start it"
           exit 0
         fi
         args=(history)
-        [ -n "$INPUT_FAIL_OVER" ] && args+=(-fail-over "$INPUT_FAIL_OVER")
+        if ! command -v jvq > /dev/null; then
+          exit 0   # the install step failed and said why
+        fi
+        # The limit applies where the history grows, so one creep on the
+        # default branch doesn't fail every pull request after it.
+        [ -n "$INPUT_FAIL_OVER" ] && [ "$HISTORY_WRITE" = true ] && args+=(-fail-over "$INPUT_FAIL_OVER")
         jvq "${args[@]}" "$INPUT_HISTORY"

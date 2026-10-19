@@ -223,3 +223,6 @@ func MannWhitneyP(xs, ys []float64) float64 {
 func normalQuantile(p float64) float64 {
 	return math.Sqrt2 * math.Erfinv(2*p-1)
 }
+
+// NormalQuantile is the standard normal distribution's quantile function.
+func NormalQuantile(p float64) float64 { return normalQuantile(p) }

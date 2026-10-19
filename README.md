@@ -4,7 +4,8 @@ A performance budget gate for CI. Put it in your pipeline and it fails a pull
 request when the change makes your benchmarks meaningfully slower than the
 base branch. If the change is within the noise, it passes.
 
-It's one binary. No server, no account, no stored history. Every run measures
+It's one binary. No server, no account, and nothing stored unless you ask
+for a history. Every run measures
 the base commit and the change on the same machine, in the same job, taking
 turns, and then compares the two with rank statistics.
 
@@ -280,7 +281,9 @@ jobs:
 The action downloads the release binary for the runner, checks its SHA256
 against the release's SHA256SUMS, and runs `jvq run`. It needs no token and
 no extra permissions; the report goes to the job summary. Inputs: `command`,
-`base`, `config`, `args` (more flags), `working-directory` and `version`.
+`base`, `config`, `args` (more flags), `working-directory` and `version`,
+and for a history `history`, `history-write`, `history-fail-over` and
+`history-key`.
 
 ## A history across runs
 
@@ -292,12 +295,14 @@ and it shows:
       - uses: just-very-quickly/jvq@v0.5.0
         with:
           history: jvq-history.jsonl
-          history-fail-over: 10%     # optional: fail when anything has moved more than this in all
+          history-fail-over: 10%     # optional: fail when something has moved more than this in all
 ```
 
-With `history`, the action keeps the file in the Actions cache. Runs on
-the default branch add a line to it, pull requests don't, and every run
-prints the trend to the job summary:
+With `history`, the action keeps the file in the Actions cache, one per
+workflow, job and runner OS (`history-key` sets your own). Pushes to the
+default branch add a line to it; pull requests read it and don't
+(`history-write: true` makes every run add one, for a scheduled job). Every
+run prints the trend to the job summary:
 
 ```
 jvq history: 24 runs, 2026-10-01 (4be1c0f2a9) to 2026-10-19 (9d01e77c3b) in jvq-history.jsonl
@@ -310,14 +315,30 @@ BenchmarkWrite  time    24    -2.1%   0            ·▁··▁·▂▁··▁·
 *In all* chains each run's own change, base to head. Medians from
 different runs come from different machines and can't be compared, but
 each run's change was measured on one machine, so the changes can be
-multiplied together: ten runs at +1% each make about +10.5%.
+multiplied together: ten runs at +1% each make about +10.5%. Each run's
+interval comes along, and the spreads add up, so the interval in brackets
+widens as noisy runs pile up. `history-fail-over` fails a run only when
+the low end of that interval is over the limit, so noise alone doesn't
+trip it, and only on runs that add to the history, so one creep on the
+default branch doesn't fail every pull request after it.
+
+A run on the default branch starts from the last run's head when that is
+an ancestor, so a push of several commits measures all of them; a re-run
+of the same job replaces its line rather than adding a second. GitHub
+drops a cache nobody has read for 7 days, and with it the history; a job
+that runs at least weekly keeps it. Two pushes close together can both
+start from the same cache, and the later save then loses the earlier line;
+a `concurrency` group on the workflow keeps them in order.
 
 Anywhere else, `jvq run -history FILE` adds a line to FILE (or set
 `history = "FILE"` in jvq.toml), and `jvq history FILE` shows the trend,
 with `-n 30` for the latest 30 runs, `-bench` and `-metric` to narrow it,
 `-markdown` to write it as Markdown, and `-fail-over 10%` to exit 1 when
-something has moved more than that. The file is JSON, one line per run,
-and keeps the newest 1000 (`history_keep`).
+something has moved more than that beyond its noise. A relative path is
+relative to where jvq runs. The file is JSON, one line per run, and keeps
+the newest 1000 (`history_keep`). `-history -` turns off a history
+jvq.toml sets; in the action, use the `history` input rather than the
+jvq.toml key, so the cache and the writing rules go with it.
 
 ## In GitLab CI
 
@@ -339,8 +360,9 @@ SHA256SUMS, and runs `jvq run`. A regression fails the job; the result
 shows in the merge request's test summary through a JUnit report, and
 jvq.md and jvq.json are kept as artifacts. Set `JVQ_ARGS` for more flags,
 `JVQ_DIR` to run in a subfolder, and `JVQ_VERSION` to pin a release.
-`JVQ_HISTORY: "true"` keeps a history in the GitLab cache, added to by
-default-branch pipelines, with `JVQ_HISTORY_FAIL_OVER` as the limit. The
+`JVQ_HISTORY: "true"` keeps a history in the GitLab cache, one per job,
+added to by default-branch pipelines and only read by merge requests, with
+`JVQ_HISTORY_FAIL_OVER` as the limit on the runs that add to it. The
 image needs `curl`, `git`, `tar`, `sha256sum` and whatever your benchmarks
 need; Debian-based images such as `golang:1.26` have them, and on Alpine
 add `before_script: apk add --no-cache curl git`. If your GitLab can't
@@ -438,7 +460,7 @@ jvq run [flags] [-- command]
   -json FILE             also write the report as JSON
   -markdown FILE         also write the report as Markdown
   -junit FILE            also write the report as JUnit XML (GitLab, Jenkins)
-  -history FILE          add a line for this run to a history file
+  -history FILE          add a line for this run to a history file (- for none)
   -base-may-fail         if base doesn't build or run, pass with nothing compared
   -fail-on-inconclusive  exit 1 when the result is inconclusive
   -no-warmup             skip the warm-up runs
@@ -453,7 +475,8 @@ jvq history [flags] FILE
   -n N                   only the newest N runs
   -bench PATTERN         only matching benchmarks
   -metric NAME           only this metric
-  -fail-over PCT         exit 1 if anything has moved more than this in all
+  -fail-over PCT         exit 1 if a gated result has moved more than this
+                         in all, beyond its noise
   -markdown FILE         also write the table as Markdown
 jvq check [-config FILE]
 jvq version

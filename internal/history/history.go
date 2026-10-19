@@ -22,21 +22,24 @@ import (
 	"io"
 	"math"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/just-very-quickly/jvq/internal/stats"
 	"github.com/just-very-quickly/jvq/internal/verdict"
 )
 
 // Entry is one run.
 type Entry struct {
-	JVQ     string   `json:"jvq"`
-	Date    string   `json:"date"` // RFC 3339, UTC
-	Base    Commit   `json:"base"`
-	Head    Commit   `json:"head"`
-	Verdict string   `json:"verdict"`
-	Results []Result `json:"results"`
+	JVQ        string   `json:"jvq"`
+	Date       string   `json:"date"` // RFC 3339, UTC
+	Base       Commit   `json:"base"`
+	Head       Commit   `json:"head"`
+	Verdict    string   `json:"verdict"`
+	Confidence float64  `json:"confidence,omitempty"` // of the intervals, such as 0.95
+	Results    []Result `json:"results"`
 }
 
 // Commit is one side of a run.
@@ -54,6 +57,8 @@ type Result struct {
 	BaseMedian *float64 `json:"base_median,omitempty"`
 	HeadMedian *float64 `json:"head_median,omitempty"`
 	Change     *float64 `json:"change,omitempty"`
+	Lo         *float64 `json:"ci_lo,omitempty"`
+	Hi         *float64 `json:"ci_hi,omitempty"`
 	Verdict    string   `json:"verdict"`
 }
 
@@ -67,8 +72,8 @@ func (r Result) Key() string {
 }
 
 // FromRows makes an entry from a run's rows.
-func FromRows(jvq string, when time.Time, base, head Commit, overall string, rows []verdict.Row) Entry {
-	e := Entry{JVQ: jvq, Date: when.UTC().Format(time.RFC3339), Base: base, Head: head, Verdict: overall}
+func FromRows(jvq string, when time.Time, base, head Commit, overall string, confidence float64, rows []verdict.Row) Entry {
+	e := Entry{JVQ: jvq, Date: when.UTC().Format(time.RFC3339), Base: base, Head: head, Verdict: overall, Confidence: confidence}
 	for _, r := range rows {
 		res := Result{Package: r.Package, Name: r.Name, Metric: r.Metric, Unit: r.Unit, Verdict: r.Verdict}
 		if r.Base != nil {
@@ -79,6 +84,9 @@ func FromRows(jvq string, when time.Time, base, head Commit, overall string, row
 		}
 		if r.Change != nil && !math.IsInf(*r.Change, 0) && !math.IsNaN(*r.Change) {
 			res.Change = ptr(*r.Change)
+			if r.Lo != nil && r.Hi != nil {
+				res.Lo, res.Hi = ptr(*r.Lo), ptr(*r.Hi)
+			}
 		}
 		e.Results = append(e.Results, res)
 	}
@@ -91,18 +99,32 @@ func ptr(f float64) *float64 { return &f }
 const DefaultKeep = 1000
 
 // Append adds e to the file at path, creating it if needed, and keeps only
-// the newest keep entries. The file is rewritten through a temporary file
-// in the same folder, so a crash can't leave it half written.
+// the newest keep entries. An earlier entry for the same base and head (a
+// re-run of the same job) is replaced rather than counted twice. The file
+// is rewritten through a temporary file beside it, so a crash can't leave
+// it half written; a symlink is followed, and the file keeps its mode.
 func Append(path string, e Entry, keep int) error {
 	if keep < 1 {
 		keep = DefaultKeep
 	}
+	if real, err := filepath.EvalSymlinks(path); err == nil {
+		path = real
+	}
+	mode := os.FileMode(0o644)
 	var lines [][]byte
 	if b, err := os.ReadFile(path); err == nil {
+		if fi, err := os.Stat(path); err == nil {
+			mode = fi.Mode().Perm()
+		}
 		for _, l := range bytes.Split(b, []byte("\n")) {
-			if len(bytes.TrimSpace(l)) > 0 {
-				lines = append(lines, l)
+			if len(bytes.TrimSpace(l)) == 0 {
+				continue
 			}
+			var old Entry
+			if json.Unmarshal(l, &old) == nil && old.Base.SHA == e.Base.SHA && old.Head.SHA == e.Head.SHA && e.Head.SHA != "" {
+				continue
+			}
+			lines = append(lines, l)
 		}
 	} else if !errors.Is(err, os.ErrNotExist) {
 		return err
@@ -115,34 +137,49 @@ func Append(path string, e Entry, keep int) error {
 	if len(lines) > keep {
 		lines = lines[len(lines)-keep:]
 	}
-	dir, name := splitPath(path)
-	tmp, err := os.CreateTemp(dir, "."+name+".tmp-*")
+	dir := filepath.Dir(path)
+	if _, err := os.Stat(dir); err != nil {
+		return fmt.Errorf("%s: the folder doesn't exist", path)
+	}
+	tmp, err := os.CreateTemp(dir, "."+filepath.Base(path)+".tmp-*")
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", path, err)
 	}
 	w := bufio.NewWriter(tmp)
 	for _, l := range lines {
 		w.Write(l)
 		w.WriteByte('\n')
 	}
-	if err := w.Flush(); err != nil {
-		tmp.Close()
-		os.Remove(tmp.Name())
-		return err
+	err = w.Flush()
+	if err == nil {
+		err = tmp.Chmod(mode)
 	}
-	if err := tmp.Close(); err != nil {
-		os.Remove(tmp.Name())
-		return err
+	if cerr := tmp.Close(); err == nil {
+		err = cerr
 	}
-	return os.Rename(tmp.Name(), path)
+	if err != nil {
+		os.Remove(tmp.Name())
+		return fmt.Errorf("%s: %w", path, err)
+	}
+	if err := os.Rename(tmp.Name(), path); err != nil {
+		os.Remove(tmp.Name())
+		return fmt.Errorf("%s: %w", path, err)
+	}
+	return nil
 }
 
-func splitPath(p string) (dir, name string) {
-	i := strings.LastIndexAny(p, `/\`)
-	if i < 0 {
-		return ".", p
+// Last returns the newest entry in the file at path, if there is one.
+func Last(path string) (Entry, bool) {
+	fh, err := os.Open(path)
+	if err != nil {
+		return Entry{}, false
 	}
-	return p[:i+1], p[i+1:]
+	defer fh.Close()
+	entries, _, err := Read(fh)
+	if err != nil || len(entries) == 0 {
+		return Entry{}, false
+	}
+	return entries[len(entries)-1], true
 }
 
 // Read reads a history file. Lines that aren't valid entries are skipped
@@ -172,58 +209,117 @@ type Trend struct {
 	Name    string
 	Metric  string
 	Unit    string
-	// Changes are the per-run changes, oldest first, for runs that had a
-	// change for it; Heads are the head medians of those runs.
+	// Changes are the per-run changes, oldest first, of the runs that had
+	// one for it.
 	Changes []float64
-	Heads   []float64
-	// Compounded is the product of (1 + change) over the runs, minus one:
+	// Compounded is the product of (1 + change) over those runs, minus one:
 	// how far the benchmark has moved in all, run on run.
 	Compounded float64
+	// Lo and Hi bound Compounded: each run's interval gives the spread of
+	// its estimate on each side, and the spreads add up along the chain
+	// (as variances, in log space), so a long history of noisy runs has a
+	// wide interval, and a single run keeps its own. HasInterval is false when
+	// a time run had no interval (too few samples).
+	Lo, Hi      float64
+	HasInterval bool
 	// Regressions counts the runs that called it a regression.
 	Regressions int
-	First, Last string // the first and last runs' head commits
+	// Gated is true when some run gated it (pass, improved, regression or
+	// inconclusive), as against only reporting it.
+	Gated bool
 }
 
 // Trends works out each benchmark's trend over entries, oldest first.
 func Trends(entries []Entry) []Trend {
-	by := map[string]*Trend{}
+	type acc struct {
+		t      Trend
+		logSum float64
+		loVar  float64 // spread below the estimate, in log space
+		hiVar  float64 // and above it
+		noCI   bool
+	}
+	by := map[string]*acc{}
+	var keys []string
 	for _, e := range entries {
+		level := e.Confidence
+		if level <= 0 || level >= 1 {
+			level = 0.95
+		}
+		z := stats.NormalQuantile(1 - (1-level)/2)
 		for _, r := range e.Results {
-			if r.Change == nil {
+			if r.Change == nil || *r.Change <= -1 {
 				continue
 			}
 			k := r.Key()
-			t, ok := by[k]
+			a, ok := by[k]
 			if !ok {
-				t = &Trend{Key: k, Package: r.Package, Name: r.Name, Metric: r.Metric, Unit: r.Unit, Compounded: 0, First: e.Head.SHA}
-				by[k] = t
+				a = &acc{t: Trend{Key: k, Package: r.Package, Name: r.Name, Metric: r.Metric, Unit: r.Unit}}
+				by[k] = a
+				keys = append(keys, k)
 			}
-			t.Changes = append(t.Changes, *r.Change)
-			if r.HeadMedian != nil {
-				t.Heads = append(t.Heads, *r.HeadMedian)
+			a.t.Changes = append(a.t.Changes, *r.Change)
+			a.logSum += math.Log1p(*r.Change)
+			switch {
+			case r.Lo != nil && r.Hi != nil && *r.Lo > -1 && *r.Hi > -1:
+				// Rank intervals aren't symmetric, so each side keeps its
+				// own spread; a single run then gives back its own interval.
+				c := math.Log1p(*r.Change)
+				lo := math.Max(0, c-math.Log1p(*r.Lo)) / z
+				hi := math.Max(0, math.Log1p(*r.Hi)-c) / z
+				a.loVar += lo * lo
+				a.hiVar += hi * hi
+			case r.Metric == "time" || r.Metric == "instructions":
+				a.noCI = true
 			}
 			if r.Verdict == verdict.Regression {
-				t.Regressions++
+				a.t.Regressions++
 			}
-			t.Last = e.Head.SHA
+			switch r.Verdict {
+			case verdict.Pass, verdict.Improved, verdict.Regression, verdict.Inconclusive:
+				a.t.Gated = true
+			}
 		}
 	}
 	out := make([]Trend, 0, len(by))
-	for _, t := range by {
-		c := 1.0
-		for _, x := range t.Changes {
-			c *= 1 + x
-		}
-		t.Compounded = c - 1
-		out = append(out, *t)
+	for _, k := range keys {
+		a := by[k]
+		t := a.t
+		t.Compounded = math.Expm1(a.logSum)
+		z := stats.NormalQuantile(0.975)
+		t.Lo = math.Expm1(a.logSum - z*math.Sqrt(a.loVar))
+		t.Hi = math.Expm1(a.logSum + z*math.Sqrt(a.hiVar))
+		t.HasInterval = !a.noCI
+		out = append(out, t)
 	}
-	sort.Slice(out, func(i, j int) bool {
+	sort.SliceStable(out, func(i, j int) bool {
 		if out[i].Compounded != out[j].Compounded {
 			return out[i].Compounded > out[j].Compounded
 		}
 		return out[i].Key < out[j].Key
 	})
 	return out
+}
+
+// Over reports whether t has moved more than limit in all, beyond doubt:
+// the low end of its interval is over the limit. Results no run gated, and
+// time results without an interval, never count.
+func (t Trend) Over(limit float64) bool {
+	if !t.Gated || !t.HasInterval {
+		return false
+	}
+	return t.Lo > limit
+}
+
+// Gaps counts the places where a run's base isn't the previous run's
+// head, so some commits between them were never measured.
+func Gaps(entries []Entry) int {
+	n := 0
+	for i := 1; i < len(entries); i++ {
+		if entries[i].Base.SHA != entries[i-1].Head.SHA {
+			n++
+		}
+	}
+	return n
 }
 
 // Spark draws changes as a row of block characters, one per run: higher

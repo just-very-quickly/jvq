@@ -28,7 +28,7 @@ func cmdHistory(args []string, stdout, stderr io.Writer) int {
 	last := fs.Int("n", 0, "use only the newest N runs (default: all)")
 	bench := fs.String("bench", "", "only benchmarks matching this pattern (* matches anything)")
 	metric := fs.String("metric", "", "only this metric, such as time")
-	failOver := fs.String("fail-over", "", "exit 1 if any time, bytes, allocs or size result has moved more than this in all, such as 10%")
+	failOver := fs.String("fail-over", "", "exit 1 if any gated result has moved more than this in all, beyond its noise, such as 10%")
 	mdPath := fs.String("markdown", "", "also write the table as Markdown to this file")
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "Usage: jvq history [flags] FILE")
@@ -53,6 +53,10 @@ func cmdHistory(args []string, stdout, stderr io.Writer) int {
 		}
 		files = append(files, fs.Arg(0))
 		rest = fs.Args()[1:]
+	}
+	if *last < 0 {
+		fmt.Fprintf(stderr, "jvq history: -n %d: use 1 or more, or leave it out for all runs\n", *last)
+		return exitError
 	}
 	if len(files) != 1 {
 		fmt.Fprintf(stderr, "jvq history: want one history file; got %d\n", len(files))
@@ -106,19 +110,27 @@ func cmdHistory(args []string, stdout, stderr io.Writer) int {
 	over := 0
 	if limit != nil {
 		for _, t := range trends {
-			if gatedMetric(t.Metric) && t.Compounded > limit.Val {
+			if t.Over(limit.Val) {
 				over++
 			}
 		}
 	}
-	writeHistory(stdout, files[0], entries, trends, limit, over, false)
+	gaps := history.Gaps(entries)
+	writeHistory(stdout, files[0], entries, trends, limit, over, gaps, false)
 	if *mdPath != "" {
-		if err := writeFile(*mdPath, func(w io.Writer) error { writeHistory(w, files[0], entries, trends, limit, over, true); return nil }, false); err != nil {
+		if err := writeFile(*mdPath, func(w io.Writer) error {
+			writeHistory(w, files[0], entries, trends, limit, over, gaps, true)
+			return nil
+		}, false); err != nil {
 			fmt.Fprintf(stderr, "jvq: couldn't write %s: %v\n", *mdPath, err)
+			return exitError
 		}
 	}
 	if p := os.Getenv("GITHUB_STEP_SUMMARY"); p != "" {
-		writeFile(p, func(w io.Writer) error { writeHistory(w, files[0], entries, trends, limit, over, true); return nil }, true)
+		writeFile(p, func(w io.Writer) error {
+			writeHistory(w, files[0], entries, trends, limit, over, gaps, true)
+			return nil
+		}, true)
 	}
 	if over > 0 {
 		annotate(stderr, "error", fmt.Sprintf("%d benchmark(s) moved more than %s across %d runs", over, limit.Raw, len(entries)))
@@ -127,27 +139,29 @@ func cmdHistory(args []string, stdout, stderr io.Writer) int {
 	return exitPass
 }
 
-func gatedMetric(m string) bool {
-	switch m {
-	case "time", "bytes", "allocs", "size":
-		return true
-	}
-	return false
-}
-
 // sparkRuns is how many of the latest runs the run-by-run column shows.
 const sparkRuns = 30
 
-func writeHistory(w io.Writer, file string, entries []history.Entry, trends []history.Trend, limit *config.Budget, over int, md bool) {
+func writeHistory(w io.Writer, file string, entries []history.Entry, trends []history.Trend, limit *config.Budget, over, gaps int, md bool) {
 	first, last := entries[0], entries[len(entries)-1]
 	span := fmt.Sprintf("%d runs, %s (%s) to %s (%s)", len(entries), day(first.Date), gitx.Short(first.Head.SHA), day(last.Date), gitx.Short(last.Head.SHA))
 	if len(entries) == 1 {
 		span = fmt.Sprintf("1 run, %s (%s)", day(first.Date), gitx.Short(first.Head.SHA))
 	}
+	inAll := func(t history.Trend) string {
+		v := history.Pct(t.Compounded)
+		if t.HasInterval && len(t.Changes) > 0 && t.Lo != t.Hi {
+			v += " (" + history.Pct(t.Lo) + " … " + history.Pct(t.Hi) + ")"
+		}
+		if limit != nil && t.Over(limit.Val) {
+			v += " OVER " + limit.Raw
+		}
+		return v
+	}
 	if md {
-		fmt.Fprintf(w, "### jvq history\n\n%s in `%s`. *In all* chains each run's change: how far a result has moved since the first run.\n\n", span, file)
+		fmt.Fprintf(w, "### jvq history\n\n%s in `%s`. *In all* chains each run's change, with a 95%% interval that widens as the runs' noise adds up.\n\n", span, file)
 		fmt.Fprintln(w, "| Benchmark | Metric | Runs | In all | Regressions | Run by run |")
-		fmt.Fprintln(w, "|---|---|---:|---:|---:|---|")
+		fmt.Fprintln(w, "|---|---|---:|---|---:|---|")
 	} else {
 		fmt.Fprintf(w, "\njvq history: %s in %s\n\n", span, file)
 	}
@@ -164,30 +178,43 @@ func writeHistory(w io.Writer, file string, entries []history.Entry, trends []hi
 		if len(changes) > sparkRuns {
 			changes = changes[len(changes)-sparkRuns:]
 		}
-		mark := ""
-		if limit != nil && gatedMetric(t.Metric) && t.Compounded > limit.Val {
-			mark = " OVER " + limit.Raw
-		}
 		if md {
-			fmt.Fprintf(w, "| %s | %s | %d | %s%s | %d | %s |\n", mdCell(name), t.Metric, len(t.Changes), history.Pct(t.Compounded), mark, t.Regressions, history.Spark(changes))
+			fmt.Fprintf(w, "| %s | %s | %d | %s | %d | %s |\n", mdCell(name), t.Metric, len(t.Changes), inAll(t), t.Regressions, history.Spark(changes))
 		} else {
-			fmt.Fprintf(tw, "%s\t%s\t%d\t%s%s\t%d\t%s\n", name, t.Metric, len(t.Changes), history.Pct(t.Compounded), mark, t.Regressions, history.Spark(changes))
+			fmt.Fprintf(tw, "%s\t%s\t%d\t%s\t%d\t%s\n", name, t.Metric, len(t.Changes), inAll(t), t.Regressions, history.Spark(changes))
 		}
 	}
 	tw.Flush()
+	var notes []string
+	if gaps > 0 {
+		notes = append(notes, fmt.Sprintf("%d run(s) didn't start where the one before ended, so some commits in between weren't measured", gaps))
+	}
+	if limit != nil {
+		if over > 0 {
+			notes = append(notes, fmt.Sprintf("%d result(s) moved more than %s in all, the whole interval over it", over, limit.Raw))
+		} else {
+			notes = append(notes, fmt.Sprintf("nothing moved more than %s in all beyond its noise", limit.Raw))
+		}
+	}
 	if md {
+		for _, n := range notes {
+			fmt.Fprintf(w, "\n_%s._\n", capitalise(n))
+		}
 		fmt.Fprintln(w)
 		return
 	}
-	fmt.Fprintln(w, "\nIN ALL chains each run's change, base to head, over the runs that measured it.")
+	fmt.Fprintln(w, "\nIN ALL chains each run's change, base to head, with a 95% interval that widens as the runs' noise adds up.")
 	fmt.Fprintf(w, "RUN BY RUN shows the latest %d: · no change, ▁ faster or smaller, taller blocks slower or bigger.\n", sparkRuns)
-	if limit != nil {
-		if over > 0 {
-			fmt.Fprintf(w, "\n%d result(s) moved more than %s in all.\n", over, limit.Raw)
-		} else {
-			fmt.Fprintf(w, "\nNothing moved more than %s in all.\n", limit.Raw)
-		}
+	for _, n := range notes {
+		fmt.Fprintf(w, "\n%s.\n", capitalise(n))
 	}
+}
+
+func capitalise(s string) string {
+	if s == "" {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
 }
 
 func collides(trends []history.Trend, t history.Trend) bool {

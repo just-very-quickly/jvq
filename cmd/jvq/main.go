@@ -114,7 +114,7 @@ func cmdRun(args []string, stdout, stderr io.Writer) int {
 	fs.StringVar(&f.jsonPath, "json", "", "also write the report as JSON to this file")
 	fs.StringVar(&f.mdPath, "markdown", "", "also write the report as Markdown to this file")
 	fs.StringVar(&f.junitPath, "junit", "", "also write the report as JUnit XML to this file, for GitLab or Jenkins")
-	fs.StringVar(&f.historyPath, "history", "", "add a line for this run to this history file (see jvq history)")
+	fs.StringVar(&f.historyPath, "history", "", "add a line for this run to this history file (see jvq history); - turns off history set in jvq.toml")
 	fs.BoolVar(&f.baseMayFail, "base-may-fail", false, "if base fails to build or run, pass with nothing compared instead of failing")
 	fs.BoolVar(&f.failOnInconclusive, "fail-on-inconclusive", false, "exit 1 when the result is inconclusive")
 	fs.BoolVar(&f.noWarmup, "no-warmup", false, "skip the warm-up run on each side")
@@ -259,6 +259,29 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 			return exitError, err
 		}
 	}
+	historyPath := f.historyPath
+	if historyPath == "" {
+		historyPath = cfg.History
+	}
+	if historyPath == "-" {
+		historyPath = "" // -history - turns off the history jvq.toml asks for
+	}
+	// On the base branch, a history continues from the commit its last run
+	// measured, so a push of several commits is judged as a whole and the
+	// chain has no gaps.
+	if historyPath != "" && f.base == "" && pick.Ref == "head^" {
+		if last, ok := history.Last(historyPath); ok {
+			if last.Head.SHA == headSHA {
+				// A re-run of the run that wrote the last line: measure the
+				// same range again, and its line replaces the old one.
+				if sha, err := repo.Resolve(ctx, last.Base.SHA); err == nil && sha != headSHA {
+					pick = gitx.Pick{Ref: "history", SHA: sha, Note: "head is the history's last run again, so its range is measured again and its line replaced"}
+				}
+			} else if sha, err := repo.Resolve(ctx, last.Head.SHA); err == nil && sha != pick.SHA && repo.IsAncestor(ctx, sha, headSHA) {
+				pick = gitx.Pick{Ref: "history", SHA: sha, Note: "base is the commit the history's last run measured, so every commit since then is judged"}
+			}
+		}
+	}
 	if pick.SHA == headSHA {
 		return exitError, fmt.Errorf("base and head are the same commit (%s); nothing to compare", gitx.Short(headSHA))
 	}
@@ -328,12 +351,8 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 		Seconds: time.Since(started).Seconds(), Counts: verdict.Counts(rows), Rows: rows,
 	}
 	report.Text(stdout, rep)
-	historyPath := f.historyPath
-	if historyPath == "" {
-		historyPath = cfg.History
-	}
 	if historyPath != "" {
-		e := history.FromRows(Version, time.Now(), history.Commit{Ref: pick.Ref, SHA: pick.SHA}, history.Commit{Ref: f.head, SHA: headSHA}, rep.Verdict, rows)
+		e := history.FromRows(Version, time.Now(), history.Commit{Ref: pick.Ref, SHA: pick.SHA}, history.Commit{Ref: f.head, SHA: headSHA}, rep.Verdict, cfg.Confidence, rows)
 		if err := history.Append(historyPath, e, cfg.HistoryKeep); err != nil {
 			fmt.Fprintf(stderr, "jvq: couldn't add to the history file: %v\n", err)
 			annotate(stderr, "warning", "couldn't add to the history file: "+err.Error())
@@ -548,5 +567,12 @@ func cmdCheck(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stdout, "ignored:     %s\n", strings.Join(cfg.Ignore, ", "))
 	}
 	fmt.Fprintf(stdout, "inconclusive: %s\n", map[bool]string{true: "fails the run", false: "passes"}[cfg.FailOnInconclusive])
+	if cfg.History != "" && cfg.History != "-" {
+		h := cfg.History
+		if !filepath.IsAbs(h) {
+			h = filepath.Join(cwd, h)
+		}
+		fmt.Fprintf(stdout, "history:     %s (each run adds a line; the newest %d are kept)\n", h, cfg.HistoryKeep)
+	}
 	return exitPass
 }

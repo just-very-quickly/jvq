@@ -243,33 +243,49 @@ func TestGitLabMergeRequestWithJUnit(t *testing.T) {
 
 func TestHistory(t *testing.T) {
 	r := newFixture(t, "", fixture.Spec{Work: base})
-	commit(t, r, fixture.Spec{Work: base * 3 / 2}, "slower")
+	first := commit(t, r, fixture.Spec{Work: base * 3 / 2}, "slower")
 	hist := filepath.Join(t.TempDir(), "jvq-history.jsonl")
 	r.WriteConfig(fixture.Config(3, "10ms", "history = \""+filepath.ToSlash(hist)+"\"\n"))
-	// Two runs add two lines, whatever their verdicts: one through the
-	// config's history, one through -history, which takes its place.
 	jvq(t, r.Dir, nil, "run")
-	jvq(t, r.Dir, nil, "run", "-history", hist)
-	b, err := os.ReadFile(hist)
-	if err != nil || strings.Count(string(b), "\n") != 2 {
-		t.Fatalf("history %v:\n%s", err, b)
+	// Two more commits, pushed together: the next run starts where the
+	// history's last run ended, so both are measured.
+	commit(t, r, fixture.Spec{Work: base * 3 / 2, Extra: "a"}, "a")
+	commit(t, r, fixture.Spec{Work: base * 9 / 4}, "slower again")
+	res := jvq(t, r.Dir, nil, "run", "-history", hist)
+	if b := res.report["base"].(map[string]any); b["sha"] != first || b["ref"] != "history" {
+		t.Errorf("second run's base %v, want the first run's head %s", b, first)
 	}
-	res := jvq(t, r.Dir, nil, "history", hist)
+	// A re-run of the same job replaces its line instead of adding one.
+	jvq(t, r.Dir, nil, "run")
+	b, _ := os.ReadFile(hist)
+	if n := strings.Count(string(b), "\n"); n != 2 {
+		t.Fatalf("%d lines:\n%s", n, b)
+	}
+	res = jvq(t, r.Dir, nil, "history", hist)
 	expect(t, res, 0)
-	if !strings.Contains(res.stdout, "BenchmarkWork  time") || !strings.Contains(res.stdout, "2 runs") {
+	if !strings.Contains(res.stdout, "BenchmarkWork  time") || !strings.Contains(res.stdout, "2 runs") || strings.Contains(res.stdout, "weren't measured") {
 		t.Errorf("history:\n%s", res.stdout)
 	}
-	// Each run measured about +50%; chained over two runs that's over 100%.
-	res = jvq(t, r.Dir, nil, "history", "-fail-over", "60%", hist)
+	// Each run measured about +50%: chained, over 100%, and well beyond
+	// 30% even at the low end of a 3-round interval.
+	res = jvq(t, r.Dir, nil, "history", "-fail-over", "30%", hist)
 	expect(t, res, 1)
-	if !strings.Contains(res.stdout, "OVER 60%") {
+	if !strings.Contains(res.stdout, "OVER 30%") {
 		t.Errorf("fail-over:\n%s", res.stdout)
 	}
-	expect(t, jvq(t, r.Dir, nil, "history", "-metric", "allocs", "-fail-over", "60%", hist), 0)
+	// bytes isn't gated by default, so it never counts.
+	expect(t, jvq(t, r.Dir, nil, "history", "-metric", "bytes", "-fail-over", "0%", hist), 0)
+	// -history - turns off the history jvq.toml sets.
+	jvq(t, r.Dir, nil, "run", "-history", "-", "-base", "HEAD~2")
+	if b2, _ := os.ReadFile(hist); string(b2) != string(b) {
+		t.Error("-history - still wrote a line")
+	}
 	if res := jvq(t, r.Dir, nil, "history", filepath.Join(t.TempDir(), "none.jsonl")); res.code != 2 {
 		t.Errorf("missing file: %d", res.code)
 	}
-	if res := jvq(t, r.Dir, nil, "history", "-fail-over", "lots", hist); res.code != 2 {
-		t.Errorf("bad -fail-over: %d", res.code)
+	for _, args := range [][]string{{"-fail-over", "lots"}, {"-n", "-5"}} {
+		if res := jvq(t, r.Dir, nil, append(append([]string{"history"}, args...), hist)...); res.code != 2 {
+			t.Errorf("%v: %d", args, res.code)
+		}
 	}
 }

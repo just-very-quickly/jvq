@@ -95,6 +95,24 @@ rebased merge trains, and an unneeded fetch that could kill fork MR jobs.
 cmd/jvq/docs_test.go fails until the README, action.yml and the GitLab
 template name the version being released.
 
+v0.5.0 (October 2026), history: `jvq run -history FILE` (or `history` in
+jvq.toml, `-history -` for none) adds one JSON line per run (changes,
+intervals, verdicts; `history_keep` newest, default 1000; a re-run with the
+same base and head replaces its line). On the default branch a run starts
+from the last line's head when it's an ancestor (base ref `history`), so
+pushes of several commits are all measured. `jvq history FILE` chains the
+per-run changes (product of 1+change) with an interval: each side's spread
+from the run's own interval, added as variances in log space, so one run
+gives back its own interval. `-fail-over` counts gated results whose low
+end is over the limit. The action has `history`, `history-write`
+(auto/true/false), `history-fail-over` (writing runs only) and
+`history-key` (default per workflow, job, OS); GitLab has JVQ_HISTORY,
+a per-job cache that merge requests only pull. Its review caught noise
+adding up to false alarms when chaining point estimates (a real 12-merge
+test at +1% each gave -4%), commits skipped between pushes, re-runs
+counted twice, pull requests failing on the default branch's creep, and
+caches shared between jobs.
+
 Not done yet: submodules in worktrees.
 
 ## Test results
@@ -138,7 +156,8 @@ blog (wiped at the owner's request) with the Hugo Launch template copied
 unchanged from taskfused.com: content and config values only. Pages: about,
 contact, quick start, download, reference. Posts: the launch, performance
 budgets in CI explained, how jvq was tested, the name, then for 0.2 the
-release post and the harder-settings post (scenarios). Images are drawn into
+release post and the harder-settings post (scenarios), then a release
+post for each of 0.3, 0.4 and 0.5. Images are drawn into
 static/images. Every number comes from `test/results/`; when a recording
 changes a number, update the site too.
 
@@ -152,10 +171,10 @@ Approved with the plan (October 2026), in this order:
 Approved by the owner after v0.3.0 (October 19 2026, "all three"), each its
 own release with a review, a fresh recording and site posts:
 
-- **v0.4.0, GitLab CI.** A ready `.gitlab-ci.yml` example, base detection
+- **v0.4.0, GitLab CI.** Released October 2026 (see above). A ready `.gitlab-ci.yml` example, base detection
   from GitLab's merge request variables, and a JUnit report (`-junit`) that
   GitLab (and Jenkins) show in the merge request.
-- **v0.5.0, history.** An optional history file (`-history`), one line per
+- **v0.5.0, history.** Released October 2026 (see above). An optional history file (`-history`), one line per
   run, kept between CI runs as a cache or artifact, and `jvq history` to
   show each benchmark's trend.
 - **v0.6.0, instruction counts on Linux.** `measure = "instructions"`: count

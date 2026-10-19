@@ -160,6 +160,12 @@ func (r *Repo) DefaultBase(ctx context.Context, headSHA string, env func(string)
 	return Pick{}, fmt.Errorf("no base branch found (looked for %s); pass --base%s", strings.Join(candidates, ", "), hint)
 }
 
+// IsAncestor reports whether commit a is an ancestor of commit b.
+func (r *Repo) IsAncestor(ctx context.Context, a, b string) bool {
+	_, err := r.Git(ctx, "merge-base", "--is-ancestor", a, b)
+	return err == nil
+}
+
 // GitLabHint says what a GitLab job needs for jvq to find the base.
 const GitLabHint = `in .gitlab-ci.yml set GIT_DEPTH: "0", and fetch the target branch first: git fetch origin "+refs/heads/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME:refs/remotes/origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"`
 
