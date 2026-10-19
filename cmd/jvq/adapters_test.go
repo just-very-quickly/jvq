@@ -47,7 +47,7 @@ func TestTimeAdapterPassesNoChange(t *testing.T) {
 func TestJSONAdapterCatchesASlowdown(t *testing.T) {
 	r := newFixture(t, "sub", fixture.Spec{Work: base})
 	commit(t, r, fixture.Spec{Work: base * 2}, "twice the work")
-	r.WriteConfig(fixture.ProgConfig("json", 5, 200, "max_rounds = 5\n"))
+	r.WriteConfig(fixture.ProgConfig("json", 5, 200, ""))
 	res := jvq(t, r.ModDir(), nil, "run")
 	expect(t, res, 1)
 	row := find(rows(t, res), "work", "time")
@@ -55,8 +55,8 @@ func TestJSONAdapterCatchesASlowdown(t *testing.T) {
 		t.Fatalf("row %v\n%s", row, res.stdout)
 	}
 	// Five batches a run, reduced to their median: one value a round.
-	if n := row["base"].(map[string]any)["n"].(float64); n != 5 {
-		t.Errorf("base n = %v, want 5", n)
+	if n, rounds := row["base"].(map[string]any)["n"].(float64), res.report["rounds"].(float64); n != rounds {
+		t.Errorf("base n = %v, want one per round (%v)", n, rounds)
 	}
 }
 
