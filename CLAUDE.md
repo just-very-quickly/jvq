@@ -137,5 +137,18 @@ Approved with the plan (October 2026), in this order:
 - **v0.2.0, any language.** Released October 2026 (see above).
 - **v0.3.0, more harnesses.** Released October 2026 (see above).
 
-After v0.3.0, only with the owner's approval: an instruction-count mode on
-Linux, a GitLab CI example, an optional history file kept as a CI artifact.
+Approved by the owner after v0.3.0 (October 19 2026, "all three"), each its
+own release with a review, a fresh recording and site posts:
+
+- **v0.4.0, GitLab CI.** A ready `.gitlab-ci.yml` example, base detection
+  from GitLab's merge request variables, and a JUnit report (`-junit`) that
+  GitLab (and Jenkins) show in the merge request.
+- **v0.5.0, history.** An optional history file (`-history`), one line per
+  run, kept between CI runs as a cache or artifact, and `jvq history` to
+  show each benchmark's trend.
+- **v0.6.0, instruction counts on Linux.** `measure = "instructions"`: count
+  the instructions the command runs instead of timing it, nearly free of
+  noise. CI machines (this VM, GitHub's runners) don't expose hardware
+  counters, so it runs the command under valgrind's cachegrind, which
+  works without them (checked October 2026: a Go program's count repeats to
+  within a few in ten million).
