@@ -351,7 +351,9 @@ func TestInstructionsSteadyWithGoroutines(t *testing.T) {
 	if row == nil || row["verdict"] != "pass" {
 		t.Fatalf("row %v\n%s", row, res.stdout)
 	}
-	if lo, hi := row["ci_lo"].(float64), row["ci_hi"].(float64); hi-lo > 0.01 {
+	// Without GOMAXPROCS=1 the counts differ many times over; with it, the
+	// interval is about 1% wide here and on GitHub's runners.
+	if lo, hi := row["ci_lo"].(float64), row["ci_hi"].(float64); hi-lo > 0.05 {
 		t.Errorf("interval %v to %v: the count isn't steady", lo, hi)
 	}
 }
