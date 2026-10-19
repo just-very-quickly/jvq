@@ -270,7 +270,7 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: stable
-      - uses: just-very-quickly/jvq@v0.2.0
+      - uses: just-very-quickly/jvq@v0.3.0
         with:
           command: go test -run=NONE -bench=. -benchmem ./...
 ```
