@@ -1,11 +1,11 @@
 === RUN   TestTimeAdapterCatchesASlowdown
---- PASS: TestTimeAdapterCatchesASlowdown (2.05s)
+--- PASS: TestTimeAdapterCatchesASlowdown (1.72s)
 === RUN   TestTimeAdapterPassesNoChange
---- PASS: TestTimeAdapterPassesNoChange (1.50s)
+--- PASS: TestTimeAdapterPassesNoChange (1.44s)
 === RUN   TestJSONAdapterCatchesASlowdown
---- PASS: TestJSONAdapterCatchesASlowdown (1.12s)
+--- PASS: TestJSONAdapterCatchesASlowdown (1.22s)
 === RUN   TestOutputFlagAndCheck
---- PASS: TestOutputFlagAndCheck (0.52s)
+--- PASS: TestOutputFlagAndCheck (0.50s)
 === RUN   TestCompareGoFiles
 --- PASS: TestCompareGoFiles (0.01s)
 === RUN   TestCompareJSONFiles
@@ -15,41 +15,47 @@
 === RUN   TestCompareDashes
 --- PASS: TestCompareDashes (0.01s)
 === RUN   TestNothingGatedSaysWhy
---- PASS: TestNothingGatedSaysWhy (0.01s)
+--- PASS: TestNothingGatedSaysWhy (0.00s)
 === RUN   TestSizeGate
---- PASS: TestSizeGate (1.48s)
+--- PASS: TestSizeGate (1.58s)
 === RUN   TestCompareJSONWithAGoConfig
 --- PASS: TestCompareJSONWithAGoConfig (0.01s)
 === RUN   TestGitLabMergeRequestWithJUnit
---- PASS: TestGitLabMergeRequestWithJUnit (1.06s)
+--- PASS: TestGitLabMergeRequestWithJUnit (1.00s)
 === RUN   TestHistory
---- PASS: TestHistory (4.37s)
+--- PASS: TestHistory (4.58s)
+=== RUN   TestInstructionsCatchTwoPercent
+--- PASS: TestInstructionsCatchTwoPercent (6.04s)
+=== RUN   TestInstructionsPassNoChange
+--- PASS: TestInstructionsPassNoChange (6.86s)
+=== RUN   TestInstructionsSteadyWithGoroutines
+--- PASS: TestInstructionsSteadyWithGoroutines (12.31s)
 === RUN   TestExamplesNameThisVersion
 --- PASS: TestExamplesNameThisVersion (0.00s)
 === RUN   TestCatchesASlowdown
---- PASS: TestCatchesASlowdown (1.32s)
+--- PASS: TestCatchesASlowdown (1.20s)
 === RUN   TestPassesWhenNothingChanged
---- PASS: TestPassesWhenNothingChanged (1.80s)
+--- PASS: TestPassesWhenNothingChanged (1.87s)
 === RUN   TestAllocationGate
---- PASS: TestAllocationGate (0.92s)
+--- PASS: TestAllocationGate (1.01s)
 === RUN   TestRenamedBenchmarkIsNewAndRemoved
---- PASS: TestRenamedBenchmarkIsNewAndRemoved (1.77s)
+--- PASS: TestRenamedBenchmarkIsNewAndRemoved (1.69s)
 === RUN   TestBaseThatDoesNotBuild
---- PASS: TestBaseThatDoesNotBuild (0.35s)
+--- PASS: TestBaseThatDoesNotBuild (0.34s)
 === RUN   TestHeadThatDoesNotBuild
 --- PASS: TestHeadThatDoesNotBuild (0.50s)
 === RUN   TestShallowCloneSaysHowToFix
---- PASS: TestShallowCloneSaysHowToFix (0.08s)
+--- PASS: TestShallowCloneSaysHowToFix (0.09s)
 === RUN   TestExplicitBaseAndSubdirectory
---- PASS: TestExplicitBaseAndSubdirectory (1.05s)
+--- PASS: TestExplicitBaseAndSubdirectory (0.96s)
 === RUN   TestCommandAfterDashes
---- PASS: TestCommandAfterDashes (2.27s)
+--- PASS: TestCommandAfterDashes (1.49s)
 === RUN   TestNoResultsExplainsTheAdapter
 --- PASS: TestNoResultsExplainsTheAdapter (0.09s)
 === RUN   TestGitHubStepSummaryAndAnnotations
---- PASS: TestGitHubStepSummaryAndAnnotations (1.07s)
+--- PASS: TestGitHubStepSummaryAndAnnotations (0.99s)
 === RUN   TestGitHubBaseRef
---- PASS: TestGitHubBaseRef (1.91s)
+--- PASS: TestGitHubBaseRef (2.18s)
 === RUN   TestErrors
 --- PASS: TestErrors (0.10s)
 === RUN   TestVersionHelpCheck
@@ -57,11 +63,11 @@
 === RUN   TestShellJoin
 --- PASS: TestShellJoin (0.00s)
 === RUN   TestInterruptCleansUp
---- PASS: TestInterruptCleansUp (0.71s)
+--- PASS: TestInterruptCleansUp (0.76s)
 === RUN   TestKilledRunIsCleanedUpByTheNext
---- PASS: TestKilledRunIsCleanedUpByTheNext (2.73s)
+--- PASS: TestKilledRunIsCleanedUpByTheNext (2.91s)
 PASS
-ok  	github.com/just-very-quickly/jvq/cmd/jvq	29.426s
+ok  	github.com/just-very-quickly/jvq/cmd/jvq	53.850s
 === RUN   TestParseGoRealOutput
 --- PASS: TestParseGoRealOutput (0.00s)
 === RUN   TestParseGoSkipsNoise
@@ -106,8 +112,10 @@ ok  	github.com/just-very-quickly/jvq/cmd/jvq	29.426s
 --- PASS: TestJSONFromRealScripts (0.00s)
 === RUN   TestJSONMoreErrors
 --- PASS: TestJSONMoreErrors (0.00s)
+=== RUN   TestJSONInstructions
+--- PASS: TestJSONInstructions (0.00s)
 PASS
-ok  	github.com/just-very-quickly/jvq/internal/adapter	0.009s
+ok  	github.com/just-very-quickly/jvq/internal/adapter	0.008s
 === RUN   TestParseFull
 --- PASS: TestParseFull (0.00s)
 === RUN   TestDefaults
@@ -127,44 +135,46 @@ ok  	github.com/just-very-quickly/jvq/internal/adapter	0.009s
 === RUN   TestLaterBenchTablesWin
 --- PASS: TestLaterBenchTablesWin (0.00s)
 === RUN   TestFindThroughASymlink
---- PASS: TestFindThroughASymlink (0.01s)
+--- PASS: TestFindThroughASymlink (0.00s)
 === RUN   TestUnderscoresOnlyBetweenDigits
 --- PASS: TestUnderscoresOnlyBetweenDigits (0.00s)
 === RUN   TestAdaptersAndOutput
 --- PASS: TestAdaptersAndOutput (0.00s)
 === RUN   TestSizeSettings
 --- PASS: TestSizeSettings (0.00s)
+=== RUN   TestInstructionsBudget
+--- PASS: TestInstructionsBudget (0.00s)
 PASS
-ok  	github.com/just-very-quickly/jvq/internal/config	0.019s
+ok  	github.com/just-very-quickly/jvq/internal/config	0.010s
 ?   	github.com/just-very-quickly/jvq/internal/fixture	[no test files]
 === RUN   TestBaseIsMergeBaseOnABranch
---- PASS: TestBaseIsMergeBaseOnABranch (0.09s)
+--- PASS: TestBaseIsMergeBaseOnABranch (0.12s)
 === RUN   TestBaseOnMainIsParent
---- PASS: TestBaseOnMainIsParent (0.08s)
+--- PASS: TestBaseOnMainIsParent (0.05s)
 === RUN   TestBaseFromGitHubBaseRef
---- PASS: TestBaseFromGitHubBaseRef (0.06s)
+--- PASS: TestBaseFromGitHubBaseRef (0.07s)
 === RUN   TestNoBaseBranch
---- PASS: TestNoBaseBranch (0.05s)
+--- PASS: TestNoBaseBranch (0.04s)
 === RUN   TestSingleCommitOnMain
---- PASS: TestSingleCommitOnMain (0.07s)
+--- PASS: TestSingleCommitOnMain (0.04s)
 === RUN   TestShallowCloneExplainsItself
---- PASS: TestShallowCloneExplainsItself (0.15s)
+--- PASS: TestShallowCloneExplainsItself (0.11s)
 === RUN   TestResolveAndDirty
---- PASS: TestResolveAndDirty (0.04s)
+--- PASS: TestResolveAndDirty (0.05s)
 === RUN   TestWorkspaceAddAndRemove
---- PASS: TestWorkspaceAddAndRemove (0.07s)
+--- PASS: TestWorkspaceAddAndRemove (0.11s)
 === RUN   TestCleanStale
---- PASS: TestCleanStale (0.06s)
+--- PASS: TestCleanStale (0.05s)
 === RUN   TestAlive
 --- PASS: TestAlive (0.00s)
 === RUN   TestGitLabMergeRequestBase
---- PASS: TestGitLabMergeRequestBase (0.10s)
+--- PASS: TestGitLabMergeRequestBase (0.09s)
 === RUN   TestGitLabDefaultBranch
---- PASS: TestGitLabDefaultBranch (0.08s)
+--- PASS: TestGitLabDefaultBranch (0.04s)
 === RUN   TestGitLabRebasedMergeTrain
---- PASS: TestGitLabRebasedMergeTrain (0.13s)
+--- PASS: TestGitLabRebasedMergeTrain (0.08s)
 PASS
-ok  	github.com/just-very-quickly/jvq/internal/gitx	0.987s
+ok  	github.com/just-very-quickly/jvq/internal/gitx	0.861s
 === RUN   TestAppendReadAndTrends
 --- PASS: TestAppendReadAndTrends (0.01s)
 === RUN   TestKeepAndDamagedLines
@@ -176,7 +186,7 @@ ok  	github.com/just-very-quickly/jvq/internal/gitx	0.987s
 === RUN   TestReRunReplacesItsLine
 --- PASS: TestReRunReplacesItsLine (0.00s)
 PASS
-ok  	github.com/just-very-quickly/jvq/internal/history	0.022s
+ok  	github.com/just-very-quickly/jvq/internal/history	0.016s
 === RUN   TestText
 --- PASS: TestText (0.00s)
 === RUN   TestUndecidedAtTheLimit
@@ -193,12 +203,14 @@ ok  	github.com/just-very-quickly/jvq/internal/history	0.022s
 --- PASS: TestSizeFormatting (0.00s)
 === RUN   TestJUnit
 --- PASS: TestJUnit (0.00s)
+=== RUN   TestCount
+--- PASS: TestCount (0.00s)
 PASS
-ok  	github.com/just-very-quickly/jvq/internal/report	0.003s
+ok  	github.com/just-very-quickly/jvq/internal/report	0.004s
 === RUN   TestPlanInterleaves
 --- PASS: TestPlanInterleaves (0.00s)
 === RUN   TestRunCollectsBothSides
---- PASS: TestRunCollectsBothSides (0.07s)
+--- PASS: TestRunCollectsBothSides (0.04s)
 === RUN   TestBuildRunsOncePerSide
 --- PASS: TestBuildRunsOncePerSide (0.03s)
 === RUN   TestHeadFailureNamesTheSideAndShowsOutput
@@ -208,23 +220,27 @@ ok  	github.com/just-very-quickly/jvq/internal/report	0.003s
 === RUN   TestTimeoutStopsTheCommand
 --- PASS: TestTimeoutStopsTheCommand (0.30s)
 === RUN   TestCancelStopsTheCommand
---- PASS: TestCancelStopsTheCommand (0.30s)
+--- PASS: TestCancelStopsTheCommand (0.31s)
 === RUN   TestAdaptiveRoundsKeepTheAlternation
---- PASS: TestAdaptiveRoundsKeepTheAlternation (0.10s)
+--- PASS: TestAdaptiveRoundsKeepTheAlternation (0.16s)
 === RUN   TestBackgroundChildDoesNotFailASuccessfulRun
 --- PASS: TestBackgroundChildDoesNotFailASuccessfulRun (10.01s)
 === RUN   TestTimeAdapterTimesTheCommand
---- PASS: TestTimeAdapterTimesTheCommand (0.43s)
+--- PASS: TestTimeAdapterTimesTheCommand (0.44s)
 === RUN   TestOutputFile
---- PASS: TestOutputFile (0.06s)
+--- PASS: TestOutputFile (0.04s)
 === RUN   TestNoResultsHintFollowsTheAdapter
 --- PASS: TestNoResultsHintFollowsTheAdapter (0.01s)
 === RUN   TestTimeAdapterStopsAtExit
 --- PASS: TestTimeAdapterStopsAtExit (0.01s)
 === RUN   TestPerRunTakesTheMedian
 --- PASS: TestPerRunTakesTheMedian (0.00s)
+=== RUN   TestSumInstructions
+--- PASS: TestSumInstructions (0.00s)
+=== RUN   TestShQuote
+--- PASS: TestShQuote (0.00s)
 PASS
-ok  	github.com/just-very-quickly/jvq/internal/runner	11.349s
+ok  	github.com/just-very-quickly/jvq/internal/runner	11.360s
 === RUN   TestMedian
 --- PASS: TestMedian (0.00s)
 === RUN   TestExactKMatchesTables
@@ -238,13 +254,13 @@ ok  	github.com/just-very-quickly/jvq/internal/runner	11.349s
 === RUN   TestTooSmallForAnInterval
 --- PASS: TestTooSmallForAnInterval (0.00s)
 === RUN   TestCoverage
---- PASS: TestCoverage (0.08s)
+--- PASS: TestCoverage (0.04s)
 === RUN   TestNormalApproximationForLargeSamples
---- PASS: TestNormalApproximationForLargeSamples (0.03s)
+--- PASS: TestNormalApproximationForLargeSamples (0.01s)
 === RUN   TestMannWhitneyP
 --- PASS: TestMannWhitneyP (0.00s)
 PASS
-ok  	github.com/just-very-quickly/jvq/internal/stats	0.112s
+ok  	github.com/just-very-quickly/jvq/internal/stats	0.055s
 === RUN   TestTimeVerdicts
 --- PASS: TestTimeVerdicts (0.00s)
 === RUN   TestBudgetOffAndOverride
@@ -260,12 +276,12 @@ ok  	github.com/just-very-quickly/jvq/internal/stats	0.112s
 === RUN   TestOverallAndOrder
 --- PASS: TestOverallAndOrder (0.00s)
 === RUN   TestFalseAlarmRateOnSimulatedNoise
---- PASS: TestFalseAlarmRateOnSimulatedNoise (0.07s)
+--- PASS: TestFalseAlarmRateOnSimulatedNoise (0.06s)
 === RUN   TestNeedsMore
 --- PASS: TestNeedsMore (0.00s)
 === RUN   TestUngatedNote
 --- PASS: TestUngatedNote (0.00s)
 PASS
-ok  	github.com/just-very-quickly/jvq/internal/verdict	0.081s
+ok  	github.com/just-very-quickly/jvq/internal/verdict	0.062s
 ?   	github.com/just-very-quickly/jvq/test/accuracy	[no test files]
 ?   	github.com/just-very-quickly/jvq/test/scenarios	[no test files]
