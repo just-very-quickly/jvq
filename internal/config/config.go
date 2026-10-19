@@ -53,6 +53,8 @@ type Budgets struct {
 	Bytes  Budget
 	Allocs Budget
 	Size   Budget
+	// Instructions is the budget for the instructions adapter's counts.
+	Instructions Budget
 }
 
 // BenchBudgets overrides budgets for benchmarks whose name matches Pattern.
@@ -63,6 +65,8 @@ type BenchBudgets struct {
 	Bytes   *Budget
 	Allocs  *Budget
 	Size    *Budget
+	// Instructions overrides the instructions budget.
+	Instructions *Budget
 }
 
 // Budget is how much worse a metric may get before jvq calls it a
@@ -94,10 +98,11 @@ func Default() Config {
 		Confidence:  0.95,
 		Timeout:     10 * time.Minute,
 		Budget: Budgets{
-			Time:   Budget{Pct: true, Val: 0.05, Raw: "5%"},
-			Bytes:  Budget{Off: true, Raw: "off"},
-			Allocs: Budget{Off: true, Raw: "off"},
-			Size:   Budget{Pct: true, Val: 0.01, Raw: "1%"},
+			Time:         Budget{Pct: true, Val: 0.05, Raw: "5%"},
+			Bytes:        Budget{Off: true, Raw: "off"},
+			Allocs:       Budget{Off: true, Raw: "off"},
+			Size:         Budget{Pct: true, Val: 0.01, Raw: "1%"},
+			Instructions: Budget{Pct: true, Val: 0.01, Raw: "1%"},
 		},
 	}
 }
@@ -117,8 +122,8 @@ func ParseBudget(metric, s string) (Budget, error) {
 		}
 		return Budget{Pct: true, Val: v / 100, Raw: s}, nil
 	}
-	if metric == adapter.Time {
-		return Budget{}, fmt.Errorf("time budget %q: must be a percentage such as \"5%%\"", s)
+	if metric == adapter.Time || metric == adapter.Instructions {
+		return Budget{}, fmt.Errorf("%s budget %q: must be a percentage such as \"5%%\"", metric, s)
 	}
 	v, err := strconv.ParseFloat(s, 64)
 	if err != nil || v < 0 || math.IsNaN(v) || math.IsInf(v, 0) {
@@ -289,8 +294,8 @@ func (c Config) Check() error {
 	if !adapter.Known(c.Adapter) {
 		return fmt.Errorf("adapter %q: jvq has %s", c.Adapter, strings.Join(adapter.Names, ", "))
 	}
-	if c.Output != "" && adapter.Timed(c.Adapter) {
-		return errors.New("output is set (in jvq.toml or with -output), but the time adapter reads no results; it times the command")
+	if c.Output != "" && adapter.Measured(c.Adapter) {
+		return fmt.Errorf("output is set (in jvq.toml or with -output), but the %s adapter reads no results; it measures the command itself", c.Adapter)
 	}
 	return nil
 }
@@ -327,6 +332,8 @@ func (c *Config) readBudgets(v any) error {
 						bb.Allocs = &b
 					case adapter.Size:
 						bb.Size = &b
+					case adapter.Instructions:
+						bb.Instructions = &b
 					}
 				}
 				c.Bench = append(c.Bench, bb)
@@ -346,6 +353,8 @@ func (c *Config) readBudgets(v any) error {
 			c.Budget.Allocs = b
 		case adapter.Size:
 			c.Budget.Size = b
+		case adapter.Instructions:
+			c.Budget.Instructions = b
 		}
 	}
 	return nil
@@ -353,9 +362,9 @@ func (c *Config) readBudgets(v any) error {
 
 func budgetValue(metric string, v any) (Budget, error) {
 	switch metric {
-	case adapter.Time, adapter.Bytes, adapter.Allocs, adapter.Size:
+	case adapter.Time, adapter.Bytes, adapter.Allocs, adapter.Size, adapter.Instructions:
 	default:
-		return Budget{}, fmt.Errorf("unknown budget %q (jvq gates time, bytes, allocs and size)", metric)
+		return Budget{}, fmt.Errorf("unknown budget %q (jvq gates time, bytes, allocs, size and instructions)", metric)
 	}
 	switch x := v.(type) {
 	case string:
@@ -468,6 +477,8 @@ func (c Config) BudgetFor(metric, name, key string) Budget {
 		b, ok = c.Budget.Allocs, true
 	case adapter.Size:
 		b, ok = c.Budget.Size, true
+	case adapter.Instructions:
+		b, ok = c.Budget.Instructions, true
 	}
 	if !ok {
 		return Budget{Off: true, Raw: "off"}
@@ -486,6 +497,8 @@ func (c Config) BudgetFor(metric, name, key string) Budget {
 			o = bb.Allocs
 		case adapter.Size:
 			o = bb.Size
+		case adapter.Instructions:
+			o = bb.Instructions
 		}
 		if o != nil {
 			b = *o

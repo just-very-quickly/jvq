@@ -21,8 +21,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"runtime"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -124,6 +127,11 @@ func Plan(rounds int, sequential bool) []int {
 func Run(ctx context.Context, opt Options, base, head Side) (*Result, error) {
 	if opt.Rounds < 1 {
 		return nil, errors.New("rounds must be at least 1")
+	}
+	if adapter.Counted(opt.Adapter) {
+		if err := valgrindReady(); err != nil {
+			return nil, err
+		}
 	}
 	sides := [2]Side{base, head}
 	res := &Result{Wall: map[string][]time.Duration{}}
@@ -294,6 +302,13 @@ func parse(opt Options, s Side, out []byte, elapsed time.Duration) ([]adapter.Sa
 	if adapter.Timed(opt.Adapter) {
 		return []adapter.Sample{adapter.TimeSample(elapsed)}, nil
 	}
+	if adapter.Counted(opt.Adapter) {
+		n, err := strconv.ParseFloat(string(out), 64)
+		if err != nil || n <= 0 {
+			return nil, &StepError{Side: s.Name, Stage: "run", Err: fmt.Errorf("valgrind counted no instructions")}
+		}
+		return []adapter.Sample{adapter.InstructionSample(n)}, nil
+	}
 	samples, err := adapter.Parse(opt.Adapter, bytes.NewReader(out))
 	if err != nil {
 		return nil, &StepError{Side: s.Name, Stage: "run", Output: tail(out), Err: err}
@@ -345,6 +360,17 @@ func step(ctx context.Context, opt Options, s Side, stage, command string, round
 	if opt.Subdir != "" && opt.Subdir != "." {
 		dir = filepath.Join(s.Dir, opt.Subdir)
 	}
+	counted := stage == "run" && adapter.Counted(opt.Adapter)
+	var logDir string
+	if counted {
+		d, err := os.MkdirTemp("", "jvq-valgrind-*")
+		if err != nil {
+			return nil, 0, &StepError{Side: s.Name, Stage: stage, Err: err}
+		}
+		defer os.RemoveAll(d)
+		logDir = d
+		command = valgrindCommand(command, d)
+	}
 	cmd := shell(ctx, command)
 	cmd.Dir = dir
 	cmd.Env = append(os.Environ(), "JVQ_SIDE="+s.Name, "JVQ_ROUND="+strconv.Itoa(round))
@@ -352,7 +378,7 @@ func step(ctx context.Context, opt Options, s Side, stage, command string, round
 	// share is locked.
 	var stdout bytes.Buffer
 	combined := &lockedBuffer{}
-	timed := stage == "run" && adapter.Timed(opt.Adapter)
+	timed := stage == "run" && adapter.Measured(opt.Adapter)
 	var logFile *os.File
 	if timed {
 		// The time adapter ignores the output, and its clock must stop
@@ -410,6 +436,13 @@ func step(ctx context.Context, opt Options, s Side, stage, command string, round
 		}
 		return nil, 0, &StepError{Side: s.Name, Stage: stage, Output: output(), Err: err}
 	}
+	if counted {
+		n, err := sumInstructions(logDir)
+		if err != nil {
+			return nil, 0, &StepError{Side: s.Name, Stage: stage, Output: output(), Err: err}
+		}
+		return []byte(strconv.FormatFloat(n, 'f', -1, 64)), elapsed, nil
+	}
 	if outFile != "" {
 		b, err := os.ReadFile(outFile)
 		if err != nil {
@@ -419,6 +452,60 @@ func step(ctx context.Context, opt Options, s Side, stage, command string, round
 		return b, elapsed, nil
 	}
 	return stdout.Bytes(), elapsed, nil
+}
+
+// valgrindReady checks the instructions adapter can run here.
+func valgrindReady() error {
+	if runtime.GOOS != "linux" {
+		return fmt.Errorf("the instructions adapter runs the command under valgrind, which jvq supports on Linux only (this is %s)", runtime.GOOS)
+	}
+	if _, err := exec.LookPath("valgrind"); err != nil {
+		return errors.New("the instructions adapter needs valgrind on the PATH (apt install valgrind, or your system's package)")
+	}
+	return nil
+}
+
+// valgrindCommand wraps a shell command so valgrind's cachegrind counts
+// every instruction it and the processes it starts run, writing one log per
+// process into logDir. The cache simulation is off: only the count is used.
+func valgrindCommand(command, logDir string) string {
+	return "valgrind --tool=cachegrind --cache-sim=no --cachegrind-out-file=/dev/null --trace-children=yes" +
+		" --log-file=" + shQuote(filepath.Join(logDir, "vg.%p")) + " sh -c " + shQuote(command)
+}
+
+func shQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
+}
+
+// instrLine matches the count in a cachegrind summary, such as
+// "==2471== I refs:        13,438,495" (or "I   refs" in older versions).
+var instrLine = regexp.MustCompile(`\bI\s+refs:\s+([0-9,]+)`)
+
+// sumInstructions adds up the counts in the logs valgrind wrote, one per
+// process the command ran.
+func sumInstructions(logDir string) (float64, error) {
+	files, err := filepath.Glob(filepath.Join(logDir, "vg.*"))
+	if err != nil || len(files) == 0 {
+		return 0, errors.New("valgrind wrote no log")
+	}
+	total, found := 0.0, false
+	for _, f := range files {
+		b, err := os.ReadFile(f)
+		if err != nil {
+			return 0, err
+		}
+		for _, m := range instrLine.FindAllSubmatch(b, -1) {
+			n, err := strconv.ParseFloat(strings.ReplaceAll(string(m[1]), ",", ""), 64)
+			if err == nil {
+				total += n
+				found = true
+			}
+		}
+	}
+	if !found {
+		return 0, errors.New("valgrind's logs have no instruction count (I refs)")
+	}
+	return total, nil
 }
 
 // fileTail is the end of what a command wrote to f.

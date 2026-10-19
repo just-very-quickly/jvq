@@ -51,7 +51,7 @@ const Straddles = "the interval straddles the budget"
 // or is still too small to have an interval.
 func NeedsMore(rows []Row) bool {
 	for _, r := range rows {
-		if r.Verdict == Inconclusive && r.Metric == adapter.Time &&
+		if r.Verdict == Inconclusive && (r.Metric == adapter.Time || r.Metric == adapter.Instructions) &&
 			(r.Note == Straddles || strings.HasPrefix(r.Note, "too few samples")) {
 			return true
 		}
@@ -157,7 +157,7 @@ func Compare(base, head []adapter.Sample, cfg config.Config) []Row {
 
 func metricOrder(m string) int {
 	switch m {
-	case adapter.Time:
+	case adapter.Time, adapter.Instructions:
 		return 0
 	case adapter.Bytes:
 		return 1
@@ -192,7 +192,7 @@ func judge(se *series, b config.Budget, level float64) Row {
 		return r
 	}
 	switch se.metric {
-	case adapter.Time:
+	case adapter.Time, adapter.Instructions:
 		judgeTime(&r, se, b, level)
 	case adapter.Bytes, adapter.Allocs, adapter.Size:
 		judgeExact(&r, se, b)
@@ -212,7 +212,7 @@ func judgeTime(r *Row, se *series, b config.Budget, level float64) {
 	defer func() {
 		if b.Off {
 			r.Verdict = Info
-			r.Note = "time budget off"
+			r.Note = r.Metric + " budget off"
 		}
 	}()
 	if len(se.base) < MinSamples || len(se.head) < MinSamples {
@@ -343,7 +343,7 @@ func UngatedNote(rows []Row) string {
 			return ""
 		}
 		switch r.Metric {
-		case adapter.Time, adapter.Bytes, adapter.Allocs:
+		case adapter.Time, adapter.Bytes, adapter.Allocs, adapter.Size, adapter.Instructions:
 		default:
 			if !seen[r.Unit] {
 				seen[r.Unit] = true

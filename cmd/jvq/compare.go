@@ -102,8 +102,8 @@ func compare(f runFlags, oldPath, newPath string, stdout, stderr io.Writer) (int
 	if !adapter.Known(name) {
 		return exitError, fmt.Errorf("adapter %q: jvq has %s", name, strings.Join(adapter.Names, ", "))
 	}
-	if adapter.Timed(name) {
-		return exitError, errors.New("the time adapter times a command as it runs, so it can't read saved files; use jvq run, or save go or json output")
+	if adapter.Measured(name) {
+		return exitError, fmt.Errorf("the %s adapter measures a command as it runs, so it can't read saved files; use jvq run, or save go or json output", name)
 	}
 	cfg.Adapter = name
 	base, err := readSamples(name, oldPath)
@@ -158,7 +158,7 @@ func compareAdapter(flagValue, configured string, fromFile bool, paths ...string
 	if fromFile && jsonFormat(configured) {
 		return configured
 	}
-	if fromFile && configured != "" && !adapter.Timed(configured) && !jsonFormat(configured) && !anyJSON(paths) {
+	if fromFile && configured != "" && !adapter.Measured(configured) && !jsonFormat(configured) && !anyJSON(paths) {
 		return configured
 	}
 	allJSON := true

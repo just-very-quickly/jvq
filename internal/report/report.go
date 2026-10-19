@@ -61,6 +61,9 @@ func Value(metric, unit string, v float64) string { return units.Value(metric, u
 // show them.
 func Size(b float64) string { return units.Size(b) }
 
+// Count formats an instruction count, as 13.44 M.
+func Count(n float64) string { return units.Count(n) }
+
 // Duration formats nanoseconds.
 func Duration(ns float64) string { return units.Duration(ns) }
 

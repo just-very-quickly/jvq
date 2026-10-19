@@ -24,6 +24,8 @@ func Value(metric, unit string, v float64) string {
 		return trim(v)
 	case adapter.Size:
 		return Size(v)
+	case adapter.Instructions:
+		return Count(v)
 	}
 	return trim(v) + " " + unit
 }
@@ -40,6 +42,19 @@ func Size(b float64) string {
 		return fmt.Sprintf("%.4g kB", b/1e3)
 	}
 	return trim(b) + " B"
+}
+
+// Count formats a count, such as instructions, with k, M or G.
+func Count(n float64) string {
+	switch a := math.Abs(n); {
+	case a >= 1e9:
+		return fmt.Sprintf("%.4g G", n/1e9)
+	case a >= 1e6:
+		return fmt.Sprintf("%.4g M", n/1e6)
+	case a >= 1e4:
+		return fmt.Sprintf("%.4g k", n/1e3)
+	}
+	return trim(n)
 }
 
 // Duration formats nanoseconds.

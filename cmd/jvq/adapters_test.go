@@ -5,7 +5,9 @@ package main
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -287,5 +289,46 @@ func TestHistory(t *testing.T) {
 		if res := jvq(t, r.Dir, nil, append(append([]string{"history"}, args...), hist)...); res.code != 2 {
 			t.Errorf("%v: %d", args, res.code)
 		}
+	}
+}
+
+func needValgrind(t *testing.T) {
+	t.Helper()
+	if runtime.GOOS != "linux" {
+		t.Skip("the instructions adapter is Linux only")
+	}
+	if _, err := exec.LookPath("valgrind"); err != nil {
+		t.Skip("valgrind isn't installed")
+	}
+}
+
+func TestInstructionsCatchTwoPercent(t *testing.T) {
+	needValgrind(t)
+	r := newFixture(t, "", fixture.Spec{Work: base})
+	commit(t, r, fixture.Spec{Work: base * 102 / 100}, "2% more work")
+	r.WriteConfig(fixture.ProgConfig("instructions", 5, 200, ""))
+	res := jvq(t, r.Dir, nil, "run")
+	expect(t, res, 1)
+	row := find(rows(t, res), "command", "instructions")
+	if row == nil || row["verdict"] != "regression" {
+		t.Fatalf("row %v\n%s", row, res.stdout)
+	}
+	if c := row["change"].(float64); c < 0.015 || c > 0.025 {
+		t.Errorf("change %v, want about +2%%", c)
+	}
+	if res.report["rounds"].(float64) != 5 {
+		t.Errorf("counts this steady should settle in the first 5 rounds: %v", res.report["rounds"])
+	}
+}
+
+func TestInstructionsPassNoChange(t *testing.T) {
+	needValgrind(t)
+	r := newFixture(t, "", fixture.Spec{Work: base})
+	commit(t, r, fixture.Spec{Work: base, Extra: "a comment"}, "no change")
+	r.WriteConfig(fixture.ProgConfig("instructions", 5, 200, ""))
+	res := jvq(t, r.Dir, nil, "run")
+	expect(t, res, 0)
+	if v := find(rows(t, res), "command", "instructions")["verdict"]; v != "pass" {
+		t.Errorf("verdict %v\n%s", v, res.stdout)
 	}
 }

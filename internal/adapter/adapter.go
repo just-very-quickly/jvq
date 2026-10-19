@@ -35,6 +35,9 @@ const (
 	Bytes  = "bytes"  // B/op; lower is better
 	Allocs = "allocs" // allocs/op; lower is better
 	Size   = "size"   // a file's size in bytes, measured once per side; lower is better
+	// Instructions is the count of instructions a whole command ran, from
+	// the instructions adapter; judged like time, lower is better.
+	Instructions = "instructions"
 )
 
 // Sample is one measured value of one metric of one benchmark.
@@ -55,7 +58,7 @@ func (s Sample) Key() string {
 }
 
 // Names lists the adapters jvq has.
-var Names = []string{"go", "json", "time", "criterion", "google-benchmark", "pytest-benchmark", "vitest"}
+var Names = []string{"go", "json", "time", "instructions", "criterion", "google-benchmark", "pytest-benchmark", "vitest"}
 
 // TimeName is the benchmark name the time adapter reports.
 const TimeName = "command"
@@ -73,6 +76,23 @@ func Known(name string) bool {
 // Timed reports whether the adapter measures the command's own run time
 // instead of reading its output.
 func Timed(name string) bool { return name == "time" }
+
+// Counted reports whether the adapter counts the instructions the command
+// runs, under valgrind, instead of reading its output.
+func Counted(name string) bool { return name == "instructions" }
+
+// Measured reports whether the adapter measures the command itself (its
+// time or its instructions) and reads none of its output.
+func Measured(name string) bool { return Timed(name) || Counted(name) }
+
+// InstructionsName is the benchmark name the instructions adapter reports.
+const InstructionsName = "command"
+
+// InstructionSample is the instructions adapter's one sample for a run
+// that ran n instructions.
+func InstructionSample(n float64) Sample {
+	return Sample{Name: InstructionsName, Metric: Instructions, Unit: "instructions", Value: n}
+}
 
 // TimeSample is the time adapter's one sample for a run that took d.
 func TimeSample(d time.Duration) Sample {
@@ -104,6 +124,8 @@ func Parse(adapter string, r io.Reader) ([]Sample, error) {
 		return ParseVitest(r)
 	case "time":
 		return nil, fmt.Errorf("the time adapter reads no output; jvq times the command itself")
+	case "instructions":
+		return nil, fmt.Errorf("the instructions adapter reads no output; jvq counts the command's instructions itself")
 	default:
 		return nil, fmt.Errorf("unknown adapter %q (jvq has: %s)", adapter, strings.Join(Names, ", "))
 	}
