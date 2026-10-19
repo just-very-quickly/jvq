@@ -111,10 +111,10 @@ depends on that noise: earlier recordings on the same kind of VM caught
 them raised a false alarm.
 
 On a GitHub-hosted runner (ubuntu-latest, 4 cores) the same suite saw only
-0.2% run-to-run noise, and every clear case was decided in the first 10
+0.5% run-to-run noise, and every clear case was decided in the first 10
 rounds: all 200 no-change runs and all 50 at +2% passed, and every run at
 +10%, +20% and +50% was caught. A change of exactly the budget, +5%, was
-flagged in 5 of 50 runs: with so little noise, adding rounds gives a change
+flagged in 2 of 50 runs: with so little noise, adding rounds gives a change
 sitting on the line more chances to tip over (see docs/reference.md).
 [test/results/github/](test/results/github/accuracy.md) has that recording.
 
@@ -134,8 +134,8 @@ situations, each with a known answer, on the same two machines:
 | The same drift with all of base run before all of head, 50 runs | 38 false alarms | 50 false alarms |
 | A Python script timed whole (time adapter): no change, 60 runs; 20% more work, 30 runs | 0 false alarms; 25 caught | 0 false alarms; 30 caught |
 | The same script reporting its own timings (json adapter): no change, 60 runs; 20% more work, 30 runs | 0 false alarms; 27 caught | 0 false alarms; 30 caught |
-| Instruction counts (instructions adapter, 1% budget): no change, +0.5% and +2% work, 20 runs each | 0 false alarms, 0 at +0.5%, 20 caught at +2%, all in 5 rounds | not yet recorded |
-| The same beside the neighbour: no change and +2%; and a Go program with 8 allocating goroutines, no change; 20 runs each | 0 false alarms, 20 caught, 0 false alarms | not yet recorded |
+| Instruction counts (instructions adapter, 1% budget): no change, +0.5% and +2% work, 20 runs each | 0 false alarms, 0 at +0.5%, 20 caught at +2%, all in 5 rounds | the same |
+| The same beside the neighbour: no change and +2%; and a Go program with 8 allocating goroutines, no change; 20 runs each | 0 false alarms, 20 caught, 0 false alarms | the same |
 
 The drift rows are why jvq takes turns. A machine that slows down during a
 job makes whatever runs second look slower; run in sequence, that faked a
@@ -162,9 +162,7 @@ interval over the budget. A longer `--benchmark-max-time` is the first thing to 
 noisy for you; this recording didn't try one.
 
 The VM's accuracy table and scenarios are from jvq 0.6.0. The GitHub
-runner's are from the 0.5.1 release commit (fd8e8fc), before the
-instructions adapter, so the counts are the VM's only for now; the
-accuracy workflow installs valgrind from 0.6.0 on.
+runner's are from jvq 0.6.0 too (commit df1205a).
 
 ## Any language
 
