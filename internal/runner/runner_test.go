@@ -361,3 +361,29 @@ func TestPerRunTakesTheMedian(t *testing.T) {
 		t.Errorf("got %+v", got)
 	}
 }
+
+func TestSumInstructions(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "vg.1"), []byte("==1== Cachegrind\n==1== I refs:        13,438,495\n"), 0o644)
+	os.WriteFile(filepath.Join(dir, "vg.2"), []byte("==2== I   refs:      1,000\n"), 0o644)
+	if n, err := sumInstructions(dir); err != nil || n != 13439495 {
+		t.Errorf("sum %v, %v", n, err)
+	}
+	empty := t.TempDir()
+	os.WriteFile(filepath.Join(empty, "vg.3"), []byte("==3== valgrind: Unrecognised instruction\n"), 0o644)
+	if _, err := sumInstructions(empty); err == nil {
+		t.Error("a log with no count passed")
+	}
+	if !strings.Contains(valgrindTail(empty), "Unrecognised instruction") {
+		t.Errorf("tail %q", valgrindTail(empty))
+	}
+	if _, err := sumInstructions(t.TempDir()); err == nil {
+		t.Error("no logs passed")
+	}
+}
+
+func TestShQuote(t *testing.T) {
+	if got := shQuote(`echo 'a b' "c"`); got != `'echo '\''a b'\'' "c"'` {
+		t.Errorf("got %s", got)
+	}
+}

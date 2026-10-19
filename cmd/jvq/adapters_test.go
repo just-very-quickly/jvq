@@ -332,3 +332,26 @@ func TestInstructionsPassNoChange(t *testing.T) {
 		t.Errorf("verdict %v\n%s", v, res.stdout)
 	}
 }
+
+func TestInstructionsSteadyWithGoroutines(t *testing.T) {
+	// A Go program with goroutines and garbage collection: with several
+	// Ps, Go's idle threads spin under valgrind and the count jumps 20%
+	// between runs. jvq runs it with GOMAXPROCS=1, so no change passes.
+	needValgrind(t)
+	// Measured on the 2-CPU VM, this load counted 0.66 G to 23.7 G
+	// instructions with GOMAXPROCS=2 and 215.0 to 215.1 M with 1.
+	r := newFixture(t, "", fixture.Spec{Work: 10})
+	commit(t, r, fixture.Spec{Work: 10, Extra: "a comment"}, "no change")
+	cfg := fixture.ProgConfig("instructions", 5, 400000, "")
+	cfg = strings.Replace(cfg, "-reps 400000", "-reps 400000 -goroutines 8", 1)
+	r.WriteConfig(cfg)
+	res := jvq(t, r.Dir, nil, "run")
+	expect(t, res, 0)
+	row := find(rows(t, res), "command", "instructions")
+	if row == nil || row["verdict"] != "pass" {
+		t.Fatalf("row %v\n%s", row, res.stdout)
+	}
+	if lo, hi := row["ci_lo"].(float64), row["ci_hi"].(float64); hi-lo > 0.01 {
+		t.Errorf("interval %v to %v: the count isn't steady", lo, hi)
+	}
+}

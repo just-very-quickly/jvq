@@ -165,3 +165,15 @@ func TestJSONMoreErrors(t *testing.T) {
 		}
 	}
 }
+
+func TestJSONInstructions(t *testing.T) {
+	got, err := Parse("json", strings.NewReader(`{"name": "x", "unit": "instructions", "value": 1200}`))
+	if err != nil || len(got) != 1 || got[0].Metric != Instructions {
+		t.Fatalf("%+v %v", got, err)
+	}
+	for _, v := range []string{"0", "-5"} {
+		if _, err := Parse("json", strings.NewReader(`{"name": "x", "unit": "instructions", "value": `+v+`}`)); err == nil {
+			t.Errorf("a count of %s passed", v)
+		}
+	}
+}

@@ -221,7 +221,7 @@ back to a default quietly.
 | `[budget]` `bytes` | percentage, amount or `"off"` | `"off"` | B/op allowance |
 | `[budget]` `allocs` | percentage, amount or `"off"` | `"off"` | allocs/op allowance |
 | `[budget]` `size` | percentage, amount or `"off"` | `"1%"` | how much a file listed in `size` may grow; an amount is in bytes |
-| `[budget]` `instructions` | percentage or `"off"` | `"1%"` | how many more instructions the instructions adapter may count |
+| `[budget]` `instructions` | percentage or `"off"` | `"1%"` | how many more instructions the instructions adapter, or a json result in instructions, may count |
 | `[budget.bench."PATTERN"]` | the five budget keys | | overrides for matching benchmarks (or file paths, for size); later tables win |
 | `[ignore]` `bench` | list of patterns | none | benchmarks left out of the report |
 
@@ -353,11 +353,36 @@ says what's missing.
 
 The command must do a fixed amount of work: a count tells how much work
 was done, so a benchmark that runs for a set time does more work when the
-machine is fast. For Go, build the test binary and run it with
-`-test.benchtime=1000x` (a fixed count) rather than a time. Under
-valgrind the command runs 20 to 50 times slower. Counts vary a little from
-run to run in programs whose work depends on timing (garbage collectors,
+machine is fast. For Go, build the test binary and run it with a fixed
+count, `./x.test -test.run=NONE -test.bench=. -test.benchtime=1000x`;
+`go test` as the command would count the toolchain's own work, and without
+`-test.run=NONE` the tests too. Under valgrind the command runs 20 to 50
+times slower, and there is no warm-up run. Counts vary a little from run to
+run in programs whose work depends on timing (garbage collectors,
 schedulers, Python's start-up), less than time does by far.
+
+Unless GOMAXPROCS is set in jvq's environment, the command runs with
+`GOMAXPROCS=1`. Valgrind runs one thread at a time, and Go's idle threads
+spin while they wait; with more than one P that spinning is counted. A
+test program with 8 allocating goroutines counted 0.66 G to 23.7 G
+instructions at GOMAXPROCS=2 on a 2-CPU machine, and 215.0 M to 215.1 M at
+1. Other runtimes with spinning worker threads may need the same.
+
+Valgrind's counts are per process. A child that execs starts its count
+afresh, but one that forks without exec (a subshell, a pipeline stage
+running a shell builtin, Python's multiprocessing with fork) starts with
+its parent's count so far, so that part is counted twice; run the program
+itself, or `exec` it from a script. A process still running in the
+background when the command exits isn't counted. When a run fails, or
+valgrind wrote no count, the end of valgrind's own log is shown with the
+error.
+
+The adapter reports one result named `command`, so a
+`[budget.bench."PATTERN"] instructions` override applies only when the
+pattern matches `command`. JSON results with the unit `instructions` (from
+perf or a harness that reads hardware counters, say) are the same metric:
+judged like time, against `[budget] instructions`, and a count of zero or
+less is an error.
 
 ## The time adapter
 

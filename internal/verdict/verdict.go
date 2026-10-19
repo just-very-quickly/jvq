@@ -224,7 +224,7 @@ func judgeTime(r *Row, se *series, b config.Budget, level float64) {
 	lh, okh := logs(se.head)
 	if !okb || !okh {
 		r.Verdict = Inconclusive
-		r.Note = "a time of zero or less can't be compared as a ratio"
+		r.Note = "a value of zero or less can't be compared as a ratio"
 		return
 	}
 	sh, err := stats.HodgesLehmann(lb, lh, level)

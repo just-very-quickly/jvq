@@ -168,7 +168,7 @@ func Run(ctx context.Context, opt Options, base, head Side) (*Result, error) {
 		res.Head = append(res.Head, h...)
 		progress("jvq: measured %d file size(s) on base and %d on head", len(b), len(h))
 	}
-	if opt.Warmup {
+	if opt.Warmup && !adapter.Counted(opt.Adapter) { // a count gains nothing from warming up
 		for _, s := range sides {
 			progress("jvq: warm-up run on %s", s.Name)
 			out, elapsed, err := step(ctx, opt, s, "run", opt.Command, 0)
@@ -374,6 +374,13 @@ func step(ctx context.Context, opt Options, s Side, stage, command string, round
 	cmd := shell(ctx, command)
 	cmd.Dir = dir
 	cmd.Env = append(os.Environ(), "JVQ_SIDE="+s.Name, "JVQ_ROUND="+strconv.Itoa(round))
+	if counted && os.Getenv("GOMAXPROCS") == "" {
+		// Valgrind runs one thread at a time, and Go's idle threads spin
+		// while they wait for work: with more than one P that spinning is
+		// counted, and it varies by 20% or more from run to run. One P
+		// keeps a Go program's count steady and other programs ignore it.
+		cmd.Env = append(cmd.Env, "GOMAXPROCS=1")
+	}
 	// stdout and stderr are copied by two goroutines, so the buffer they
 	// share is locked.
 	var stdout bytes.Buffer
@@ -434,12 +441,16 @@ func step(ctx context.Context, opt Options, s Side, stage, command string, round
 		} else if ctx.Err() != nil {
 			err = ctx.Err()
 		}
-		return nil, 0, &StepError{Side: s.Name, Stage: stage, Output: output(), Err: err}
+		out := output()
+		if counted {
+			out = joinOutput(out, valgrindTail(logDir))
+		}
+		return nil, 0, &StepError{Side: s.Name, Stage: stage, Output: out, Err: err}
 	}
 	if counted {
 		n, err := sumInstructions(logDir)
 		if err != nil {
-			return nil, 0, &StepError{Side: s.Name, Stage: stage, Output: output(), Err: err}
+			return nil, 0, &StepError{Side: s.Name, Stage: stage, Output: joinOutput(output(), valgrindTail(logDir)), Err: err}
 		}
 		return []byte(strconv.FormatFloat(n, 'f', -1, 64)), elapsed, nil
 	}
@@ -506,6 +517,33 @@ func sumInstructions(logDir string) (float64, error) {
 		return 0, errors.New("valgrind's logs have no instruction count (I refs)")
 	}
 	return total, nil
+}
+
+// valgrindTail is the end of valgrind's own logs, where its errors go
+// (an instruction it can't run, a tool that didn't start), so they can be
+// shown before the folder is removed.
+func valgrindTail(logDir string) string {
+	files, _ := filepath.Glob(filepath.Join(logDir, "vg.*"))
+	var b bytes.Buffer
+	for _, f := range files {
+		if data, err := os.ReadFile(f); err == nil {
+			b.Write(data)
+		}
+	}
+	if b.Len() == 0 {
+		return ""
+	}
+	return "valgrind's log:\n" + tail(b.Bytes())
+}
+
+func joinOutput(a, b string) string {
+	switch {
+	case a == "":
+		return b
+	case b == "":
+		return a
+	}
+	return a + "\n" + b
 }
 
 // fileTail is the end of what a command wrote to f.

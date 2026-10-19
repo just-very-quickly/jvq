@@ -93,6 +93,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -129,11 +130,37 @@ func drift() float64 {
 func main() {
 	reps := flag.Int("reps", 1000, "ops per run, or per batch with -json")
 	asJSON := flag.Bool("json", false, "time 5 batches and print them as jvq json results")
+	workers := flag.Int("goroutines", 0, "share the ops among this many goroutines, each op allocating, as a busy Go program does")
 	flag.Parse()
 	if *reps < 0 {
 		fmt.Println(ballast[0]) // keeps the ballast in the binary
 	}
 	n := int(float64(*reps) * drift())
+	if *workers > 0 && !*asJSON {
+		var wg sync.WaitGroup
+		var mu sync.Mutex
+		var keep [][]byte
+		for g := 0; g < *workers; g++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				var mine [][]byte
+				for i := 0; i < n / *workers; i++ {
+					op()
+					mine = append(mine, make([]byte, 64+i%%128))
+					if len(mine) > 64 {
+						mine = mine[:0]
+					}
+				}
+				mu.Lock()
+				keep = append(keep, mine...)
+				mu.Unlock()
+			}()
+		}
+		wg.Wait()
+		sink += uint64(len(keep))
+		return
+	}
 	if !*asJSON {
 		for i := 0; i < n; i++ {
 			op()

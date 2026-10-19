@@ -225,11 +225,14 @@ func (r jsonResult) samples() ([]Sample, error) {
 		if math.IsNaN(x) || math.IsInf(x, 0) {
 			return nil, fmt.Errorf("%s has a value that isn't a finite number", where)
 		}
-		if x < 0 && (metric == Time || metric == Bytes || metric == Allocs) {
+		if x < 0 && (metric == Time || metric == Bytes || metric == Allocs || metric == Instructions) {
 			return nil, fmt.Errorf("%s has a negative %s", where, metric)
 		}
 		if x == 0 && metric == Time {
 			return nil, fmt.Errorf("%s has a time of 0; time a batch long enough for the clock to see it", where)
+		}
+		if x == 0 && metric == Instructions {
+			return nil, fmt.Errorf("%s has an instruction count of 0", where)
 		}
 		out = append(out, Sample{Package: r.Group, Name: r.Name, Metric: metric, Unit: unit, Value: x})
 	}
@@ -259,6 +262,8 @@ func jsonUnit(u string) (metric, unit string, scale float64) {
 		return Bytes, "B", 1
 	case "allocs", "alloc", "allocations":
 		return Allocs, "allocs", 1
+	case "instructions", "instruction", "instrs", "inst":
+		return Instructions, "instructions", 1
 	}
 	return u, u, 1
 }

@@ -238,13 +238,25 @@ which time on a shared runner can't. It needs Linux and valgrind
 (`apt install valgrind`); GitHub's and GitLab's hosted runners have no
 hardware counters for perf, which is why it uses valgrind.
 
-Two things to know. The command must do a fixed amount of work: a Go
-benchmark with `-test.benchtime=1000x`, a loop with a set count, not a
-harness that runs for a set time. And valgrind makes it 20 to 50 times
-slower, so keep the command short and the rounds few; 5 rounds a side is
-plenty when counts are this steady. Fewer instructions usually means
-faster, but not always: a cache miss costs more than an add, and the count
-can't see it.
+A few things to know. The command must do a fixed amount of work: a loop
+with a set count, not a harness that runs for a set time. For Go, build
+the test binary and run it with a fixed count,
+`./x.test -test.run=NONE -test.bench=. -test.benchtime=1000x`, rather than
+`go test`, whose own work would be counted too. Run the program itself
+(`exec ./work` in a shell script): a process that forks without exec, such
+as a subshell or Python's multiprocessing, carries its parent's count so
+far into the copy, and jvq counts it twice. Work left running in the
+background when the command exits isn't counted.
+
+jvq sets `GOMAXPROCS=1` for the command unless you set it yourself:
+valgrind runs one thread at a time, and with more, Go's idle threads spin
+and get counted. On our test machine a program with 8 allocating
+goroutines counted anywhere from 0.66 to 23.7 billion instructions at
+GOMAXPROCS=2 and 215.0 to 215.1 million at 1. Valgrind makes the command
+20 to 50 times slower, so keep it short and the rounds few; 5 rounds a side
+is plenty when counts are this steady, and there's no warm-up run. Fewer
+instructions usually means faster, but not always: a cache miss costs more
+than an add, and the count can't see it.
 
 ## A file-size budget
 

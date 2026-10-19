@@ -194,3 +194,11 @@ func TestJUnit(t *testing.T) {
 		t.Errorf("not valid XML: %v", err)
 	}
 }
+
+func TestCount(t *testing.T) {
+	for n, want := range map[float64]string{13438495: "13.44 M", 2.5e9: "2.5 G", 51234: "51.23 k", 812: "812"} {
+		if got := Count(n); got != want {
+			t.Errorf("Count(%v) = %s, want %s", n, got, want)
+		}
+	}
+}

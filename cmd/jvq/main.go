@@ -541,12 +541,18 @@ func cmdCheck(args []string, stdout, stderr io.Writer) int {
 	fmt.Fprintf(stdout, "rounds:      %d, up to %d while undecided (warm-up %v)\n", cfg.Rounds, cfg.MaxRounds, cfg.Warmup)
 	fmt.Fprintf(stdout, "confidence:  %g\n", cfg.Confidence)
 	fmt.Fprintf(stdout, "timeout:     %s per run\n", cfg.Timeout)
+	budgets := fmt.Sprintf("time %s, bytes %s, allocs %s", cfg.Budget.Time, cfg.Budget.Bytes, cfg.Budget.Allocs)
 	if len(cfg.Size) > 0 {
 		fmt.Fprintf(stdout, "size:        %s (measured after the build)\n", strings.Join(cfg.Size, ", "))
-		fmt.Fprintf(stdout, "budgets:     time %s, bytes %s, allocs %s, size %s\n", cfg.Budget.Time, cfg.Budget.Bytes, cfg.Budget.Allocs, cfg.Budget.Size)
-	} else {
-		fmt.Fprintf(stdout, "budgets:     time %s, bytes %s, allocs %s\n", cfg.Budget.Time, cfg.Budget.Bytes, cfg.Budget.Allocs)
+		budgets += ", size " + cfg.Budget.Size.String()
 	}
+	budgets += ", instructions " + cfg.Budget.Instructions.String()
+	if cfg.Adapter == "instructions" {
+		if runtime.GOOS != "linux" {
+			fmt.Fprintf(stdout, "note:        the instructions adapter runs on Linux only\n")
+		}
+	}
+	fmt.Fprintf(stdout, "budgets:     %s\n", budgets)
 	for _, b := range cfg.Bench {
 		var parts []string
 		if b.Time != nil {
@@ -560,6 +566,9 @@ func cmdCheck(args []string, stdout, stderr io.Writer) int {
 		}
 		if b.Size != nil {
 			parts = append(parts, "size "+b.Size.String())
+		}
+		if b.Instructions != nil {
+			parts = append(parts, "instructions "+b.Instructions.String())
 		}
 		fmt.Fprintf(stdout, "  %s: %s\n", b.Pattern, strings.Join(parts, ", "))
 	}

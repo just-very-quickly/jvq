@@ -379,3 +379,13 @@ func TestSizeSettings(t *testing.T) {
 		}
 	}
 }
+
+func TestInstructionsBudget(t *testing.T) {
+	c, err := Parse("adapter = \"instructions\"\n[budget]\ninstructions = \"off\"\n[budget.bench.\"command\"]\ninstructions = \"3%\"\n")
+	if err != nil || c.Budget.Instructions.String() != "off" || len(c.Bench) != 1 || c.Bench[0].Instructions == nil {
+		t.Fatalf("%+v %v", c, err)
+	}
+	if _, err := Parse("[budget]\ninstructions = \"64\"\n"); err == nil {
+		t.Error("an amount, not a percentage, was accepted")
+	}
+}
