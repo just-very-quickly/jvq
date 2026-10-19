@@ -1,0 +1,5033 @@
+{
+  "date": "2026-10-19",
+  "jvq": "jvq 0.1.0 (go1.26.9, linux/amd64)",
+  "machine": {
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "cpus": 4,
+    "os": "linux/amd64",
+    "python": "Python 3.12.3",
+    "runner": "GitHub-hosted Linux runner"
+  },
+  "settings": {
+    "budget": "5% time (the default)",
+    "confidence": 0.95,
+    "drift": "the fixture program with the json adapter, each run 2% slower than the one before, 10 rounds a side, no warm-up, no added rounds",
+    "noisy": "the Go fixture benchmark (20 ms a round, 10 rounds to start, up to 30), beside a process keeping 2 of the 4 CPUs busy and churning through 512 MB",
+    "python": "a Python script running a 800000-round loop: timed whole by the time adapter, or timing 5 batches of a tenth of it with the json adapter; 10 rounds to start, up to 30"
+  },
+  "trials": [
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0011530530158163632,
+      "ci_lo": -0.004716553287982594,
+      "ci_hi": 0.003762592547639443,
+      "rounds": 10,
+      "seconds": 1.600040977
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.006587497594386704,
+      "ci_lo": -0.009940772046786228,
+      "ci_hi": 0.032083975803583575,
+      "rounds": 10,
+      "seconds": 1.801957359
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.006831946966479596,
+      "ci_lo": -0.023173007896625908,
+      "ci_hi": 0.014302810940191257,
+      "rounds": 10,
+      "seconds": 1.818962073
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0027411136723248797,
+      "ci_lo": -0.03076296813212276,
+      "ci_hi": 0.025600240096037785,
+      "rounds": 10,
+      "seconds": 1.7762730420000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.009835855623911538,
+      "ci_lo": -0.009051213093895116,
+      "ci_hi": 0.022216313628171447,
+      "rounds": 10,
+      "seconds": 1.759078833
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0051259129953484805,
+      "ci_lo": -0.011778462240476073,
+      "ci_hi": 0.024102024102024222,
+      "rounds": 10,
+      "seconds": 1.737017219
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0051720585305838895,
+      "ci_lo": -0.01682775284777449,
+      "ci_hi": 0.025105222597665122,
+      "rounds": 10,
+      "seconds": 1.736307777
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0054955782509577,
+      "ci_lo": -0.026752104824573908,
+      "ci_hi": 0.016326169107227173,
+      "rounds": 10,
+      "seconds": 1.750430548
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0012980651897378515,
+      "ci_lo": -0.0017775903106267421,
+      "ci_hi": 0.005953465767572608,
+      "rounds": 10,
+      "seconds": 1.56725577
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0019480570033081346,
+      "ci_lo": -0.005943889681407355,
+      "ci_hi": 0.006507724121152858,
+      "rounds": 10,
+      "seconds": 1.604947782
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0073182398698550255,
+      "ci_lo": -0.011985617259288706,
+      "ci_hi": 0.024949950697702894,
+      "rounds": 10,
+      "seconds": 1.6595135970000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0003575222032181635,
+      "ci_lo": -0.029375554728433895,
+      "ci_hi": 0.02285697301153311,
+      "rounds": 10,
+      "seconds": 1.751960234
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.02326001282474044,
+      "ci_lo": 0.004999277561047011,
+      "ci_hi": 0.03814325967670151,
+      "rounds": 10,
+      "seconds": 1.769400778
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0038703066079668336,
+      "ci_lo": -0.037136282876533366,
+      "ci_hi": 0.0168163808486832,
+      "rounds": 10,
+      "seconds": 1.625991431
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.011161450278058815,
+      "ci_lo": -0.028217000087358834,
+      "ci_hi": 0.004570463741956576,
+      "rounds": 10,
+      "seconds": 1.655607217
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.004655995207255681,
+      "ci_lo": -0.02817145331216553,
+      "ci_hi": 0.015044804747204932,
+      "rounds": 10,
+      "seconds": 1.802074033
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0032014395421942066,
+      "ci_lo": -0.0016225473994169182,
+      "ci_hi": 0.02574846663022945,
+      "rounds": 22,
+      "seconds": 2.539357389
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0019040204349571876,
+      "ci_lo": -0.008183445571562586,
+      "ci_hi": 0.037444543034604205,
+      "rounds": 14,
+      "seconds": 2.054940415
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.006351715699408844,
+      "ci_lo": -0.0039033563165992158,
+      "ci_hi": 0.045552031415193595,
+      "rounds": 16,
+      "seconds": 2.221463096
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0011629127363820269,
+      "ci_lo": -0.027265905111314104,
+      "ci_hi": 0.024038461538461897,
+      "rounds": 10,
+      "seconds": 1.86468809
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.00410789502712694,
+      "ci_lo": -0.050573990519162226,
+      "ci_hi": 0.04371815358639575,
+      "rounds": 10,
+      "seconds": 1.803108436
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.000806316207408897,
+      "ci_lo": -0.05709889734165452,
+      "ci_hi": 0.0041598997065268595,
+      "rounds": 10,
+      "seconds": 1.693544053
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.00004369945637305861,
+      "ci_lo": -0.02343184727556169,
+      "ci_hi": 0.023807479898130257,
+      "rounds": 14,
+      "seconds": 2.014790131
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0022637410394460433,
+      "ci_lo": -0.004192555951015531,
+      "ci_hi": 0.002475471698114351,
+      "rounds": 10,
+      "seconds": 1.6138522260000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0196419729865559,
+      "ci_lo": -0.058278447808855716,
+      "ci_hi": 0.0016557236654293206,
+      "rounds": 10,
+      "seconds": 1.722531604
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0002707844961391537,
+      "ci_lo": -0.044419069369112774,
+      "ci_hi": 0.009306308878104907,
+      "rounds": 10,
+      "seconds": 1.807294763
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0011207722004995535,
+      "ci_lo": -0.031105420897955427,
+      "ci_hi": 0.04615338237067257,
+      "rounds": 10,
+      "seconds": 1.7933666609999999
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0016398875530128088,
+      "ci_lo": -0.023903606411397438,
+      "ci_hi": 0.029418893534508106,
+      "rounds": 12,
+      "seconds": 1.9114060670000002
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0011976404975591048,
+      "ci_lo": -0.005303760848600403,
+      "ci_hi": 0.032937301493942917,
+      "rounds": 14,
+      "seconds": 2.182802845
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0006992754931844924,
+      "ci_lo": -0.025038338212742706,
+      "ci_hi": 0.026564689397478247,
+      "rounds": 10,
+      "seconds": 1.832114083
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0018483863992280192,
+      "ci_lo": -0.050460153289454746,
+      "ci_hi": 0.003659443078505298,
+      "rounds": 10,
+      "seconds": 1.80339969
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.003369379450877563,
+      "ci_lo": -0.006251502765086681,
+      "ci_hi": 0.02152195010561253,
+      "rounds": 12,
+      "seconds": 1.885883473
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0003920694361145838,
+      "ci_lo": -0.007366482504604255,
+      "ci_hi": 0.014521631494731402,
+      "rounds": 10,
+      "seconds": 1.753240646
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0009355915193258735,
+      "ci_lo": -0.004562484892434715,
+      "ci_hi": 0.010567871242028737,
+      "rounds": 14,
+      "seconds": 2.007227105
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.011757861584503315,
+      "ci_lo": 0,
+      "ci_hi": 0.04936867931302813,
+      "rounds": 18,
+      "seconds": 2.428491306
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0008193003416658851,
+      "ci_lo": -0.04267043651365976,
+      "ci_hi": 0.023722264837070073,
+      "rounds": 10,
+      "seconds": 1.719740614
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0012383163373170802,
+      "ci_lo": -0.002738077328117372,
+      "ci_hi": 0.004268458813914577,
+      "rounds": 10,
+      "seconds": 1.7047062899999998
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.002648214997306164,
+      "ci_lo": -0.020482355027487298,
+      "ci_hi": 0.04715992454412188,
+      "rounds": 10,
+      "seconds": 1.737076344
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.001360993330698168,
+      "ci_lo": -0.054326127873153385,
+      "ci_hi": 0.007431899532851949,
+      "rounds": 12,
+      "seconds": 1.90191019
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0008645534292487378,
+      "ci_lo": -0.0042473717504590836,
+      "ci_hi": 0.002760503564386063,
+      "rounds": 10,
+      "seconds": 1.5365187759999999
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0024127534046318733,
+      "ci_lo": -0.04296774562180494,
+      "ci_hi": 0.020437248809966002,
+      "rounds": 10,
+      "seconds": 1.7678946880000002
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0005878280337158204,
+      "ci_lo": -0.02765821554525083,
+      "ci_hi": 0.028655505399692194,
+      "rounds": 10,
+      "seconds": 1.8200977310000002
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0022826112413860677,
+      "ci_lo": -0.00955965824221805,
+      "ci_hi": 0.04722546641511727,
+      "rounds": 12,
+      "seconds": 1.9809883670000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.000836496809467846,
+      "ci_lo": -0.051867456160327285,
+      "ci_hi": 0.014417108678478341,
+      "rounds": 10,
+      "seconds": 1.77795311
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0020260023356235557,
+      "ci_lo": -0.05188760066251619,
+      "ci_hi": 0.02734297037607414,
+      "rounds": 10,
+      "seconds": 1.7320368400000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.00048355102276986806,
+      "ci_lo": -0.0036628927771383823,
+      "ci_hi": 0.005558424201926426,
+      "rounds": 10,
+      "seconds": 1.62374759
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0038924050108655184,
+      "ci_lo": -0.0005421136726777576,
+      "ci_hi": 0.038531790901975116,
+      "rounds": 14,
+      "seconds": 2.007212401
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.00330639193736304,
+      "ci_lo": -0.002161055505005338,
+      "ci_hi": 0.02859670652701163,
+      "rounds": 12,
+      "seconds": 1.893316144
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.002482771186949506,
+      "ci_lo": -0.0061047123567797845,
+      "ci_hi": 0.0013898120732371844,
+      "rounds": 10,
+      "seconds": 1.5478963540000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0067385737529220835,
+      "ci_lo": -0.05750826022559008,
+      "ci_hi": 0.0009079302028653924,
+      "rounds": 10,
+      "seconds": 1.744468042
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0019939247956954897,
+      "ci_lo": -0.0041833859813888985,
+      "ci_hi": 0.04247990815154945,
+      "rounds": 16,
+      "seconds": 2.233011839
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.002577259581579172,
+      "ci_lo": -0.0003921450333319587,
+      "ci_hi": 0.005844765452289513,
+      "rounds": 10,
+      "seconds": 1.620230058
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0017052048318115798,
+      "ci_lo": -0.006391124777667789,
+      "ci_hi": 0.004332283082888688,
+      "rounds": 10,
+      "seconds": 1.5119797940000002
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0039317477002596135,
+      "ci_lo": -0.04006512763854031,
+      "ci_hi": 0.03761800598664555,
+      "rounds": 10,
+      "seconds": 1.7784160390000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0007697406869344725,
+      "ci_lo": -0.003508571754570755,
+      "ci_hi": 0.04304783423016345,
+      "rounds": 12,
+      "seconds": 1.964416511
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0004386263643957333,
+      "ci_lo": -0.04219603334291466,
+      "ci_hi": 0.028449672888781974,
+      "rounds": 10,
+      "seconds": 1.863704359
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0010894953661861884,
+      "ci_lo": -0.0024770420493001044,
+      "ci_hi": 0.0035645239246011595,
+      "rounds": 10,
+      "seconds": 1.610844095
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.00047019665435310554,
+      "ci_lo": -0.017101870239187744,
+      "ci_hi": 0.04787377103069024,
+      "rounds": 10,
+      "seconds": 1.779578114
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0014938580332379825,
+      "ci_lo": -0.04527968540734695,
+      "ci_hi": 0.00991385824391644,
+      "rounds": 10,
+      "seconds": 1.7118951519999999
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.001662333389922277,
+      "ci_lo": -0.0040466268043720666,
+      "ci_hi": 0.0018119224497199493,
+      "rounds": 10,
+      "seconds": 1.605972787
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.00024279829302487066,
+      "ci_lo": -0.010430940462539562,
+      "ci_hi": 0.010335769757880309,
+      "rounds": 14,
+      "seconds": 2.025513908
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.002889387351576622,
+      "ci_lo": -0.05393039947384992,
+      "ci_hi": 0.0017154129856749023,
+      "rounds": 10,
+      "seconds": 1.802186951
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.016672952263060203,
+      "ci_lo": -0.05091126893129194,
+      "ci_hi": 0.00967927906059396,
+      "rounds": 10,
+      "seconds": 1.713766207
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.00011418627450177077,
+      "ci_lo": -0.021537646747286088,
+      "ci_hi": 0.049369023710319704,
+      "rounds": 10,
+      "seconds": 1.758324799
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0011107692865839347,
+      "ci_lo": -0.054145757299270625,
+      "ci_hi": 0.04190516358378038,
+      "rounds": 10,
+      "seconds": 1.769375525
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.002011118953316293,
+      "ci_lo": -0.02817102817102901,
+      "ci_hi": 0.025575988163178964,
+      "rounds": 10,
+      "seconds": 1.7387031240000002
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0020579539382798995,
+      "ci_lo": -0.01624171493401838,
+      "ci_hi": 0.022354964250158593,
+      "rounds": 10,
+      "seconds": 1.638802976
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.003785457369129608,
+      "ci_lo": -0.023210104922391284,
+      "ci_hi": 0.016038119588586808,
+      "rounds": 10,
+      "seconds": 1.667196755
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.007221735485765213,
+      "ci_lo": -0.02460915730501878,
+      "ci_hi": 0.010979333020198156,
+      "rounds": 10,
+      "seconds": 1.6913060180000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.004425612569625259,
+      "ci_lo": -0.03349560214637437,
+      "ci_hi": 0.021198266136215116,
+      "rounds": 10,
+      "seconds": 1.779729764
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.01493607436236144,
+      "ci_lo": -0.025635761006657876,
+      "ci_hi": 0.0017598920599541934,
+      "rounds": 10,
+      "seconds": 1.65505105
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.004843583350156333,
+      "ci_lo": -0.016875107075552287,
+      "ci_hi": 0.020925207920206246,
+      "rounds": 10,
+      "seconds": 1.697460801
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.006409595248026978,
+      "ci_lo": -0.014225560487082345,
+      "ci_hi": 0.026468747205581122,
+      "rounds": 10,
+      "seconds": 1.7830868899999999
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.021205901619275602,
+      "ci_lo": -0.03914498355737572,
+      "ci_hi": -0.0030043910330485035,
+      "rounds": 10,
+      "seconds": 1.739556852
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0011787391866120434,
+      "ci_lo": -0.007726669081250748,
+      "ci_hi": 0.00739399426588272,
+      "rounds": 10,
+      "seconds": 1.660797712
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0005617847765226891,
+      "ci_lo": -0.003111312490561402,
+      "ci_hi": 0.00329673653328566,
+      "rounds": 10,
+      "seconds": 1.58209013
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.02109341375207241,
+      "ci_lo": 0.0008083106307821275,
+      "ci_hi": 0.033140735862047466,
+      "rounds": 10,
+      "seconds": 1.6963790269999999
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.011549967699990615,
+      "ci_lo": -0.011939959062996164,
+      "ci_hi": 0.031037941818611747,
+      "rounds": 10,
+      "seconds": 1.725093331
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0038306271477557274,
+      "ci_lo": -0.01987609705730431,
+      "ci_hi": 0.019355223524500476,
+      "rounds": 10,
+      "seconds": 1.6931450319999999
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0035283029154946632,
+      "ci_lo": -0.022282514575997836,
+      "ci_hi": 0.018229480535132847,
+      "rounds": 10,
+      "seconds": 1.6994137459999998
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.014663123905200193,
+      "ci_lo": -0.01116337223148467,
+      "ci_hi": 0.03525584146701988,
+      "rounds": 10,
+      "seconds": 1.757507604
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0034982345887222266,
+      "ci_lo": -0.022514721163839013,
+      "ci_hi": 0.016088773945206913,
+      "rounds": 10,
+      "seconds": 1.751942111
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0006572039551144826,
+      "ci_lo": -0.015451174289244474,
+      "ci_hi": 0.016243169806813507,
+      "rounds": 10,
+      "seconds": 1.789316658
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0005136882818643773,
+      "ci_lo": -0.01743786079621834,
+      "ci_hi": 0.022820505029018667,
+      "rounds": 10,
+      "seconds": 1.631382027
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0034911669107933196,
+      "ci_lo": -0.011600656198735959,
+      "ci_hi": 0.030218723177553253,
+      "rounds": 10,
+      "seconds": 1.7598051670000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.01492913301189136,
+      "ci_lo": -0.03382528454574596,
+      "ci_hi": 0.012924635403020801,
+      "rounds": 10,
+      "seconds": 1.652537064
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.002157675308193774,
+      "ci_lo": -0.02241721082089454,
+      "ci_hi": 0.013521423554202716,
+      "rounds": 10,
+      "seconds": 1.759854284
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.00010361251193080623,
+      "ci_lo": -0.018339995297437905,
+      "ci_hi": 0.015780177780352567,
+      "rounds": 10,
+      "seconds": 1.7460432049999999
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0030051031204016976,
+      "ci_lo": -0.015024418270611295,
+      "ci_hi": 0.020611250553669302,
+      "rounds": 10,
+      "seconds": 1.748530452
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.002975058616782933,
+      "ci_lo": -0.024475725366274625,
+      "ci_hi": 0.013966146300616655,
+      "rounds": 10,
+      "seconds": 1.7642858160000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.012236322126769505,
+      "ci_lo": -0.02407109168296251,
+      "ci_hi": -0.0007443356060385931,
+      "rounds": 10,
+      "seconds": 1.834725373
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.00848572470710951,
+      "ci_lo": -0.027042677630436773,
+      "ci_hi": 0.012410208491503205,
+      "rounds": 10,
+      "seconds": 1.707605385
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.012539995228958767,
+      "ci_lo": -0.03388045290968178,
+      "ci_hi": 0.0038007369367814015,
+      "rounds": 10,
+      "seconds": 1.769500281
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0025449713449134936,
+      "ci_lo": -0.014771269135507081,
+      "ci_hi": 0.03820021138456853,
+      "rounds": 10,
+      "seconds": 1.6299037790000002
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.014867541098875003,
+      "ci_lo": -0.009281148761055569,
+      "ci_hi": 0.03748125937031577,
+      "rounds": 10,
+      "seconds": 1.719078755
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.009279513907957337,
+      "ci_lo": -0.025354004589466794,
+      "ci_hi": 0.015493673914994233,
+      "rounds": 10,
+      "seconds": 1.712836023
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0041816532974355836,
+      "ci_lo": -0.011285603391653631,
+      "ci_hi": 0.0035524517989964366,
+      "rounds": 10,
+      "seconds": 1.635274666
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.003676479171959457,
+      "ci_lo": -0.01987909788421338,
+      "ci_hi": 0.013185558959572186,
+      "rounds": 10,
+      "seconds": 1.617341602
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.005348521961370256,
+      "ci_lo": -0.012375945179585068,
+      "ci_hi": 0.026271060086475728,
+      "rounds": 10,
+      "seconds": 1.779860566
+    },
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.007799469268491843,
+      "ci_lo": -0.03286208886324293,
+      "ci_hi": 0.009666676490525106,
+      "rounds": 10,
+      "seconds": 1.7991985700000002
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10095956281467755,
+      "ci_lo": 0.08322328843501481,
+      "ci_hi": 0.11647152038031483,
+      "rounds": 10,
+      "seconds": 1.768570502
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09430487187927383,
+      "ci_lo": 0.06454859114433686,
+      "ci_hi": 0.11401670637540584,
+      "rounds": 10,
+      "seconds": 1.733076844
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10092998089527061,
+      "ci_lo": 0.07437897169266328,
+      "ci_hi": 0.13418376556952993,
+      "rounds": 10,
+      "seconds": 1.7463680080000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.0964695845520318,
+      "ci_lo": 0.07532580364900165,
+      "ci_hi": 0.1198015467678406,
+      "rounds": 10,
+      "seconds": 1.716390409
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10259117869678525,
+      "ci_lo": 0.09840819162110859,
+      "ci_hi": 0.10625208352274518,
+      "rounds": 10,
+      "seconds": 1.58140529
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09763229730084477,
+      "ci_lo": 0.08201670819287799,
+      "ci_hi": 0.11414921426639935,
+      "rounds": 10,
+      "seconds": 1.736182925
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10344479401390827,
+      "ci_lo": 0.07914724667702333,
+      "ci_hi": 0.12235586893405159,
+      "rounds": 10,
+      "seconds": 1.707375437
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.11211124951658435,
+      "ci_lo": 0.09558888011926814,
+      "ci_hi": 0.12903320772491633,
+      "rounds": 10,
+      "seconds": 1.7286773
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09192754283523485,
+      "ci_lo": 0.07125993320281032,
+      "ci_hi": 0.10999403341288838,
+      "rounds": 10,
+      "seconds": 1.6560394920000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09926958831341359,
+      "ci_lo": 0.09646263431124114,
+      "ci_hi": 0.1035601649684621,
+      "rounds": 10,
+      "seconds": 1.6009721190000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09460885940364983,
+      "ci_lo": 0.07572303957846138,
+      "ci_hi": 0.11170099808876643,
+      "rounds": 10,
+      "seconds": 1.6056936469999998
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.11203932645032566,
+      "ci_lo": 0.09335685571333507,
+      "ci_hi": 0.13860081361370669,
+      "rounds": 10,
+      "seconds": 1.632503597
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09077169710805566,
+      "ci_lo": 0.06736049219446283,
+      "ci_hi": 0.11287674445877949,
+      "rounds": 10,
+      "seconds": 1.63473421
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09056687341112957,
+      "ci_lo": 0.07091386437269476,
+      "ci_hi": 0.11957826914628766,
+      "rounds": 10,
+      "seconds": 1.7439502500000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09814900017789085,
+      "ci_lo": 0.09340294543698668,
+      "ci_hi": 0.1044934615734705,
+      "rounds": 10,
+      "seconds": 1.6555595109999999
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.1279016465061169,
+      "ci_lo": 0.10874959857530775,
+      "ci_hi": 0.14885279248556582,
+      "rounds": 10,
+      "seconds": 1.699303362
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10611384562144122,
+      "ci_lo": 0.08327241893511794,
+      "ci_hi": 0.12335219361910288,
+      "rounds": 10,
+      "seconds": 1.774295386
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09977898355799875,
+      "ci_lo": 0.09584992158282102,
+      "ci_hi": 0.10232459720081133,
+      "rounds": 10,
+      "seconds": 1.6577571899999999
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10967036650558448,
+      "ci_lo": 0.09018146093388735,
+      "ci_hi": 0.1446210788180322,
+      "rounds": 10,
+      "seconds": 1.6935279410000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09371587434166706,
+      "ci_lo": 0.0703185815193883,
+      "ci_hi": 0.11234979006804546,
+      "rounds": 10,
+      "seconds": 1.7363893240000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09325803218791129,
+      "ci_lo": 0.06804586241276156,
+      "ci_hi": 0.11229342527642383,
+      "rounds": 10,
+      "seconds": 1.770127467
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09595589307288055,
+      "ci_lo": 0.07795364449202835,
+      "ci_hi": 0.1120354963948973,
+      "rounds": 10,
+      "seconds": 1.674944828
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10108664266715572,
+      "ci_lo": 0.07861533484309247,
+      "ci_hi": 0.12871406594069645,
+      "rounds": 10,
+      "seconds": 1.781540209
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.08899116754655512,
+      "ci_lo": 0.07029887196185625,
+      "ci_hi": 0.11127095505123052,
+      "rounds": 10,
+      "seconds": 1.704701453
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09982162229279545,
+      "ci_lo": 0.09689629068887196,
+      "ci_hi": 0.10307342922028906,
+      "rounds": 10,
+      "seconds": 1.663493582
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.08187368023095076,
+      "ci_lo": 0.05921427756870856,
+      "ci_hi": 0.11346592761656304,
+      "rounds": 10,
+      "seconds": 1.689046024
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10166894614944799,
+      "ci_lo": 0.07889119564899483,
+      "ci_hi": 0.12253107891473247,
+      "rounds": 10,
+      "seconds": 1.6901403080000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09696949844779135,
+      "ci_lo": 0.0940676176976214,
+      "ci_hi": 0.10082764453573434,
+      "rounds": 10,
+      "seconds": 1.585966422
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09985211813586647,
+      "ci_lo": 0.09606841739445815,
+      "ci_hi": 0.10441101094461236,
+      "rounds": 10,
+      "seconds": 1.5469312259999999
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09024943286514553,
+      "ci_lo": 0.06504201211512206,
+      "ci_hi": 0.11561741571390916,
+      "rounds": 10,
+      "seconds": 1.772476675
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.08545312165302921,
+      "ci_lo": 0.06371593916305529,
+      "ci_hi": 0.1080350132317438,
+      "rounds": 10,
+      "seconds": 1.7204909590000002
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10106130293407212,
+      "ci_lo": 0.08623369007477,
+      "ci_hi": 0.11865497076023535,
+      "rounds": 10,
+      "seconds": 1.751858513
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10252370334604888,
+      "ci_lo": 0.09862980624132467,
+      "ci_hi": 0.1052263961857327,
+      "rounds": 10,
+      "seconds": 1.562405006
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10010617356024354,
+      "ci_lo": 0.08890492947156492,
+      "ci_hi": 0.1222893921621715,
+      "rounds": 10,
+      "seconds": 1.642362597
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10087724506066942,
+      "ci_lo": 0.09667190142546622,
+      "ci_hi": 0.10457635348385441,
+      "rounds": 10,
+      "seconds": 1.587411598
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09865265894141872,
+      "ci_lo": 0.09608044208967259,
+      "ci_hi": 0.10149262234375978,
+      "rounds": 10,
+      "seconds": 1.679200755
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09756764102828197,
+      "ci_lo": 0.09440390761623307,
+      "ci_hi": 0.10212946930344091,
+      "rounds": 10,
+      "seconds": 1.651750735
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09895485218927602,
+      "ci_lo": 0.09519349868584004,
+      "ci_hi": 0.10157931431689482,
+      "rounds": 10,
+      "seconds": 1.5635676360000001
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.08840417595010464,
+      "ci_lo": 0.07171595547854714,
+      "ci_hi": 0.10453400503778187,
+      "rounds": 10,
+      "seconds": 1.732671604
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10127047985799287,
+      "ci_lo": 0.07995439529920678,
+      "ci_hi": 0.11874356956969101,
+      "rounds": 10,
+      "seconds": 1.75813737
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10161588948858169,
+      "ci_lo": 0.08721032047166055,
+      "ci_hi": 0.11542562644393017,
+      "rounds": 10,
+      "seconds": 1.742784736
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.1083364244734406,
+      "ci_lo": 0.08800487465181073,
+      "ci_hi": 0.1254455156295653,
+      "rounds": 10,
+      "seconds": 1.702022709
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09988780044694523,
+      "ci_lo": 0.0976999303009185,
+      "ci_hi": 0.10618961352656986,
+      "rounds": 10,
+      "seconds": 1.578535561
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.11171895482265093,
+      "ci_lo": 0.09314530315468517,
+      "ci_hi": 0.12366592756836514,
+      "rounds": 10,
+      "seconds": 1.730798472
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09675123542776132,
+      "ci_lo": 0.09341238075175307,
+      "ci_hi": 0.10094932881847751,
+      "rounds": 10,
+      "seconds": 1.596699782
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09958041516656935,
+      "ci_lo": 0.08361877896433767,
+      "ci_hi": 0.12937917063870397,
+      "rounds": 10,
+      "seconds": 1.705197064
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10656566433126713,
+      "ci_lo": 0.09301721900146953,
+      "ci_hi": 0.13026707965635986,
+      "rounds": 10,
+      "seconds": 1.7321171469999999
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09315263565221676,
+      "ci_lo": 0.07478675435825166,
+      "ci_hi": 0.11032613397156776,
+      "rounds": 10,
+      "seconds": 1.6033822789999999
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10620976096506274,
+      "ci_lo": 0.08204914618908643,
+      "ci_hi": 0.136430160402762,
+      "rounds": 10,
+      "seconds": 1.7571842050000002
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10074938656610688,
+      "ci_lo": 0.07589915373765876,
+      "ci_hi": 0.1329344127654588,
+      "rounds": 10,
+      "seconds": 1.721322048
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0007707466062363277,
+      "ci_lo": -0.09845423305217083,
+      "ci_hi": 0.11173223749340666,
+      "rounds": 10,
+      "seconds": 0.831791503
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.00033193691736777,
+      "ci_lo": -0.09559913602670489,
+      "ci_hi": 0.11260137683226934,
+      "rounds": 10,
+      "seconds": 0.831727496
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.00024112328817671447,
+      "ci_lo": -0.09873822452997227,
+      "ci_hi": 0.11291637861707926,
+      "rounds": 10,
+      "seconds": 0.832390587
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0011786027264126808,
+      "ci_lo": -0.09769472555006231,
+      "ci_hi": 0.11026638920186715,
+      "rounds": 10,
+      "seconds": 0.83098952
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.00021037140741109184,
+      "ci_lo": -0.09735215844321043,
+      "ci_hi": 0.11026225311529658,
+      "rounds": 10,
+      "seconds": 0.878042655
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0005060285129163677,
+      "ci_lo": -0.09664798016166565,
+      "ci_hi": 0.11081511785552944,
+      "rounds": 10,
+      "seconds": 0.831673199
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.000054937020160461536,
+      "ci_lo": -0.0975171329064154,
+      "ci_hi": 0.10904157040622686,
+      "rounds": 10,
+      "seconds": 0.852861896
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.010982113499340418,
+      "ci_lo": -0.09897996337788872,
+      "ci_hi": 0.1085370904081342,
+      "rounds": 10,
+      "seconds": 0.833298386
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0012761411304706982,
+      "ci_lo": -0.09821366216715177,
+      "ci_hi": 0.11205640856803667,
+      "rounds": 10,
+      "seconds": 0.831849344
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.0003933630264939536,
+      "ci_lo": -0.09792894169953548,
+      "ci_hi": 0.11058874916664774,
+      "rounds": 10,
+      "seconds": 0.83116924
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0011034244140006866,
+      "ci_lo": -0.09580758916731247,
+      "ci_hi": 0.10949697565010452,
+      "rounds": 10,
+      "seconds": 0.915944052
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0008378478971777792,
+      "ci_lo": -0.0960113406197467,
+      "ci_hi": 0.11057917364295977,
+      "rounds": 10,
+      "seconds": 0.831326547
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0008502957914735543,
+      "ci_lo": -0.09680973593937858,
+      "ci_hi": 0.11014159731710338,
+      "rounds": 10,
+      "seconds": 0.831101262
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0018554929462071268,
+      "ci_lo": -0.09571776634755003,
+      "ci_hi": 0.10924324705550514,
+      "rounds": 10,
+      "seconds": 0.83156331
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0011151044331980664,
+      "ci_lo": -0.0964537158398735,
+      "ci_hi": 0.11099428610826223,
+      "rounds": 10,
+      "seconds": 0.8315453
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0005811016460244289,
+      "ci_lo": -0.09600531061349094,
+      "ci_hi": 0.11139086247729413,
+      "rounds": 10,
+      "seconds": 0.840277573
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.00038119794804247764,
+      "ci_lo": -0.09767603974394257,
+      "ci_hi": 0.10813690914165397,
+      "rounds": 10,
+      "seconds": 0.831222237
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.016257681035768856,
+      "ci_lo": -0.10742083390060564,
+      "ci_hi": 0.10558628540815662,
+      "rounds": 10,
+      "seconds": 0.995166886
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.0004798162413968132,
+      "ci_lo": -0.09860089831621055,
+      "ci_hi": 0.10965595036661058,
+      "rounds": 10,
+      "seconds": 0.831776354
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.001248807039809563,
+      "ci_lo": -0.09728169755013472,
+      "ci_hi": 0.11168007352203224,
+      "rounds": 10,
+      "seconds": 0.831603986
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0015409425317269854,
+      "ci_lo": -0.09832146884603132,
+      "ci_hi": 0.10893997774516673,
+      "rounds": 10,
+      "seconds": 0.834091805
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.0008360102883284704,
+      "ci_lo": -0.09833465900279692,
+      "ci_hi": 0.10720533766157248,
+      "rounds": 10,
+      "seconds": 0.831585104
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0014410632005745772,
+      "ci_lo": -0.09823520576749845,
+      "ci_hi": 0.10871680330296063,
+      "rounds": 10,
+      "seconds": 0.84248148
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.0016822855814450088,
+      "ci_lo": -0.09916209491261141,
+      "ci_hi": 0.10819768317726752,
+      "rounds": 10,
+      "seconds": 0.941390787
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0014180745377310178,
+      "ci_lo": -0.09713416582387824,
+      "ci_hi": 0.11000059256918315,
+      "rounds": 10,
+      "seconds": 0.83114449
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.002693202384166038,
+      "ci_lo": -0.09936574534123399,
+      "ci_hi": 0.10898734812599398,
+      "rounds": 10,
+      "seconds": 0.831396737
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.00040873612081226973,
+      "ci_lo": -0.09868223149873068,
+      "ci_hi": 0.10875822897341902,
+      "rounds": 10,
+      "seconds": 0.831273102
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.00038731756480969715,
+      "ci_lo": -0.09878548060116976,
+      "ci_hi": 0.10629603497856754,
+      "rounds": 10,
+      "seconds": 0.831968639
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.0013100130677730082,
+      "ci_lo": -0.0952385978893916,
+      "ci_hi": 0.1096998757069021,
+      "rounds": 10,
+      "seconds": 0.831567951
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.0007135599376260071,
+      "ci_lo": -0.09685921100786743,
+      "ci_hi": 0.11054571370900357,
+      "rounds": 10,
+      "seconds": 0.831886632
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.0009388277584839733,
+      "ci_lo": -0.09724638550603015,
+      "ci_hi": 0.10994180380049956,
+      "rounds": 10,
+      "seconds": 0.831219709
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0023006835913981227,
+      "ci_lo": -0.09767846778874056,
+      "ci_hi": 0.11080831530628443,
+      "rounds": 10,
+      "seconds": 0.831705674
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.0003846830444563798,
+      "ci_lo": -0.09803667619958856,
+      "ci_hi": 0.1090437979665837,
+      "rounds": 10,
+      "seconds": 0.831402883
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.000006469422282551207,
+      "ci_lo": -0.09731701576841645,
+      "ci_hi": 0.10957883597883544,
+      "rounds": 10,
+      "seconds": 0.831415374
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0005391565097025985,
+      "ci_lo": -0.09804526342151354,
+      "ci_hi": 0.11243940294471377,
+      "rounds": 10,
+      "seconds": 0.8316304
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.00087530372412159,
+      "ci_lo": -0.09654931431678981,
+      "ci_hi": 0.1099572889025151,
+      "rounds": 10,
+      "seconds": 0.831468419
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.002788699862689148,
+      "ci_lo": -0.10041986717286155,
+      "ci_hi": 0.10961104664786503,
+      "rounds": 10,
+      "seconds": 0.831923558
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.00042202499698174023,
+      "ci_lo": -0.09899347854131957,
+      "ci_hi": 0.11008019033482785,
+      "rounds": 10,
+      "seconds": 0.830481066
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.000052768864650221126,
+      "ci_lo": -0.0973721985205489,
+      "ci_hi": 0.10946436171861884,
+      "rounds": 10,
+      "seconds": 0.83155657
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.00038680772320864865,
+      "ci_lo": -0.09933402695301441,
+      "ci_hi": 0.10963528520949017,
+      "rounds": 10,
+      "seconds": 0.831139771
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.0004953422976555766,
+      "ci_lo": -0.09676442241497951,
+      "ci_hi": 0.11312509703735962,
+      "rounds": 10,
+      "seconds": 0.831903682
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.00025221450105594734,
+      "ci_lo": -0.09866296012572717,
+      "ci_hi": 0.11209794045778732,
+      "rounds": 10,
+      "seconds": 0.832022158
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.000969634145385756,
+      "ci_lo": -0.09759496147602043,
+      "ci_hi": 0.111203505109706,
+      "rounds": 10,
+      "seconds": 0.831800438
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.000039960316513876215,
+      "ci_lo": -0.09616528600575114,
+      "ci_hi": 0.1099202526603642,
+      "rounds": 10,
+      "seconds": 0.832071704
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.0009584073512453051,
+      "ci_lo": -0.09850007499624891,
+      "ci_hi": 0.10772457589061712,
+      "rounds": 10,
+      "seconds": 0.831435163
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.0004178091125894845,
+      "ci_lo": -0.09721194237622033,
+      "ci_hi": 0.10922449916766985,
+      "rounds": 10,
+      "seconds": 0.832025364
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.0009873972183926938,
+      "ci_lo": -0.09873731656073981,
+      "ci_hi": 0.10880960432871079,
+      "rounds": 10,
+      "seconds": 0.831448755
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.001277296480167056,
+      "ci_lo": -0.09652893967472687,
+      "ci_hi": 0.10988632646854701,
+      "rounds": 10,
+      "seconds": 0.830893797
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": 0.003352922083094567,
+      "ci_lo": -0.09821962223832537,
+      "ci_hi": 0.11178293828953301,
+      "rounds": 10,
+      "seconds": 0.837701864
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "verdict": "inconclusive",
+      "change": -0.000029129639227409854,
+      "ci_lo": -0.0979681308489998,
+      "ci_hi": 0.10794568333192878,
+      "rounds": 10,
+      "seconds": 0.831494955
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18137411731013997,
+      "ci_lo": 0.12561528848211823,
+      "ci_hi": 0.246537053242446,
+      "rounds": 10,
+      "seconds": 0.831185184
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.1826907917859395,
+      "ci_lo": 0.122020299865228,
+      "ci_hi": 0.2508156832384012,
+      "rounds": 10,
+      "seconds": 0.949097354
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.1853910443375919,
+      "ci_lo": 0.12455541689936878,
+      "ci_hi": 0.250209293203679,
+      "rounds": 10,
+      "seconds": 0.83081967
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.1837687312844858,
+      "ci_lo": 0.1257684181830574,
+      "ci_hi": 0.2475315365965085,
+      "rounds": 10,
+      "seconds": 0.836749567
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18195458847736146,
+      "ci_lo": 0.12323227457151753,
+      "ci_hi": 0.24849389218052953,
+      "rounds": 10,
+      "seconds": 0.830992405
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.1836290258546609,
+      "ci_lo": 0.12372479208492582,
+      "ci_hi": 0.24771416966427795,
+      "rounds": 10,
+      "seconds": 0.830580982
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18513005135706884,
+      "ci_lo": 0.12582902359140946,
+      "ci_hi": 0.2500029298362798,
+      "rounds": 10,
+      "seconds": 0.83214218
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18377878176776363,
+      "ci_lo": 0.12517806458523006,
+      "ci_hi": 0.25097861252214115,
+      "rounds": 10,
+      "seconds": 0.831315598
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.17913011146029545,
+      "ci_lo": 0.12220663312937075,
+      "ci_hi": 0.24617663129439538,
+      "rounds": 10,
+      "seconds": 0.83125375
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18189916982015042,
+      "ci_lo": 0.12478822348611618,
+      "ci_hi": 0.24711398232369008,
+      "rounds": 10,
+      "seconds": 0.831587239
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18128022988922132,
+      "ci_lo": 0.12480004360207642,
+      "ci_hi": 0.24988276533136577,
+      "rounds": 10,
+      "seconds": 0.830849222
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18231819095238877,
+      "ci_lo": 0.1250967439528219,
+      "ci_hi": 0.24704826287565562,
+      "rounds": 10,
+      "seconds": 0.83034406
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18108367450866214,
+      "ci_lo": 0.12282026563838833,
+      "ci_hi": 0.2462791424573576,
+      "rounds": 10,
+      "seconds": 0.911480724
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18383680884257303,
+      "ci_lo": 0.12509937976320296,
+      "ci_hi": 0.25180984153461416,
+      "rounds": 10,
+      "seconds": 0.830618328
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18334448324398456,
+      "ci_lo": 0.12370557692966844,
+      "ci_hi": 0.24698959122818764,
+      "rounds": 10,
+      "seconds": 0.830984434
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.1832698233175052,
+      "ci_lo": 0.12063448660274223,
+      "ci_hi": 0.24626023391813057,
+      "rounds": 10,
+      "seconds": 0.831136591
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18371453258611292,
+      "ci_lo": 0.1250494918833318,
+      "ci_hi": 0.24788834660100556,
+      "rounds": 10,
+      "seconds": 1.274564392
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18412420915864747,
+      "ci_lo": 0.1278889300339805,
+      "ci_hi": 0.2487426686109897,
+      "rounds": 10,
+      "seconds": 0.831323197
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.1923136338001754,
+      "ci_lo": 0.12338444269366278,
+      "ci_hi": 0.26816782426342733,
+      "rounds": 10,
+      "seconds": 1.009849
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18450613372565283,
+      "ci_lo": 0.1256665413922875,
+      "ci_hi": 0.2471248550716154,
+      "rounds": 10,
+      "seconds": 0.831786137
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.1848842785743574,
+      "ci_lo": 0.12524429336241827,
+      "ci_hi": 0.2524108939564924,
+      "rounds": 10,
+      "seconds": 0.831780868
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18503768533440623,
+      "ci_lo": 0.12405199696312352,
+      "ci_hi": 0.24946635979870768,
+      "rounds": 10,
+      "seconds": 0.834025894
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18163321967075596,
+      "ci_lo": 0.12245881364008704,
+      "ci_hi": 0.24541370875114232,
+      "rounds": 10,
+      "seconds": 0.833890613
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18352057444501657,
+      "ci_lo": 0.12232389710704039,
+      "ci_hi": 0.2454749412823234,
+      "rounds": 10,
+      "seconds": 0.834152303
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.1825334104293066,
+      "ci_lo": 0.1209463282411598,
+      "ci_hi": 0.24819124589385577,
+      "rounds": 10,
+      "seconds": 0.830706306
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18339621729368893,
+      "ci_lo": 0.12593513103597176,
+      "ci_hi": 0.24660998292347602,
+      "rounds": 10,
+      "seconds": 0.954925503
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18324295492361697,
+      "ci_lo": 0.12210908407827703,
+      "ci_hi": 0.2493038597111581,
+      "rounds": 10,
+      "seconds": 0.830728559
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18379478189102438,
+      "ci_lo": 0.12131280256888277,
+      "ci_hi": 0.24658499389089306,
+      "rounds": 10,
+      "seconds": 0.830745574
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18196627215991446,
+      "ci_lo": 0.12384651421225223,
+      "ci_hi": 0.24741839188884374,
+      "rounds": 10,
+      "seconds": 0.831111177
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18187726915302238,
+      "ci_lo": 0.12309099439620774,
+      "ci_hi": 0.24920108125223472,
+      "rounds": 10,
+      "seconds": 0.830803319
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18306508207481875,
+      "ci_lo": 0.12345265885678702,
+      "ci_hi": 0.2463234971334245,
+      "rounds": 10,
+      "seconds": 0.830825142
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18252858208717337,
+      "ci_lo": 0.12249098518148105,
+      "ci_hi": 0.24623544366680972,
+      "rounds": 10,
+      "seconds": 0.830819002
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18067299952971938,
+      "ci_lo": 0.12426806335381402,
+      "ci_hi": 0.24752019738789155,
+      "rounds": 10,
+      "seconds": 0.831247556
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18580192345354019,
+      "ci_lo": 0.12509022763240019,
+      "ci_hi": 0.2488138316901951,
+      "rounds": 10,
+      "seconds": 0.830913192
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.1818582833168172,
+      "ci_lo": 0.12497959904429923,
+      "ci_hi": 0.24406741624756978,
+      "rounds": 10,
+      "seconds": 0.831703832
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18479938758342418,
+      "ci_lo": 0.12476463743947241,
+      "ci_hi": 0.2497697280890787,
+      "rounds": 10,
+      "seconds": 0.831980334
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.17764915491425826,
+      "ci_lo": 0.12309316121474079,
+      "ci_hi": 0.24987024563893434,
+      "rounds": 10,
+      "seconds": 0.831842695
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18222717515817743,
+      "ci_lo": 0.126333345648582,
+      "ci_hi": 0.2495525517208499,
+      "rounds": 10,
+      "seconds": 0.830657034
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.1816748436246014,
+      "ci_lo": 0.12594939719554588,
+      "ci_hi": 0.2473051858704498,
+      "rounds": 10,
+      "seconds": 0.830584285
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.1839953591581598,
+      "ci_lo": 0.12453269946551249,
+      "ci_hi": 0.246281334888931,
+      "rounds": 10,
+      "seconds": 0.830703693
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18383516409425948,
+      "ci_lo": 0.12487218535842359,
+      "ci_hi": 0.24783380494577978,
+      "rounds": 10,
+      "seconds": 0.830628741
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.19629329094479275,
+      "ci_lo": 0.1284281474081861,
+      "ci_hi": 0.2812903670277813,
+      "rounds": 10,
+      "seconds": 0.994155833
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.1828038198343791,
+      "ci_lo": 0.12354455105784834,
+      "ci_hi": 0.2459545220364392,
+      "rounds": 10,
+      "seconds": 0.831345266
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.1846143430193561,
+      "ci_lo": 0.12421405423372,
+      "ci_hi": 0.2512699748691216,
+      "rounds": 10,
+      "seconds": 0.831505637
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18960118646030555,
+      "ci_lo": 0.12816990730868238,
+      "ci_hi": 0.2491560151639587,
+      "rounds": 10,
+      "seconds": 0.833754126
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18116938291110762,
+      "ci_lo": 0.12241970789247048,
+      "ci_hi": 0.2499046937590539,
+      "rounds": 10,
+      "seconds": 0.830860994
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18329764083152478,
+      "ci_lo": 0.12185688228779923,
+      "ci_hi": 0.25189114959594794,
+      "rounds": 10,
+      "seconds": 0.831436837
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18462110113420738,
+      "ci_lo": 0.12368461850196799,
+      "ci_hi": 0.24760285071223231,
+      "rounds": 10,
+      "seconds": 0.830949823
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18264177407872229,
+      "ci_lo": 0.12304003353138326,
+      "ci_hi": 0.24817272242378752,
+      "rounds": 10,
+      "seconds": 0.986709011
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "verdict": "regression",
+      "change": 0.18073205791293612,
+      "ci_lo": 0.12250393739340337,
+      "ci_hi": 0.24572925743761176,
+      "rounds": 10,
+      "seconds": 0.83204254
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0016656615688332987,
+      "ci_lo": -0.011700651686127439,
+      "ci_hi": 0.012454691059460066,
+      "rounds": 10,
+      "seconds": 3.955758655
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0053161887842738675,
+      "ci_lo": -0.006217928897377822,
+      "ci_hi": 0.026886050166649467,
+      "rounds": 12,
+      "seconds": 4.824226166
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0002901174255606209,
+      "ci_lo": -0.009724742965181776,
+      "ci_hi": 0.006859649334171047,
+      "rounds": 10,
+      "seconds": 3.934960639
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0001668666249076134,
+      "ci_lo": -0.013143681077489644,
+      "ci_hi": 0.005903512398917732,
+      "rounds": 10,
+      "seconds": 3.928399791
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.006405062660661209,
+      "ci_lo": -0.014453139757839795,
+      "ci_hi": 0.0031252000462285157,
+      "rounds": 10,
+      "seconds": 3.965145167
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0024443014127939477,
+      "ci_lo": -0.007500572720488541,
+      "ci_hi": 0.011528578392829614,
+      "rounds": 10,
+      "seconds": 3.944683746
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.00027840875427198597,
+      "ci_lo": -0.007837715262740574,
+      "ci_hi": 0.005837829688097873,
+      "rounds": 10,
+      "seconds": 3.932086188
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.00029322013311605666,
+      "ci_lo": -0.009087094037048882,
+      "ci_hi": 0.006750855702132075,
+      "rounds": 10,
+      "seconds": 3.943936727
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.011847005713473746,
+      "ci_lo": -0.03280768954603053,
+      "ci_hi": 0.000004159845734985623,
+      "rounds": 10,
+      "seconds": 3.945168411
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0032984102119533176,
+      "ci_lo": -0.0037078956868432655,
+      "ci_hi": 0.017873495979047638,
+      "rounds": 10,
+      "seconds": 3.9829515559999997
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.003164744177246992,
+      "ci_lo": -0.01898314859611039,
+      "ci_hi": 0.006369417987458714,
+      "rounds": 10,
+      "seconds": 3.965171989
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.00025002202951052155,
+      "ci_lo": -0.0068715902855248645,
+      "ci_hi": 0.007856392925709388,
+      "rounds": 10,
+      "seconds": 3.931951274
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0025301155248831364,
+      "ci_lo": -0.009671172860497124,
+      "ci_hi": 0.013952328943473313,
+      "rounds": 10,
+      "seconds": 3.959764929
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0010238583349031494,
+      "ci_lo": -0.008611666937845652,
+      "ci_hi": 0.0052659659145528614,
+      "rounds": 10,
+      "seconds": 3.936836128
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.001333574432999196,
+      "ci_lo": -0.014746186322981858,
+      "ci_hi": 0.008095796988930148,
+      "rounds": 10,
+      "seconds": 3.943668536
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.002261602348763714,
+      "ci_lo": -0.01814130728195995,
+      "ci_hi": 0.009784230635783597,
+      "rounds": 10,
+      "seconds": 3.960740309
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.005538760758946548,
+      "ci_lo": -0.003850992058675229,
+      "ci_hi": 0.024258395396098642,
+      "rounds": 10,
+      "seconds": 3.959094559
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.003979575027335036,
+      "ci_lo": -0.001661877999064032,
+      "ci_hi": 0.00926395387164236,
+      "rounds": 10,
+      "seconds": 3.918796569
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.006421099332906133,
+      "ci_lo": -0.009939168548023458,
+      "ci_hi": 0.019572277775939284,
+      "rounds": 10,
+      "seconds": 3.967867478
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.003036055897426726,
+      "ci_lo": -0.009059806697990891,
+      "ci_hi": 0.01051029767866285,
+      "rounds": 10,
+      "seconds": 3.9957311559999997
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0054189030128686255,
+      "ci_lo": -0.000564668048707806,
+      "ci_hi": 0.01483082557225579,
+      "rounds": 10,
+      "seconds": 3.955317168
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0008711655455133638,
+      "ci_lo": -0.006818210656092338,
+      "ci_hi": 0.00787458304765698,
+      "rounds": 10,
+      "seconds": 3.924758529
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0007865532700763733,
+      "ci_lo": -0.006761298886550526,
+      "ci_hi": 0.01028882715541135,
+      "rounds": 10,
+      "seconds": 3.956645797
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.00270939093690159,
+      "ci_lo": -0.005751440367419591,
+      "ci_hi": 0.012558630389289505,
+      "rounds": 10,
+      "seconds": 3.936868254
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0005327415601146246,
+      "ci_lo": -0.007240859463991889,
+      "ci_hi": 0.005158097991726729,
+      "rounds": 10,
+      "seconds": 3.956734807
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0066864301021166694,
+      "ci_lo": -0.034462645449375384,
+      "ci_hi": 0.00020027262582145156,
+      "rounds": 10,
+      "seconds": 4.060932736
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.004229966792013151,
+      "ci_lo": -0.004880898313620263,
+      "ci_hi": 0.011034009741606177,
+      "rounds": 10,
+      "seconds": 3.976462442
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0068513097665637845,
+      "ci_lo": -0.01657294516865837,
+      "ci_hi": 0.0019983533620302474,
+      "rounds": 10,
+      "seconds": 3.941140597
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.001289872162793415,
+      "ci_lo": -0.016995626830925037,
+      "ci_hi": 0.016195232158562334,
+      "rounds": 10,
+      "seconds": 3.963862316
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0018207904325168167,
+      "ci_lo": -0.009909665583464844,
+      "ci_hi": 0.00711864317285027,
+      "rounds": 10,
+      "seconds": 3.935450678
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0040869625482560235,
+      "ci_lo": -0.007864102698577957,
+      "ci_hi": 0.00296905974608741,
+      "rounds": 10,
+      "seconds": 3.922728379
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.006821245846100998,
+      "ci_lo": -0.00106459948995552,
+      "ci_hi": 0.010357898605974913,
+      "rounds": 10,
+      "seconds": 3.919098917
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0020052724279818746,
+      "ci_lo": -0.01385290277101836,
+      "ci_hi": 0.004422093236861491,
+      "rounds": 10,
+      "seconds": 3.938349782
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0005581407830407281,
+      "ci_lo": -0.007183901735999254,
+      "ci_hi": 0.0048236297130603845,
+      "rounds": 10,
+      "seconds": 3.946660404
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0042789233978908214,
+      "ci_lo": -0.011990175273679182,
+      "ci_hi": 0.03480642299503356,
+      "rounds": 10,
+      "seconds": 3.998365836
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0016676961703718796,
+      "ci_lo": -0.007401527735381608,
+      "ci_hi": 0.019157096632594683,
+      "rounds": 10,
+      "seconds": 3.963161565
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0014131023679302412,
+      "ci_lo": -0.01756961900576126,
+      "ci_hi": 0.008324474819056293,
+      "rounds": 10,
+      "seconds": 4.006719342
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0014909772005839983,
+      "ci_lo": -0.010176351967293162,
+      "ci_hi": 0.0316570646698322,
+      "rounds": 10,
+      "seconds": 3.947754181
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0034305813911923444,
+      "ci_lo": -0.010341459661064034,
+      "ci_hi": 0.025075822060175224,
+      "rounds": 10,
+      "seconds": 3.995328634
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.005849357860143067,
+      "ci_lo": 0.0005991359904127247,
+      "ci_hi": 0.011557149904750652,
+      "rounds": 10,
+      "seconds": 3.92141604
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.006905091934240826,
+      "ci_lo": -0.003053633028938907,
+      "ci_hi": 0.026767055319880884,
+      "rounds": 10,
+      "seconds": 3.947566905
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.004222661967386299,
+      "ci_lo": -0.013549078045211216,
+      "ci_hi": 0.004113818377181611,
+      "rounds": 10,
+      "seconds": 3.9450778399999997
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.004017179159451212,
+      "ci_lo": -0.01070968053856769,
+      "ci_hi": 0.0058468844044294865,
+      "rounds": 10,
+      "seconds": 3.948825138
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0034540373036571204,
+      "ci_lo": -0.0064201844886386805,
+      "ci_hi": 0.018506280894000193,
+      "rounds": 10,
+      "seconds": 3.954521979
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0019804235284149874,
+      "ci_lo": -0.009440837210283215,
+      "ci_hi": 0.011290844561145041,
+      "rounds": 10,
+      "seconds": 3.949084413
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0007274800732127717,
+      "ci_lo": -0.009463650518385935,
+      "ci_hi": 0.004607737622469132,
+      "rounds": 10,
+      "seconds": 3.95732462
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0043656691388476165,
+      "ci_lo": -0.00385296769775878,
+      "ci_hi": 0.020593646482789163,
+      "rounds": 10,
+      "seconds": 3.930718643
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.001348234355171507,
+      "ci_lo": -0.017861447774674133,
+      "ci_hi": 0.03131053108893456,
+      "rounds": 10,
+      "seconds": 4.059419997
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.002161190191449558,
+      "ci_lo": -0.005994454982759634,
+      "ci_hi": 0.01157120765564823,
+      "rounds": 10,
+      "seconds": 3.938344887
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0013088534463817636,
+      "ci_lo": -0.006517198869182228,
+      "ci_hi": 0.0038510293776419235,
+      "rounds": 10,
+      "seconds": 3.932027525
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.002440698425207888,
+      "ci_lo": -0.00410688854764818,
+      "ci_hi": 0.008954776636517892,
+      "rounds": 10,
+      "seconds": 3.951178429
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0035843290398069882,
+      "ci_lo": -0.0066466392666195695,
+      "ci_hi": 0.014913761363769984,
+      "rounds": 10,
+      "seconds": 3.944181557
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.002845107539728331,
+      "ci_lo": -0.014451416295051311,
+      "ci_hi": 0.007941185493777425,
+      "rounds": 10,
+      "seconds": 3.940702509
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.000031498538182628266,
+      "ci_lo": -0.01026201126908921,
+      "ci_hi": 0.009556858517363764,
+      "rounds": 10,
+      "seconds": 3.944400756
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0005818015091800799,
+      "ci_lo": -0.03929325315349996,
+      "ci_hi": 0.017947872874098936,
+      "rounds": 10,
+      "seconds": 4.042681612
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.009316898594123768,
+      "ci_lo": -0.034388714113032126,
+      "ci_hi": 0.0049660754400093765,
+      "rounds": 10,
+      "seconds": 3.975259463
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0016215904881486942,
+      "ci_lo": -0.01825552173150813,
+      "ci_hi": 0.008872815380550847,
+      "rounds": 10,
+      "seconds": 3.944326653
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0028865903031385365,
+      "ci_lo": -0.012536926159477213,
+      "ci_hi": 0.012019765049978481,
+      "rounds": 10,
+      "seconds": 3.946574551
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.010482379475986736,
+      "ci_lo": 0.0022653535457637375,
+      "ci_hi": 0.021439268765869546,
+      "rounds": 10,
+      "seconds": 3.935030994
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0081386592609074,
+      "ci_lo": -0.022588690341838635,
+      "ci_hi": -0.00031595474576640026,
+      "rounds": 10,
+      "seconds": 3.942921977
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09117379748473908,
+      "ci_lo": 0.06865490782932304,
+      "ci_hi": 0.11042876725014916,
+      "rounds": 12,
+      "seconds": 4.959974709
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09032509585398052,
+      "ci_lo": 0.08303943014419612,
+      "ci_hi": 0.09717222424125493,
+      "rounds": 10,
+      "seconds": 4.125719983
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09414808028390964,
+      "ci_lo": 0.0858026228542983,
+      "ci_hi": 0.10558319783971393,
+      "rounds": 10,
+      "seconds": 4.098549674
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09314387217642994,
+      "ci_lo": 0.08629581376318618,
+      "ci_hi": 0.10259278959177687,
+      "rounds": 10,
+      "seconds": 4.153263394
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.1005617486934347,
+      "ci_lo": 0.08497319895628652,
+      "ci_hi": 0.11236883757548966,
+      "rounds": 10,
+      "seconds": 4.114000153
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.08500598522982217,
+      "ci_lo": 0.07708097734875308,
+      "ci_hi": 0.09502794065624554,
+      "rounds": 10,
+      "seconds": 4.119637138
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09241444305914914,
+      "ci_lo": 0.08686790735659677,
+      "ci_hi": 0.09816682838625956,
+      "rounds": 10,
+      "seconds": 4.1202077599999996
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09458184531766034,
+      "ci_lo": 0.08858530996223846,
+      "ci_hi": 0.11633813100008461,
+      "rounds": 10,
+      "seconds": 4.129879888
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09231876109890491,
+      "ci_lo": 0.07966557279764763,
+      "ci_hi": 0.09906165732492944,
+      "rounds": 10,
+      "seconds": 4.127930879
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.08932024090499024,
+      "ci_lo": 0.07997491968824333,
+      "ci_hi": 0.09708623377971048,
+      "rounds": 10,
+      "seconds": 4.128246509
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09141807668497393,
+      "ci_lo": 0.08371859174402707,
+      "ci_hi": 0.10795297184479824,
+      "rounds": 10,
+      "seconds": 4.140494426
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09076704269480862,
+      "ci_lo": 0.07860615682467809,
+      "ci_hi": 0.09773321183337491,
+      "rounds": 10,
+      "seconds": 4.117882532
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09302642321480015,
+      "ci_lo": 0.07173547862724994,
+      "ci_hi": 0.1052447351183885,
+      "rounds": 10,
+      "seconds": 4.164227888
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.08425084892703882,
+      "ci_lo": 0.07730054498046668,
+      "ci_hi": 0.09308301068387181,
+      "rounds": 10,
+      "seconds": 4.114829929
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.0876669061978248,
+      "ci_lo": 0.0817505871043962,
+      "ci_hi": 0.0947844679161931,
+      "rounds": 10,
+      "seconds": 4.129828303
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09012253606921039,
+      "ci_lo": 0.07859128281276462,
+      "ci_hi": 0.0992394621334105,
+      "rounds": 10,
+      "seconds": 4.121514496
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09570224747889267,
+      "ci_lo": 0.08051376854653669,
+      "ci_hi": 0.12594743919047158,
+      "rounds": 10,
+      "seconds": 4.154406375
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09614924201401553,
+      "ci_lo": 0.08798570601091926,
+      "ci_hi": 0.10038809676686222,
+      "rounds": 10,
+      "seconds": 4.103059112
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.07892120470378372,
+      "ci_lo": 0.056459182312266654,
+      "ci_hi": 0.0864879372265619,
+      "rounds": 10,
+      "seconds": 4.114762339
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10367676137762238,
+      "ci_lo": 0.09004266424150242,
+      "ci_hi": 0.12470726782295039,
+      "rounds": 10,
+      "seconds": 4.143188647
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09196084616930777,
+      "ci_lo": 0.0782931543320391,
+      "ci_hi": 0.11280976754276972,
+      "rounds": 10,
+      "seconds": 4.148917721
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09129307318002455,
+      "ci_lo": 0.08229589294587902,
+      "ci_hi": 0.10210336206114512,
+      "rounds": 10,
+      "seconds": 4.134133355
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.08936074821173157,
+      "ci_lo": 0.06753212111663065,
+      "ci_hi": 0.09721073492248467,
+      "rounds": 10,
+      "seconds": 4.137663671
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.0871511823165323,
+      "ci_lo": 0.0783004491516246,
+      "ci_hi": 0.09733242359843874,
+      "rounds": 10,
+      "seconds": 4.13789913
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09094346473923265,
+      "ci_lo": 0.08417258016388773,
+      "ci_hi": 0.10060585600156391,
+      "rounds": 10,
+      "seconds": 4.116879513
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09074228155366804,
+      "ci_lo": 0.08547913898691384,
+      "ci_hi": 0.09482099602753724,
+      "rounds": 10,
+      "seconds": 4.10831416
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09407106736728599,
+      "ci_lo": 0.0859885429862215,
+      "ci_hi": 0.11318317415661916,
+      "rounds": 10,
+      "seconds": 4.121626443
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09210577764419248,
+      "ci_lo": 0.07975031700867086,
+      "ci_hi": 0.11299326987373393,
+      "rounds": 10,
+      "seconds": 4.11435683
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.0910713009842874,
+      "ci_lo": 0.08289927004376829,
+      "ci_hi": 0.10876219418177979,
+      "rounds": 10,
+      "seconds": 4.131138585
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10065914564527367,
+      "ci_lo": 0.08663104055976523,
+      "ci_hi": 0.11385821255455442,
+      "rounds": 10,
+      "seconds": 4.12693905
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18397866029902654,
+      "ci_lo": 0.16966744429756275,
+      "ci_hi": 0.2083753949920606,
+      "rounds": 10,
+      "seconds": 4.335892872
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18702789175412327,
+      "ci_lo": 0.18116660866959666,
+      "ci_hi": 0.20143554485439275,
+      "rounds": 10,
+      "seconds": 4.293176976
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.17988735700382463,
+      "ci_lo": 0.17333202419093796,
+      "ci_hi": 0.18805085009586997,
+      "rounds": 10,
+      "seconds": 4.336227903
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18655294027849023,
+      "ci_lo": 0.17680289026684393,
+      "ci_hi": 0.19822382421848128,
+      "rounds": 10,
+      "seconds": 4.290766503
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18277255853924057,
+      "ci_lo": 0.165920445572886,
+      "ci_hi": 0.20614744486137293,
+      "rounds": 10,
+      "seconds": 4.314238545
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.17913598385052798,
+      "ci_lo": 0.16385833526516658,
+      "ci_hi": 0.19239622387124644,
+      "rounds": 10,
+      "seconds": 4.325920044
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18580419943302218,
+      "ci_lo": 0.16840561551686717,
+      "ci_hi": 0.20775392529106296,
+      "rounds": 10,
+      "seconds": 4.312902746
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18726149721301422,
+      "ci_lo": 0.17942458463117328,
+      "ci_hi": 0.1950854661919541,
+      "rounds": 10,
+      "seconds": 4.2865270859999995
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18031706587565832,
+      "ci_lo": 0.16830816690564698,
+      "ci_hi": 0.19403314114017256,
+      "rounds": 10,
+      "seconds": 4.302021083
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.17152106698865266,
+      "ci_lo": 0.14495018660818615,
+      "ci_hi": 0.17785745752940385,
+      "rounds": 10,
+      "seconds": 4.31677705
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.17520083174682521,
+      "ci_lo": 0.14539902802433047,
+      "ci_hi": 0.18557309377930742,
+      "rounds": 10,
+      "seconds": 4.355337071
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.17471577223663703,
+      "ci_lo": 0.15758182871903625,
+      "ci_hi": 0.18305689064220032,
+      "rounds": 10,
+      "seconds": 4.31841451
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.1828289458906247,
+      "ci_lo": 0.17505179202723564,
+      "ci_hi": 0.19210784008141246,
+      "rounds": 10,
+      "seconds": 4.314061478
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.1763004782616049,
+      "ci_lo": 0.13235165213372957,
+      "ci_hi": 0.195133314738841,
+      "rounds": 10,
+      "seconds": 4.375529275
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.17760354644428733,
+      "ci_lo": 0.16961015389481293,
+      "ci_hi": 0.1860189433430448,
+      "rounds": 10,
+      "seconds": 4.333114602
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18244472831599867,
+      "ci_lo": 0.1639956746452642,
+      "ci_hi": 0.19413431386354718,
+      "rounds": 10,
+      "seconds": 4.337578386
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.17932780557688788,
+      "ci_lo": 0.16894108188761736,
+      "ci_hi": 0.18846268673949185,
+      "rounds": 10,
+      "seconds": 4.290938704
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18078549614093187,
+      "ci_lo": 0.15381609420307196,
+      "ci_hi": 0.18984463459399503,
+      "rounds": 10,
+      "seconds": 4.304259125
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.1856587991740084,
+      "ci_lo": 0.16813655407678763,
+      "ci_hi": 0.1988169102759456,
+      "rounds": 10,
+      "seconds": 4.309533125
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18232170378292878,
+      "ci_lo": 0.16471496557063947,
+      "ci_hi": 0.19408290145095508,
+      "rounds": 10,
+      "seconds": 4.340806843
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.1895253912903465,
+      "ci_lo": 0.18134632474269297,
+      "ci_hi": 0.20631952695940403,
+      "rounds": 10,
+      "seconds": 4.290292493
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18242197523186254,
+      "ci_lo": 0.17568734888756432,
+      "ci_hi": 0.2170536314095115,
+      "rounds": 10,
+      "seconds": 4.371726559
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18034316001304052,
+      "ci_lo": 0.1590258276204881,
+      "ci_hi": 0.19229495411951558,
+      "rounds": 10,
+      "seconds": 4.343761061
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.17783349792673864,
+      "ci_lo": 0.15349819656516472,
+      "ci_hi": 0.18856056383772302,
+      "rounds": 10,
+      "seconds": 4.317155875
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18737650912238046,
+      "ci_lo": 0.17182689863513323,
+      "ci_hi": 0.2021882425733177,
+      "rounds": 10,
+      "seconds": 4.356200404
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18128365953578185,
+      "ci_lo": 0.16252642421753616,
+      "ci_hi": 0.19448850362024617,
+      "rounds": 10,
+      "seconds": 4.42127485
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.1844159116289903,
+      "ci_lo": 0.17714179180988454,
+      "ci_hi": 0.2055216744734254,
+      "rounds": 10,
+      "seconds": 4.285745746
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18114873349292981,
+      "ci_lo": 0.168576626421286,
+      "ci_hi": 0.1945528100285907,
+      "rounds": 10,
+      "seconds": 4.304700821
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18968283578865597,
+      "ci_lo": 0.1754004668746152,
+      "ci_hi": 0.21192502414118897,
+      "rounds": 10,
+      "seconds": 4.386077696
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18244456240706652,
+      "ci_lo": 0.16946688314645186,
+      "ci_hi": 0.1900611570341355,
+      "rounds": 10,
+      "seconds": 4.365016877
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.000712420221846366,
+      "ci_lo": -0.014344094724407785,
+      "ci_hi": 0.00980036904858772,
+      "rounds": 10,
+      "seconds": 2.177570659
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.001688674827514225,
+      "ci_lo": -0.012904702870499829,
+      "ci_hi": 0.005281781222152837,
+      "rounds": 10,
+      "seconds": 2.160842692
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0028834408228549657,
+      "ci_lo": -0.01589897103732485,
+      "ci_hi": 0.0037289379621381347,
+      "rounds": 10,
+      "seconds": 2.182585066
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0034011217563296725,
+      "ci_lo": -0.019532530486301325,
+      "ci_hi": 0.007889213485089641,
+      "rounds": 10,
+      "seconds": 2.179374763
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0034225919318554565,
+      "ci_lo": -0.04468061424467851,
+      "ci_hi": 0.009736712025848249,
+      "rounds": 10,
+      "seconds": 2.173291781
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.001136200810255339,
+      "ci_lo": -0.006209913488928742,
+      "ci_hi": 0.007825793662446179,
+      "rounds": 10,
+      "seconds": 2.15558723
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0017485485478589968,
+      "ci_lo": -0.008272688113953763,
+      "ci_hi": 0.01584849870744831,
+      "rounds": 10,
+      "seconds": 2.174617382
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0007760058518192503,
+      "ci_lo": -0.008782157933763468,
+      "ci_hi": 0.009871328645289168,
+      "rounds": 10,
+      "seconds": 2.171562513
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.001157596337316269,
+      "ci_lo": -0.007961466240738457,
+      "ci_hi": 0.009536835883689143,
+      "rounds": 10,
+      "seconds": 2.160760532
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0031734715405964398,
+      "ci_lo": -0.015605659836310126,
+      "ci_hi": 0.0027336907076405126,
+      "rounds": 10,
+      "seconds": 2.171977052
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.002171142858069741,
+      "ci_lo": -0.012868017516144525,
+      "ci_hi": 0.004509861886752731,
+      "rounds": 10,
+      "seconds": 2.155553194
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.011447912867221244,
+      "ci_lo": -0.026341667137848468,
+      "ci_hi": -0.0015638260432471185,
+      "rounds": 10,
+      "seconds": 2.167346368
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.005722031719152643,
+      "ci_lo": -0.01728340414573859,
+      "ci_hi": -0.0007779330357891023,
+      "rounds": 10,
+      "seconds": 2.16095424
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0017365156735411613,
+      "ci_lo": -0.0040846454180204494,
+      "ci_hi": 0.011865641825298479,
+      "rounds": 10,
+      "seconds": 2.153920449
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0018640071586520923,
+      "ci_lo": -0.01333527360581821,
+      "ci_hi": 0.017001475431233093,
+      "rounds": 10,
+      "seconds": 2.200502486
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.003601226114978484,
+      "ci_lo": -0.00010982255926572648,
+      "ci_hi": 0.010457719238596841,
+      "rounds": 10,
+      "seconds": 2.159110727
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.006035766868633052,
+      "ci_lo": -0.001548544804919838,
+      "ci_hi": 0.017073264068272698,
+      "rounds": 10,
+      "seconds": 2.156797514
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0011160896897730588,
+      "ci_lo": -0.00809001197261805,
+      "ci_hi": 0.012484606444973956,
+      "rounds": 10,
+      "seconds": 2.169776329
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.002999041969792504,
+      "ci_lo": -0.002203135040931059,
+      "ci_hi": 0.01954641974104243,
+      "rounds": 10,
+      "seconds": 2.162469729
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0054872963037024824,
+      "ci_lo": -0.004947862711836448,
+      "ci_hi": 0.020974079529603173,
+      "rounds": 10,
+      "seconds": 2.164918062
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.00549328938638638,
+      "ci_lo": -0.022184562953978082,
+      "ci_hi": 0.0008537959473979839,
+      "rounds": 10,
+      "seconds": 2.163485753
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.01155703713797529,
+      "ci_lo": -0.08055749499646647,
+      "ci_hi": 0.002413040034227265,
+      "rounds": 10,
+      "seconds": 2.202704332
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.00363477431260395,
+      "ci_lo": -0.0076522805109381364,
+      "ci_hi": 0.025814146533217563,
+      "rounds": 10,
+      "seconds": 2.181007215
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0036310718079684,
+      "ci_lo": -0.008247628847323996,
+      "ci_hi": 0.0168501611993912,
+      "rounds": 10,
+      "seconds": 2.172249402
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0012391737982023754,
+      "ci_lo": -0.007934278286919505,
+      "ci_hi": 0.007929070972226615,
+      "rounds": 10,
+      "seconds": 2.165727164
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0007415090677934666,
+      "ci_lo": -0.03282962717498927,
+      "ci_hi": 0.01410283537681356,
+      "rounds": 10,
+      "seconds": 2.172889835
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0005656451872871893,
+      "ci_lo": -0.010514636111586873,
+      "ci_hi": 0.004455521663247586,
+      "rounds": 10,
+      "seconds": 2.171515391
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.001548571694832468,
+      "ci_lo": -0.014654989819170128,
+      "ci_hi": 0.0035520829901489748,
+      "rounds": 10,
+      "seconds": 2.160460223
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.001388743257579761,
+      "ci_lo": -0.016658999631765425,
+      "ci_hi": 0.006999260938359564,
+      "rounds": 10,
+      "seconds": 2.185364169
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.005630034947090579,
+      "ci_lo": -0.001674217836316938,
+      "ci_hi": 0.01458884157918705,
+      "rounds": 10,
+      "seconds": 2.179376311
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.003532358893916454,
+      "ci_lo": -0.01817254908724797,
+      "ci_hi": 0.007179333361013063,
+      "rounds": 10,
+      "seconds": 2.183095107
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.007570740454164504,
+      "ci_lo": -0.021970399948636143,
+      "ci_hi": 0.000570968970750263,
+      "rounds": 10,
+      "seconds": 2.1661654710000002
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0026689400154391585,
+      "ci_lo": -0.0047045532077123475,
+      "ci_hi": 0.011414792834886667,
+      "rounds": 10,
+      "seconds": 2.162256745
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0020035697888871606,
+      "ci_lo": -0.007015299025743826,
+      "ci_hi": 0.022028129550810682,
+      "rounds": 10,
+      "seconds": 2.186321314
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0036051209658771732,
+      "ci_lo": -0.010156420960790502,
+      "ci_hi": 0.007453322010433583,
+      "rounds": 10,
+      "seconds": 2.158197662
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.002053903967254578,
+      "ci_lo": -0.012738482761957215,
+      "ci_hi": 0.004542858754093215,
+      "rounds": 10,
+      "seconds": 2.161857285
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.004499349955554344,
+      "ci_lo": -0.003116278389591054,
+      "ci_hi": 0.012121215492863158,
+      "rounds": 10,
+      "seconds": 2.166838327
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.001688214645332975,
+      "ci_lo": -0.005671448501543885,
+      "ci_hi": 0.0060871366380363945,
+      "rounds": 10,
+      "seconds": 2.155005095
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0026295582953024255,
+      "ci_lo": -0.021979762339526143,
+      "ci_hi": 0.01409560203908855,
+      "rounds": 10,
+      "seconds": 2.161326018
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.013955083795356482,
+      "ci_lo": -0.029804441617890642,
+      "ci_hi": 0.00013235328085814402,
+      "rounds": 10,
+      "seconds": 2.170075881
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.002822064170684202,
+      "ci_lo": -0.008832186795270758,
+      "ci_hi": 0.02815476566738706,
+      "rounds": 10,
+      "seconds": 2.159922677
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0022731845270174134,
+      "ci_lo": -0.010200006086382829,
+      "ci_hi": 0.012971321051162388,
+      "rounds": 10,
+      "seconds": 2.224122462
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.010371190943096242,
+      "ci_lo": -0.036318322430176964,
+      "ci_hi": 0.0007983056842573166,
+      "rounds": 10,
+      "seconds": 2.175046297
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0035639103011204654,
+      "ci_lo": -0.0018318178516566475,
+      "ci_hi": 0.012474183226606872,
+      "rounds": 10,
+      "seconds": 2.156821184
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0029463218145189263,
+      "ci_lo": -0.0047267048412273915,
+      "ci_hi": 0.013217673317270195,
+      "rounds": 10,
+      "seconds": 2.183305879
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.002816608647165819,
+      "ci_lo": -0.03144635514194394,
+      "ci_hi": 0.0022906133180939925,
+      "rounds": 10,
+      "seconds": 2.151951142
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.0011310549525361813,
+      "ci_lo": -0.016475066489625045,
+      "ci_hi": 0.006597360093819171,
+      "rounds": 10,
+      "seconds": 2.175317517
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.01444689994741899,
+      "ci_lo": 0.0010639162319521223,
+      "ci_hi": 0.03255540071975038,
+      "rounds": 10,
+      "seconds": 2.186150087
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.005142251965732703,
+      "ci_lo": -0.018030698351631957,
+      "ci_hi": 0.0010813165504519606,
+      "rounds": 10,
+      "seconds": 2.162262022
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.006427803581665614,
+      "ci_lo": -0.0031269724023592627,
+      "ci_hi": 0.014017120429905772,
+      "rounds": 10,
+      "seconds": 2.1700418089999998
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.010932247321376876,
+      "ci_lo": -0.00009980114222551961,
+      "ci_hi": 0.02329712770956549,
+      "rounds": 10,
+      "seconds": 2.165775561
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.00557634158345488,
+      "ci_lo": -0.005895521950149973,
+      "ci_hi": 0.020254812619432405,
+      "rounds": 10,
+      "seconds": 2.171230292
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0034829112054437505,
+      "ci_lo": -0.004897044022714625,
+      "ci_hi": 0.02250250668940268,
+      "rounds": 10,
+      "seconds": 2.170389254
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.00599556800306722,
+      "ci_lo": -0.007772029725976237,
+      "ci_hi": 0.018389361511039315,
+      "rounds": 10,
+      "seconds": 2.178277751
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.005347605718920789,
+      "ci_lo": -0.01986956895602421,
+      "ci_hi": 0.006842358524358438,
+      "rounds": 10,
+      "seconds": 2.164305786
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.0054868227942781456,
+      "ci_lo": -0.0011316850836585735,
+      "ci_hi": 0.011528554089060172,
+      "rounds": 10,
+      "seconds": 2.163669337
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.002903535944805191,
+      "ci_lo": -0.014888100922452518,
+      "ci_hi": 0.013726048007075775,
+      "rounds": 10,
+      "seconds": 2.174116094
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.000027509905569322868,
+      "ci_lo": -0.01718496698400196,
+      "ci_hi": 0.01795305278778181,
+      "rounds": 10,
+      "seconds": 2.176393101
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": -0.000007319987208154188,
+      "ci_lo": -0.006896762935180378,
+      "ci_hi": 0.013249431435709225,
+      "rounds": 10,
+      "seconds": 2.177236767
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "verdict": "pass",
+      "change": 0.00269867710611571,
+      "ci_lo": -0.009429731048456902,
+      "ci_hi": 0.016602339114093256,
+      "rounds": 10,
+      "seconds": 2.176334628
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10081762946697403,
+      "ci_lo": 0.07652896874691462,
+      "ci_hi": 0.13399263515486526,
+      "rounds": 10,
+      "seconds": 2.310763836
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.0910741499709109,
+      "ci_lo": 0.07423552682419277,
+      "ci_hi": 0.10210523627068957,
+      "rounds": 10,
+      "seconds": 2.259886479
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09846938633341562,
+      "ci_lo": 0.0823298662861498,
+      "ci_hi": 0.11340510527301562,
+      "rounds": 10,
+      "seconds": 2.277276926
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09706330420858067,
+      "ci_lo": 0.08195647002211803,
+      "ci_hi": 0.1104745737732884,
+      "rounds": 10,
+      "seconds": 2.2564881
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.0934489993430554,
+      "ci_lo": 0.08243076005482686,
+      "ci_hi": 0.10230087023566048,
+      "rounds": 10,
+      "seconds": 2.252287042
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10365090015310052,
+      "ci_lo": 0.09010801706377136,
+      "ci_hi": 0.11634709700983636,
+      "rounds": 10,
+      "seconds": 2.266828571
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09874969847549053,
+      "ci_lo": 0.08402480924622013,
+      "ci_hi": 0.12442365983637838,
+      "rounds": 10,
+      "seconds": 2.266283171
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10009913042913765,
+      "ci_lo": 0.08770951851395781,
+      "ci_hi": 0.12479864904715332,
+      "rounds": 10,
+      "seconds": 2.313313078
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10333969678573873,
+      "ci_lo": 0.09819549482790846,
+      "ci_hi": 0.10821016240372927,
+      "rounds": 10,
+      "seconds": 2.260210351
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.0956638742340421,
+      "ci_lo": 0.05971874327327176,
+      "ci_hi": 0.10511004372400223,
+      "rounds": 10,
+      "seconds": 2.254694692
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10216830609500582,
+      "ci_lo": 0.07992468503017602,
+      "ci_hi": 0.12301335030533744,
+      "rounds": 10,
+      "seconds": 2.265456816
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.098046947462759,
+      "ci_lo": 0.07363080939636513,
+      "ci_hi": 0.11647680322319043,
+      "rounds": 10,
+      "seconds": 2.269999855
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.104586217102284,
+      "ci_lo": 0.09851183668976415,
+      "ci_hi": 0.127186387131496,
+      "rounds": 10,
+      "seconds": 2.275691375
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10670066648021104,
+      "ci_lo": 0.09764422380691617,
+      "ci_hi": 0.1300566529674534,
+      "rounds": 10,
+      "seconds": 2.271304611
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10069119311668384,
+      "ci_lo": 0.0748119616207803,
+      "ci_hi": 0.11452626025632062,
+      "rounds": 10,
+      "seconds": 2.262257802
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09984017016109559,
+      "ci_lo": 0.09169383639138595,
+      "ci_hi": 0.11091881303704354,
+      "rounds": 10,
+      "seconds": 2.261056112
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09865457484516638,
+      "ci_lo": 0.08380578727411958,
+      "ci_hi": 0.10474266839566426,
+      "rounds": 10,
+      "seconds": 2.257336086
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10499182510130223,
+      "ci_lo": 0.08386694595650046,
+      "ci_hi": 0.12057202983947701,
+      "rounds": 10,
+      "seconds": 2.257631122
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.0949236046666253,
+      "ci_lo": 0.07811145742285008,
+      "ci_hi": 0.10549770913624945,
+      "rounds": 10,
+      "seconds": 2.260472563
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09400312818884737,
+      "ci_lo": 0.07839765750086602,
+      "ci_hi": 0.10039914275288053,
+      "rounds": 10,
+      "seconds": 2.254092177
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09834881613688395,
+      "ci_lo": 0.08968034045729456,
+      "ci_hi": 0.10645399027976299,
+      "rounds": 10,
+      "seconds": 2.25162903
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10673512565994159,
+      "ci_lo": 0.09393791289621456,
+      "ci_hi": 0.1541170816992108,
+      "rounds": 10,
+      "seconds": 2.2981814910000002
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10320467828612068,
+      "ci_lo": 0.09368031494593843,
+      "ci_hi": 0.11499439255477273,
+      "rounds": 10,
+      "seconds": 2.293283893
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10507321870533048,
+      "ci_lo": 0.09281488402825899,
+      "ci_hi": 0.12397951127162776,
+      "rounds": 10,
+      "seconds": 2.25392445
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10567335175000947,
+      "ci_lo": 0.09592448893428518,
+      "ci_hi": 0.1151766930146072,
+      "rounds": 10,
+      "seconds": 2.2643483189999998
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.09934656632357863,
+      "ci_lo": 0.0925219932456478,
+      "ci_hi": 0.10495574412709918,
+      "rounds": 10,
+      "seconds": 2.256613731
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10604494259387276,
+      "ci_lo": 0.0997013060419023,
+      "ci_hi": 0.11519183903502284,
+      "rounds": 10,
+      "seconds": 2.25042477
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10305590000080356,
+      "ci_lo": 0.09250315408976029,
+      "ci_hi": 0.11837819871243593,
+      "rounds": 10,
+      "seconds": 2.280403071
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.10431500037834196,
+      "ci_lo": 0.0880505572026502,
+      "ci_hi": 0.11125958075606301,
+      "rounds": 10,
+      "seconds": 2.260640301
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "verdict": "regression",
+      "change": 0.08923096049313184,
+      "ci_lo": 0.07581899607315101,
+      "ci_hi": 0.10105119591908984,
+      "rounds": 10,
+      "seconds": 2.286297122
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.1971351886298578,
+      "ci_lo": 0.16559686994752965,
+      "ci_hi": 0.20558749017275213,
+      "rounds": 10,
+      "seconds": 2.351019448
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.19523623557750458,
+      "ci_lo": 0.18620500249832328,
+      "ci_hi": 0.2070522281273257,
+      "rounds": 10,
+      "seconds": 2.350392985
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.20230282585191017,
+      "ci_lo": 0.19198530225128763,
+      "ci_hi": 0.21362231751465743,
+      "rounds": 10,
+      "seconds": 2.371359332
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.20277709188409987,
+      "ci_lo": 0.18346858905490127,
+      "ci_hi": 0.23252706431656645,
+      "rounds": 10,
+      "seconds": 2.346996179
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.19921128554621048,
+      "ci_lo": 0.18519281348560246,
+      "ci_hi": 0.22339385211860674,
+      "rounds": 10,
+      "seconds": 2.353474393
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.20598502614488412,
+      "ci_lo": 0.19610882006241437,
+      "ci_hi": 0.21634320719187938,
+      "rounds": 10,
+      "seconds": 2.353968728
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.1925975587703319,
+      "ci_lo": 0.18393500090850035,
+      "ci_hi": 0.19983499729909493,
+      "rounds": 10,
+      "seconds": 2.332419255
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.19287177738832395,
+      "ci_lo": 0.18093687459968022,
+      "ci_hi": 0.2068369977508544,
+      "rounds": 10,
+      "seconds": 2.342828618
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.19828779071500602,
+      "ci_lo": 0.17826631913622903,
+      "ci_hi": 0.20775613519119762,
+      "rounds": 10,
+      "seconds": 2.352424545
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.19159410304910418,
+      "ci_lo": 0.17143225918872607,
+      "ci_hi": 0.20818856653641493,
+      "rounds": 10,
+      "seconds": 2.354085788
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.20027670888720062,
+      "ci_lo": 0.18918395211097505,
+      "ci_hi": 0.20918652845468677,
+      "rounds": 10,
+      "seconds": 2.353536636
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.19677806440780565,
+      "ci_lo": 0.13990052719953194,
+      "ci_hi": 0.20785144486051488,
+      "rounds": 10,
+      "seconds": 2.367215687
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.19586664239847051,
+      "ci_lo": 0.17037451075918986,
+      "ci_hi": 0.2205612705351585,
+      "rounds": 10,
+      "seconds": 2.371968349
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.20224248980029946,
+      "ci_lo": 0.19301734951717475,
+      "ci_hi": 0.22380961188707915,
+      "rounds": 10,
+      "seconds": 2.353941544
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.20020277012016763,
+      "ci_lo": 0.1932064476380062,
+      "ci_hi": 0.22107359547617444,
+      "rounds": 10,
+      "seconds": 2.343763461
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.19761277267298483,
+      "ci_lo": 0.1847129764696227,
+      "ci_hi": 0.209557945323134,
+      "rounds": 10,
+      "seconds": 2.340816887
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.20605399611487996,
+      "ci_lo": 0.19857762744415508,
+      "ci_hi": 0.22200243810921294,
+      "rounds": 10,
+      "seconds": 2.340659395
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.20326438240179545,
+      "ci_lo": 0.18858536155422145,
+      "ci_hi": 0.2180058501428297,
+      "rounds": 10,
+      "seconds": 2.355431915
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.1965773642236237,
+      "ci_lo": 0.1787688014618729,
+      "ci_hi": 0.20295281937655152,
+      "rounds": 10,
+      "seconds": 2.368226616
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.202409184948946,
+      "ci_lo": 0.18233160612924282,
+      "ci_hi": 0.21582124627628985,
+      "rounds": 10,
+      "seconds": 2.351205362
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.1896781442300448,
+      "ci_lo": 0.17493199265783632,
+      "ci_hi": 0.21415397738017483,
+      "rounds": 10,
+      "seconds": 2.385701724
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.20869740692110827,
+      "ci_lo": 0.1944330561823704,
+      "ci_hi": 0.21553106128634214,
+      "rounds": 10,
+      "seconds": 2.360021946
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.19733978099999683,
+      "ci_lo": 0.18061554192746887,
+      "ci_hi": 0.20540159986122775,
+      "rounds": 10,
+      "seconds": 2.341615185
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.19635121925536825,
+      "ci_lo": 0.18410803968889233,
+      "ci_hi": 0.20478985743697464,
+      "rounds": 10,
+      "seconds": 2.345819127
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.20149132433732797,
+      "ci_lo": 0.19049585870221009,
+      "ci_hi": 0.21920707114492255,
+      "rounds": 10,
+      "seconds": 2.3721386349999998
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.19638649003925535,
+      "ci_lo": 0.16697626327335158,
+      "ci_hi": 0.20144671099106248,
+      "rounds": 10,
+      "seconds": 2.348811134
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.195584742753937,
+      "ci_lo": 0.18612803101715114,
+      "ci_hi": 0.20621137111404764,
+      "rounds": 10,
+      "seconds": 2.340433192
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.1909301219869428,
+      "ci_lo": 0.17774529995388555,
+      "ci_hi": 0.20151442206444847,
+      "rounds": 10,
+      "seconds": 2.348621103
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.18330855093322107,
+      "ci_lo": 0.1361090817744568,
+      "ci_hi": 0.19903727211673639,
+      "rounds": 10,
+      "seconds": 2.367316767
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "verdict": "regression",
+      "change": 0.20910343975136803,
+      "ci_lo": 0.19226408601330713,
+      "ci_hi": 0.27076166150935044,
+      "rounds": 10,
+      "seconds": 2.374890126
+    }
+  ],
+  "summary": [
+    {
+      "scenario": "noisy",
+      "case": "no change",
+      "runs": 100,
+      "regression": 0,
+      "pass": 100,
+      "inconclusive": 0,
+      "median_change": 0.00024279829302487066,
+      "median_rounds": 10,
+      "expected": "no regression"
+    },
+    {
+      "scenario": "noisy",
+      "case": "+10% work",
+      "runs": 50,
+      "regression": 50,
+      "pass": 0,
+      "inconclusive": 0,
+      "median_change": 0.09982162229279545,
+      "median_rounds": 10,
+      "expected": "regression"
+    },
+    {
+      "scenario": "drift",
+      "case": "ABBA order",
+      "runs": 50,
+      "regression": 0,
+      "pass": 0,
+      "inconclusive": 50,
+      "median_change": 0.000006469422282551207,
+      "median_rounds": 10,
+      "expected": "no regression"
+    },
+    {
+      "scenario": "drift",
+      "case": "sequential order",
+      "runs": 50,
+      "regression": 50,
+      "pass": 0,
+      "inconclusive": 0,
+      "median_change": 0.18329764083152478,
+      "median_rounds": 10,
+      "expected": "no regression"
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "no change",
+      "runs": 60,
+      "regression": 0,
+      "pass": 60,
+      "inconclusive": 0,
+      "median_change": 0.00029322013311605666,
+      "median_rounds": 10,
+      "expected": "no regression"
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+10% work",
+      "runs": 30,
+      "regression": 30,
+      "pass": 0,
+      "inconclusive": 0,
+      "median_change": 0.09141807668497393,
+      "median_rounds": 10,
+      "expected": "regression"
+    },
+    {
+      "scenario": "python, time adapter",
+      "case": "+20% work",
+      "runs": 30,
+      "regression": 30,
+      "pass": 0,
+      "inconclusive": 0,
+      "median_change": 0.18242197523186254,
+      "median_rounds": 10,
+      "expected": "regression"
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "no change",
+      "runs": 60,
+      "regression": 0,
+      "pass": 60,
+      "inconclusive": 0,
+      "median_change": -0.0007415090677934666,
+      "median_rounds": 10,
+      "expected": "no regression"
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+10% work",
+      "runs": 30,
+      "regression": 30,
+      "pass": 0,
+      "inconclusive": 0,
+      "median_change": 0.10069119311668384,
+      "median_rounds": 10,
+      "expected": "regression"
+    },
+    {
+      "scenario": "python, json adapter",
+      "case": "+20% work",
+      "runs": 30,
+      "regression": 30,
+      "pass": 0,
+      "inconclusive": 0,
+      "median_change": 0.19761277267298483,
+      "median_rounds": 10,
+      "expected": "regression"
+    }
+  ],
+  "total_seconds": 1110.207938818
+}
