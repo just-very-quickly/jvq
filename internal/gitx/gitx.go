@@ -108,8 +108,19 @@ type Pick struct {
 // (a push to main), the base is head's parent, so each commit is checked
 // against the one before it.
 func (r *Repo) DefaultBase(ctx context.Context, headSHA string, env func(string) string) (Pick, error) {
+	if env("CI_MERGE_REQUEST_IID") != "" {
+		if p, ok, err := r.gitlabBase(ctx, headSHA, env); ok || err != nil {
+			return p, err
+		}
+	}
 	var candidates []string
 	if b := env("GITHUB_BASE_REF"); b != "" {
+		candidates = append(candidates, "origin/"+b, b)
+	}
+	if b := env("CI_MERGE_REQUEST_TARGET_BRANCH_NAME"); b != "" {
+		candidates = append(candidates, "origin/"+b, b)
+	}
+	if b := env("CI_DEFAULT_BRANCH"); b != "" {
 		candidates = append(candidates, "origin/"+b, b)
 	}
 	if sym, err := r.Git(ctx, "symbolic-ref", "--quiet", "refs/remotes/origin/HEAD"); err == nil && sym != "" {
@@ -147,6 +158,34 @@ func (r *Repo) DefaultBase(ctx context.Context, headSHA string, env func(string)
 		hint = "; " + ShallowHint
 	}
 	return Pick{}, fmt.Errorf("no base branch found (looked for %s); pass --base%s", strings.Join(candidates, ", "), hint)
+}
+
+// GitLabHint says what a GitLab job needs for jvq to find the base.
+const GitLabHint = `in .gitlab-ci.yml set GIT_DEPTH: "0", and fetch the target branch first: git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"`
+
+// gitlabBase picks the base in a GitLab merge request pipeline. In a
+// merged results pipeline (or a merge train) head is GitLab's merge of the
+// change into the target branch, so its first parent is the target as it
+// stands. Otherwise GitLab names the merge request's base commit. ok is
+// false when neither applies, and the caller falls back to the target
+// branch by name.
+func (r *Repo) gitlabBase(ctx context.Context, headSHA string, env func(string) string) (Pick, bool, error) {
+	switch env("CI_MERGE_REQUEST_EVENT_TYPE") {
+	case "merged_result", "merge_train":
+		parent, err := r.Resolve(ctx, headSHA+"^1")
+		if err != nil {
+			return Pick{}, false, fmt.Errorf("head is GitLab's merged result, but its first parent isn't in this clone; %s", GitLabHint)
+		}
+		return Pick{Ref: "head^1", SHA: parent, Note: "head is GitLab's merged result, so it is compared with the target branch it was merged into"}, true, nil
+	}
+	if sha := env("CI_MERGE_REQUEST_DIFF_BASE_SHA"); sha != "" {
+		got, err := r.Resolve(ctx, sha)
+		if err != nil {
+			return Pick{}, false, fmt.Errorf("the merge request's base commit %s isn't in this clone; %s", Short(sha), GitLabHint)
+		}
+		return Pick{Ref: "CI_MERGE_REQUEST_DIFF_BASE_SHA", SHA: got}, true, nil
+	}
+	return Pick{}, false, nil
 }
 
 // Workspace is a temporary directory holding a worktree per side.

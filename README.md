@@ -270,7 +270,7 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: stable
-      - uses: just-very-quickly/jvq@v0.3.0
+      - uses: just-very-quickly/jvq@v0.4.0
         with:
           command: go test -run=NONE -bench=. -benchmem ./...
 ```
@@ -279,6 +279,36 @@ The action downloads the release binary for the runner, checks its SHA256
 against the release's SHA256SUMS, and runs `jvq run`. It needs no token and
 no extra permissions; the report goes to the job summary. Inputs: `command`,
 `base`, `config`, `args` (more flags), `working-directory` and `version`.
+
+## In GitLab CI
+
+```yaml
+include:
+  - remote: https://raw.githubusercontent.com/just-very-quickly/jvq/v0.4.0/ci/gitlab/jvq.yml
+
+benchmarks:
+  extends: .jvq
+  image: golang:1.26
+  variables:
+    JVQ_COMMAND: go test -run=NONE -bench=. -benchmem ./...
+```
+
+The `.jvq` job ([ci/gitlab/jvq.yml](ci/gitlab/jvq.yml)) runs in merge
+request pipelines and on the default branch. It sets `GIT_DEPTH: "0"`,
+fetches the target branch, downloads the release and checks it against
+SHA256SUMS, and runs `jvq run`. A regression fails the job; the result
+shows in the merge request's test summary through a JUnit report, and
+jvq.md and jvq.json are kept as artifacts. Set `JVQ_ARGS` for more flags,
+`JVQ_DIR` to run in a subfolder, and `JVQ_VERSION` to pin a release. The
+image needs `curl`, `git` and whatever your benchmarks need. If your
+GitLab can't reach raw.githubusercontent.com, copy the file into your
+repository and `include: local:` it.
+
+jvq picks the base from GitLab's own variables: in a merged results
+pipeline, the target branch head was merged into; otherwise the merge
+request's diff base (`CI_MERGE_REQUEST_DIFF_BASE_SHA`); on the default
+branch, the commit before. This was tested with GitLab's variables set by
+hand and with gitlab-ci-local, not yet on gitlab.com itself.
 
 ## Anywhere else
 
@@ -298,8 +328,9 @@ These links always fetch the latest release:
 Or with Go: `go install github.com/just-very-quickly/jvq/cmd/jvq@latest`.
 jvq needs `git` on the PATH, and whatever your benchmark command needs.
 
-GitLab CI, Jenkins or a laptop work the same way: check out with full
-history, then `jvq run`. The exit code is the gate.
+Jenkins, another CI or a laptop work the same way: check out with full
+history, then `jvq run`. The exit code is the gate, and `-junit FILE`
+writes a JUnit report that most CI systems can show.
 
 ## Configuration: jvq.toml
 
@@ -357,6 +388,7 @@ jvq run [flags] [-- command]
   -timeout D             limit per command run, such as 10m
   -json FILE             also write the report as JSON
   -markdown FILE         also write the report as Markdown
+  -junit FILE            also write the report as JUnit XML (GitLab, Jenkins)
   -base-may-fail         if base doesn't build or run, pass with nothing compared
   -fail-on-inconclusive  exit 1 when the result is inconclusive
   -no-warmup             skip the warm-up runs

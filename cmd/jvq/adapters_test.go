@@ -215,3 +215,28 @@ func TestCompareJSONWithAGoConfig(t *testing.T) {
 	os.WriteFile(filepath.Join(dir, "b.json"), []byte(`{"name": "x", "unit": "ms", "values": [10, 10.1, 9.9, 10.2, 10]}`), 0o644)
 	expect(t, jvq(t, dir, nil, "compare", "a.json", "b.json"), 0)
 }
+
+func TestGitLabMergeRequestWithJUnit(t *testing.T) {
+	r := newFixture(t, "", fixture.Spec{Work: base})
+	first, _ := fixture.Git(r.Dir, "rev-parse", "HEAD")
+	fixture.Git(r.Dir, "checkout", "-q", "-b", "feature")
+	commit(t, r, fixture.Spec{Work: base * 2}, "twice the work")
+	r.WriteConfig(fixture.Config(4, "10ms", ""))
+	junit := filepath.Join(t.TempDir(), "jvq.xml")
+	env := []string{"GITLAB_CI=true", "CI_MERGE_REQUEST_IID=3", "CI_MERGE_REQUEST_DIFF_BASE_SHA=" + first, "CI_MERGE_REQUEST_TARGET_BRANCH_NAME=main"}
+	res := jvq(t, r.Dir, env, "run", "-junit", junit)
+	expect(t, res, 1)
+	if b := res.report["base"].(map[string]any); b["sha"] != first || b["ref"] != "CI_MERGE_REQUEST_DIFF_BASE_SHA" {
+		t.Errorf("base %v", b)
+	}
+	x, err := os.ReadFile(junit)
+	if err != nil || !strings.Contains(string(x), `failures="1"`) || !strings.Contains(string(x), `name="BenchmarkWork time"`) {
+		t.Errorf("junit %v:\n%s", err, x)
+	}
+	// A base GitLab names that the clone lacks: the error says what to set.
+	env[2] = "CI_MERGE_REQUEST_DIFF_BASE_SHA=0123456789abcdef0123456789abcdef01234567"
+	res = jvq(t, r.Dir, env, "run")
+	if res.code != 2 || !strings.Contains(res.stderr, "GIT_DEPTH") {
+		t.Errorf("missing base: %d %s", res.code, res.stderr)
+	}
+}

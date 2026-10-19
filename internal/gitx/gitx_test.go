@@ -294,3 +294,60 @@ func fileURL(path string) string {
 	}
 	return "file://" + p
 }
+
+func envOf(m map[string]string) func(string) string {
+	return func(k string) string { return m[k] }
+}
+
+func TestGitLabMergeRequestBase(t *testing.T) {
+	ctx := context.Background()
+	dir := newRepo(t)
+	c1 := commit(t, dir, "a", "1")
+	git(t, dir, "checkout", "-q", "-b", "feature")
+	commit(t, dir, "a", "2")
+	git(t, dir, "checkout", "-q", "main")
+	c3 := commit(t, dir, "b", "main moved on")
+	git(t, dir, "checkout", "-q", "feature")
+	r, _ := Open(ctx, dir)
+	head, _ := r.Resolve(ctx, "HEAD")
+
+	// The merge request's diff base, as GitLab names it.
+	p, err := r.DefaultBase(ctx, head, envOf(map[string]string{"CI_MERGE_REQUEST_IID": "7", "CI_MERGE_REQUEST_DIFF_BASE_SHA": c1, "CI_MERGE_REQUEST_TARGET_BRANCH_NAME": "main"}))
+	if err != nil || p.SHA != c1 || p.Ref != "CI_MERGE_REQUEST_DIFF_BASE_SHA" {
+		t.Errorf("diff base: %+v %v", p, err)
+	}
+	// A diff base that isn't in the clone says how to fix it.
+	_, err = r.DefaultBase(ctx, head, envOf(map[string]string{"CI_MERGE_REQUEST_IID": "7", "CI_MERGE_REQUEST_DIFF_BASE_SHA": "0123456789abcdef0123456789abcdef01234567"}))
+	if err == nil || !strings.Contains(err.Error(), "GIT_DEPTH") {
+		t.Errorf("missing diff base: %v", err)
+	}
+	// No diff base: the target branch by name, as for GitHub.
+	p, err = r.DefaultBase(ctx, head, envOf(map[string]string{"CI_MERGE_REQUEST_IID": "7", "CI_MERGE_REQUEST_TARGET_BRANCH_NAME": "main"}))
+	if err != nil || p.SHA != c1 {
+		t.Errorf("target branch: %+v %v", p, err)
+	}
+
+	// A merged results pipeline: head is GitLab's merge of feature into
+	// main, and the base is its first parent, main as it stands.
+	git(t, dir, "checkout", "-q", "--detach", "main")
+	git(t, dir, "merge", "-q", "--no-ff", "-m", "merged result", "feature")
+	merged, _ := r.Resolve(ctx, "HEAD")
+	p, err = r.DefaultBase(ctx, merged, envOf(map[string]string{"CI_MERGE_REQUEST_IID": "7", "CI_MERGE_REQUEST_EVENT_TYPE": "merged_result", "CI_MERGE_REQUEST_DIFF_BASE_SHA": c1}))
+	if err != nil || p.SHA != c3 || p.Note == "" {
+		t.Errorf("merged result: %+v %v, want %s", p, err, c3)
+	}
+}
+
+func TestGitLabDefaultBranch(t *testing.T) {
+	ctx := context.Background()
+	dir := t.TempDir()
+	git(t, dir, "init", "-q", "-b", "trunk")
+	c1 := commit(t, dir, "a", "1")
+	commit(t, dir, "a", "2")
+	r, _ := Open(ctx, dir)
+	head, _ := r.Resolve(ctx, "HEAD")
+	p, err := r.DefaultBase(ctx, head, envOf(map[string]string{"CI_DEFAULT_BRANCH": "trunk"}))
+	if err != nil || p.SHA != c1 {
+		t.Errorf("CI_DEFAULT_BRANCH: %+v %v", p, err)
+	}
+}

@@ -89,9 +89,9 @@ func cli(args []string, stdout, stderr io.Writer) int {
 }
 
 type runFlags struct {
-	base, head, configPath, build, adapter, output, jsonPath, mdPath, timeout string
-	rounds, maxRounds                                                         int
-	baseMayFail, failOnInconclusive, keep, quiet, noWarmup                    bool
+	base, head, configPath, build, adapter, output, jsonPath, mdPath, junitPath, timeout string
+	rounds, maxRounds                                                                    int
+	baseMayFail, failOnInconclusive, keep, quiet, noWarmup                               bool
 }
 
 func cmdRun(args []string, stdout, stderr io.Writer) int {
@@ -109,6 +109,7 @@ func cmdRun(args []string, stdout, stderr io.Writer) int {
 	fs.StringVar(&f.timeout, "timeout", "", "time limit for each command run, such as 10m")
 	fs.StringVar(&f.jsonPath, "json", "", "also write the report as JSON to this file")
 	fs.StringVar(&f.mdPath, "markdown", "", "also write the report as Markdown to this file")
+	fs.StringVar(&f.junitPath, "junit", "", "also write the report as JUnit XML to this file, for GitLab or Jenkins")
 	fs.BoolVar(&f.baseMayFail, "base-may-fail", false, "if base fails to build or run, pass with nothing compared instead of failing")
 	fs.BoolVar(&f.failOnInconclusive, "fail-on-inconclusive", false, "exit 1 when the result is inconclusive")
 	fs.BoolVar(&f.noWarmup, "no-warmup", false, "skip the warm-up run on each side")
@@ -135,6 +136,9 @@ func cmdRun(args []string, stdout, stderr io.Writer) int {
 				fmt.Fprintln(stderr, "jvq: interrupted; worktrees removed")
 			}
 			return exitError
+		}
+		if os.Getenv("GITLAB_CI") == "true" && strings.Contains(err.Error(), "fetch-depth: 0") {
+			err = fmt.Errorf("%w (in GitLab: %s)", err, gitx.GitLabHint)
 		}
 		var se *runner.StepError
 		if errors.As(err, &se) {
@@ -344,6 +348,11 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 func writeFiles(f runFlags, rep report.Report) error {
 	if f.jsonPath != "" {
 		if err := writeFile(f.jsonPath, func(w io.Writer) error { return report.JSON(w, rep) }, false); err != nil {
+			return err
+		}
+	}
+	if f.junitPath != "" {
+		if err := writeFile(f.junitPath, func(w io.Writer) error { return report.JUnit(w, rep) }, false); err != nil {
 			return err
 		}
 	}

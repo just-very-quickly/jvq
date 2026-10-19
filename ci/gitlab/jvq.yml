@@ -1,0 +1,69 @@
+# jvq for GitLab CI: a hidden job to extend.
+#
+#   include:
+#     - remote: https://raw.githubusercontent.com/just-very-quickly/jvq/v0.4.0/ci/gitlab/jvq.yml
+#
+#   benchmarks:
+#     extends: .jvq
+#     image: golang:1.26          # whatever your benchmarks need, plus curl and git
+#     variables:
+#       JVQ_COMMAND: go test -run=NONE -bench=. -benchmem ./...
+#
+# It runs in merge request pipelines and on the default branch, downloads
+# the jvq release named by JVQ_VERSION (checking it against the release's
+# SHA256SUMS), and runs `jvq run`. The table goes to the job log, the JUnit
+# report to the merge request's test summary, and jvq.md and jvq.json are
+# kept as artifacts. Exit codes: 0 pass, 1 regression (the job fails), 2
+# error. https://jvq.net has the rest.
+
+.jvq:
+  variables:
+    GIT_DEPTH: "0"           # jvq needs the base commit, not a shallow clone
+    JVQ_VERSION: v0.4.0      # a release tag, or "latest"
+    JVQ_COMMAND: ""          # the benchmark command; empty uses jvq.toml or the Go default
+    JVQ_ARGS: ""             # more flags for jvq run, such as -adapter json
+    JVQ_DIR: "."             # where to run, relative to the repository
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - |
+      set -eu
+      case "$(uname -m)" in
+        x86_64|amd64) arch=amd64 ;;
+        aarch64|arm64) arch=arm64 ;;
+        *) echo "jvq: unsupported architecture $(uname -m)"; exit 2 ;;
+      esac
+      name="jvq_linux_${arch}.tar.gz"
+      if [ "$JVQ_VERSION" = latest ]; then
+        url="https://github.com/just-very-quickly/jvq/releases/latest/download"
+      else
+        url="https://github.com/just-very-quickly/jvq/releases/download/$JVQ_VERSION"
+      fi
+      bin="$(mktemp -d)"
+      curl -fsSL --retry 3 -o "$bin/$name" "$url/$name"
+      curl -fsSL --retry 3 -o "$bin/SHA256SUMS" "$url/SHA256SUMS"
+      (cd "$bin" && grep " ${name}\$" SHA256SUMS | sha256sum -c - && tar -xzf "$name" jvq)
+      export PATH="$bin:$PATH"
+      jvq version
+      # Merge request pipelines may not have fetched the target branch.
+      if [ -n "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-}" ]; then
+        git fetch --quiet origin "+refs/heads/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME:refs/remotes/origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+      fi
+      out="$CI_PROJECT_DIR"
+      cd "$JVQ_DIR"
+      set +e
+      if [ -n "$JVQ_COMMAND" ]; then
+        jvq run -junit "$out/jvq.xml" -markdown "$out/jvq.md" -json "$out/jvq.json" $JVQ_ARGS -- "$JVQ_COMMAND"
+      else
+        jvq run -junit "$out/jvq.xml" -markdown "$out/jvq.md" -json "$out/jvq.json" $JVQ_ARGS
+      fi
+      code=$?
+      exit $code
+  artifacts:
+    when: always
+    paths:
+      - jvq.md
+      - jvq.json
+    reports:
+      junit: jvq.xml

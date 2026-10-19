@@ -6,6 +6,7 @@ package report
 import (
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"math"
 	"strings"
 	"testing"
@@ -160,5 +161,36 @@ func TestSizeFormatting(t *testing.T) {
 		if got := Value("size", "B", v); got != want {
 			t.Errorf("%v: %q, want %q", v, got, want)
 		}
+	}
+}
+
+func TestJUnit(t *testing.T) {
+	rep := sample()
+	rep.Rows = append(rep.Rows, verdict.Row{Name: "BenchmarkMaybe", Metric: "time", Unit: "ns/op",
+		Base: &verdict.Side{N: 10, Median: 100}, Head: &verdict.Side{N: 10, Median: 104},
+		Change: f(0.04), Lo: f(-0.01), Hi: f(0.09), Budget: "5%", Verdict: verdict.Inconclusive, Note: verdict.Straddles})
+	var b bytes.Buffer
+	if err := JUnit(&b, rep); err != nil {
+		t.Fatal(err)
+	}
+	out := b.String()
+	for _, want := range []string{
+		`<?xml version="1.0" encoding="UTF-8"?>`,
+		`<testsuite name="jvq" tests="4" failures="2" errors="0" skipped="1" time="12.340">`,
+		`<testcase classname="jvq.a" name="a.BenchmarkParse|x time" time="0">`,
+		`<failure message="+20.0% over budget 5%" type="regression">`,
+		`<skipped message="inconclusive: base 100 ns, head 104 ns, change +4.0%, interval -1.0% … +9.0%, budget 5%; the interval straddles the budget">`,
+		`name="BenchmarkOK time"`,
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("JUnit lacks %q:\n%s", want, out)
+		}
+	}
+	if strings.Contains(out, "BenchmarkNew") {
+		t.Error("a new benchmark, which isn't gated, became a test case")
+	}
+	var v struct{}
+	if err := xml.Unmarshal(b.Bytes(), &v); err != nil {
+		t.Errorf("not valid XML: %v", err)
 	}
 }

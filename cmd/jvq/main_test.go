@@ -80,7 +80,7 @@ func jvq(t *testing.T, dir string, env []string, args ...string) result {
 func cleanEnv() []string {
 	var out []string
 	for _, kv := range os.Environ() {
-		if strings.HasPrefix(kv, "GITHUB_") {
+		if strings.HasPrefix(kv, "GITHUB_") || strings.HasPrefix(kv, "CI_") || strings.HasPrefix(kv, "GITLAB_") {
 			continue
 		}
 		out = append(out, kv)

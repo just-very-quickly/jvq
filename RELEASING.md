@@ -6,6 +6,10 @@ how that works, for whoever (person or Claude session) works on this repo next.
 ## The short version
 
 1. Raise `const Version = "X.Y.Z"` in `cmd/jvq/version.go`.
+   Change the version the examples name to match: the action's in README.md
+   and action.yml, and `JVQ_VERSION` and the include URL in
+   ci/gitlab/jvq.yml and README.md. A test (cmd/jvq/docs_test.go) fails
+   until they do, so the release can't go out pointing at the last one.
 2. Write what changed into the commit message.
 3. Push the commit to `main`.
 

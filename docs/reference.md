@@ -28,9 +28,18 @@ What happens, in order:
 3. Head is resolved (`-head`, default `HEAD`). Base is `-base`, or else:
    - in a GitHub pull request run, the merge base of head and
      `origin/$GITHUB_BASE_REF`;
+   - in a GitLab merge request pipeline (`CI_MERGE_REQUEST_IID` set): in a
+     merged results pipeline or merge train
+     (`CI_MERGE_REQUEST_EVENT_TYPE` is `merged_result` or `merge_train`),
+     head's first parent, the target branch GitLab merged into; otherwise
+     `CI_MERGE_REQUEST_DIFF_BASE_SHA`; failing both, the merge base with
+     `origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME`. A commit GitLab names
+     that isn't in the clone is an error saying to set `GIT_DEPTH: "0"` and
+     fetch the target branch;
    - otherwise the merge base of head and the first of: origin's default
-     branch (`refs/remotes/origin/HEAD`), `origin/main`, `origin/master`,
-     `main`, `master`;
+     branch (`refs/remotes/origin/HEAD`), `origin/$CI_DEFAULT_BRANCH` and
+     `$CI_DEFAULT_BRANCH` when GitLab sets it, `origin/main`,
+     `origin/master`, `main`, `master`;
    - if that merge base is head itself (head is on the base branch, as on a
      push to main), head's first parent.
    A shallow clone that lacks the commits needed is an error that says to
@@ -76,6 +85,7 @@ that doesn't write it is an error.
 | `-timeout D` | `10m` | limit for each command run (Go duration: `90s`, `10m`) |
 | `-json FILE` | none | also write the report as JSON |
 | `-markdown FILE` | none | also write the report as Markdown |
+| `-junit FILE` | none | also write the report as JUnit XML |
 | `-base-may-fail` | off | if base fails to build or run, print a note and exit 0 with nothing compared |
 | `-fail-on-inconclusive` | off | exit 1 when the overall verdict is inconclusive |
 | `-no-warmup` | off | skip the warm-up runs |
@@ -424,6 +434,35 @@ relative (0.1 means +10%); `ci_lo`, `ci_hi` and `p` (the two-sided
 Mann-Whitney p-value for no difference) appear for time only. `change` is
 left out when base was zero. `note` explains a non-obvious verdict or base.
 Medians are in the metric's unit (nanoseconds for time).
+
+## JUnit report
+
+`-junit FILE` (on `run` and `compare`) writes one test suite named `jvq`
+with a test case per gated result, named after the benchmark and metric,
+with class `jvq` or `jvq.` plus the package or group. A regression is a
+failure, with the change and budget as its message; inconclusive is
+skipped, with the reason; pass and improved pass. Results that aren't
+gated (new, removed, info) aren't listed. Each case's `system-out` has
+the medians, change, interval and budget.
+
+## GitLab CI
+
+[ci/gitlab/jvq.yml](../ci/gitlab/jvq.yml) defines a hidden job `.jvq` to
+include and extend. Its variables:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `JVQ_VERSION` | the release the file came with | a release tag, or `latest` |
+| `JVQ_COMMAND` | empty | the benchmark command; empty uses jvq.toml or the Go default |
+| `JVQ_ARGS` | empty | more flags for `jvq run`, split on spaces |
+| `JVQ_DIR` | `.` | where to run, relative to the repository |
+| `GIT_DEPTH` | `"0"` | a full clone, so the base commit is there |
+
+It runs on `merge_request_event` pipelines and on the default branch,
+fetches the merge request's target branch, downloads
+`jvq_linux_<arch>.tar.gz` for x86-64 or ARM64, checks it against the
+release's SHA256SUMS, and writes jvq.xml (a `junit` report), jvq.md and
+jvq.json as artifacts, kept even when the job fails.
 
 ## Worktrees and cleanup
 

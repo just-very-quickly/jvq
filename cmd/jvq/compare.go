@@ -33,6 +33,7 @@ func cmdCompare(args []string, stdout, stderr io.Writer) int {
 	fs.StringVar(&f.adapter, "adapter", "", "format of the files: go, json, criterion, google-benchmark, pytest-benchmark or vitest (default: the adapter in jvq.toml, else json for .json and .jsonl files, else go)")
 	fs.StringVar(&f.jsonPath, "json", "", "also write the report as JSON to this file")
 	fs.StringVar(&f.mdPath, "markdown", "", "also write the report as Markdown to this file")
+	fs.StringVar(&f.junitPath, "junit", "", "also write the report as JUnit XML to this file")
 	fs.BoolVar(&f.failOnInconclusive, "fail-on-inconclusive", false, "exit 1 when the result is inconclusive")
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "Usage: jvq compare [flags] OLD NEW")

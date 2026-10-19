@@ -7,6 +7,7 @@ package report
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"math"
@@ -280,4 +281,83 @@ func JSON(w io.Writer, rep Report) error {
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
 	return enc.Encode(rep)
+}
+
+// JUnit writes the report as a JUnit XML test report, which GitLab shows in
+// the merge request and Jenkins and other CI systems read too. Each gated
+// result is a test case: a regression fails it, inconclusive skips it with
+// the reason, and pass or improved passes. Results that aren't gated (new,
+// removed, info) aren't listed.
+func JUnit(w io.Writer, rep Report) error {
+	type failure struct {
+		Message string `xml:"message,attr"`
+		Type    string `xml:"type,attr"`
+		Text    string `xml:",chardata"`
+	}
+	type skipped struct {
+		Message string `xml:"message,attr"`
+	}
+	type testcase struct {
+		Classname string   `xml:"classname,attr"`
+		Name      string   `xml:"name,attr"`
+		Time      string   `xml:"time,attr"`
+		Failure   *failure `xml:"failure,omitempty"`
+		Skipped   *skipped `xml:"skipped,omitempty"`
+		SystemOut string   `xml:"system-out,omitempty"`
+	}
+	type testsuite struct {
+		XMLName  xml.Name   `xml:"testsuite"`
+		Name     string     `xml:"name,attr"`
+		Tests    int        `xml:"tests,attr"`
+		Failures int        `xml:"failures,attr"`
+		Errors   int        `xml:"errors,attr"`
+		Skipped  int        `xml:"skipped,attr"`
+		Time     string     `xml:"time,attr"`
+		Cases    []testcase `xml:"testcase"`
+	}
+	type testsuites struct {
+		XMLName xml.Name    `xml:"testsuites"`
+		Name    string      `xml:"name,attr"`
+		Suites  []testsuite `xml:"testsuite"`
+	}
+	suite := testsuite{Name: "jvq", Time: fmt.Sprintf("%.3f", rep.Seconds)}
+	shown := names(rep.Rows)
+	for _, r := range rep.Rows {
+		if !r.Gated() {
+			continue
+		}
+		class := "jvq"
+		if r.Package != "" {
+			class = "jvq." + r.Package
+		}
+		detail := fmt.Sprintf("base %s, head %s, change %s", side(r, r.Base), side(r, r.Head), Pct(r.Change))
+		if iv := Interval(r.Lo, r.Hi); iv != "" {
+			detail += ", interval " + iv
+		}
+		detail += ", budget " + r.Budget
+		if r.Note != "" {
+			detail += "; " + r.Note
+		}
+		tc := testcase{Classname: class, Name: shown[r.Key()] + " " + r.Metric, Time: "0", SystemOut: detail}
+		switch r.Verdict {
+		case verdict.Regression:
+			suite.Failures++
+			tc.Failure = &failure{Message: fmt.Sprintf("%s over budget %s", Pct(r.Change), r.Budget), Type: "regression", Text: detail}
+		case verdict.Inconclusive:
+			suite.Skipped++
+			tc.Skipped = &skipped{Message: "inconclusive: " + detail}
+		}
+		suite.Cases = append(suite.Cases, tc)
+	}
+	suite.Tests = len(suite.Cases)
+	if _, err := io.WriteString(w, xml.Header); err != nil {
+		return err
+	}
+	enc := xml.NewEncoder(w)
+	enc.Indent("", "  ")
+	if err := enc.Encode(testsuites{Name: "jvq", Suites: []testsuite{suite}}); err != nil {
+		return err
+	}
+	_, err := io.WriteString(w, "\n")
+	return err
 }
