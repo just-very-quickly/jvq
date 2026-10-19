@@ -96,7 +96,7 @@ same benchmark binary, run 40 times in a row, spread by 7.2% from run to run
 | no change | 200 | 0 (0%) | no regression |
 | 2% more work | 50 | 0 (0%) | no regression |
 | 5% more work | 50 | 4 (8%) | no regression, at the budget's edge |
-| 10% more work | 50 | 38 (76%) | regression |
+| 10% more work | 50 | 43 (86%) | regression |
 | 20% more work | 50 | 50 (100%) | regression |
 | 50% more work | 50 | 50 (100%) | regression |
 | one more allocation per op | 100 | 100 (100%) | regression |
@@ -105,9 +105,9 @@ same benchmark binary, run 40 times in a row, spread by 7.2% from run to run
 The runs that weren't flagged passed or came back inconclusive. Clear cases
 took the 10 starting rounds; close ones used more, up to 30 per side, and a
 time run took 1.5 to 3.5 seconds on this fixture, on a day the VM's
-timings spread 7.1% from run to run. How much a 10% slowdown gets caught
+timings spread 8.9% from run to run. How much a 10% slowdown gets caught
 depends on that noise: earlier recordings on the same kind of VM caught
-42 of 50 at 8.9%, 34 of 50 at 7.2% and 48 of 50 at 4.6%. None of them
+38 of 50 at 7.1%, 42 of 50 at 8.9%, 34 of 50 at 7.2% and 48 of 50 at 4.6%. None of them
 raised a false alarm.
 
 On a GitHub-hosted runner (ubuntu-latest, 4 cores) the same suite saw only

@@ -1,11 +1,12 @@
-ok  	github.com/just-very-quickly/jvq/cmd/jvq	29.026s
-ok  	github.com/just-very-quickly/jvq/internal/adapter	1.043s
-ok  	github.com/just-very-quickly/jvq/internal/config	1.022s
+ok  	github.com/just-very-quickly/jvq/cmd/jvq	32.205s
+ok  	github.com/just-very-quickly/jvq/internal/adapter	1.047s
+ok  	github.com/just-very-quickly/jvq/internal/config	1.021s
 ?   	github.com/just-very-quickly/jvq/internal/fixture	[no test files]
-ok  	github.com/just-very-quickly/jvq/internal/gitx	2.196s
-ok  	github.com/just-very-quickly/jvq/internal/report	1.034s
-ok  	github.com/just-very-quickly/jvq/internal/runner	83.285s
-ok  	github.com/just-very-quickly/jvq/internal/stats	1.441s
-ok  	github.com/just-very-quickly/jvq/internal/verdict	1.393s
+ok  	github.com/just-very-quickly/jvq/internal/gitx	1.956s
+ok  	github.com/just-very-quickly/jvq/internal/history	1.047s
+ok  	github.com/just-very-quickly/jvq/internal/report	1.017s
+ok  	github.com/just-very-quickly/jvq/internal/runner	83.208s
+ok  	github.com/just-very-quickly/jvq/internal/stats	1.465s
+ok  	github.com/just-very-quickly/jvq/internal/verdict	1.398s
 ?   	github.com/just-very-quickly/jvq/test/accuracy	[no test files]
 ?   	github.com/just-very-quickly/jvq/test/scenarios	[no test files]
