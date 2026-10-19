@@ -221,6 +221,31 @@ per run; jvq's own rounds do the rest.
 The harness's own comparison with its last run (criterion's "change:"
 lines, for one) is ignored, since jvq measures base and head itself.
 
+## Counting instructions instead of time (Linux)
+
+```toml
+adapter = "instructions"
+build   = "go build -o work ./cmd/work"     # whatever builds your benchmark
+command = "./work -iterations 1000"         # a fixed amount of work
+rounds  = 5
+```
+
+The `instructions` adapter runs the command under valgrind's cachegrind
+and counts every instruction it runs, its child processes included. A
+count barely moves from one run to the next and doesn't care how busy the
+machine is, so a 1% budget (its default) is enough to catch a 2% change,
+which time on a shared runner can't. It needs Linux and valgrind
+(`apt install valgrind`); GitHub's and GitLab's hosted runners have no
+hardware counters for perf, which is why it uses valgrind.
+
+Two things to know. The command must do a fixed amount of work: a Go
+benchmark with `-test.benchtime=1000x`, a loop with a set count, not a
+harness that runs for a set time. And valgrind makes it 20 to 50 times
+slower, so keep the command short and the rounds few; 5 rounds a side is
+plenty when counts are this steady. Fewer instructions usually means
+faster, but not always: a cache miss costs more than an add, and the count
+can't see it.
+
 ## A file-size budget
 
 ```toml
@@ -418,7 +443,7 @@ repository root.
 # go test -run=NONE -bench=. -benchmem ./...
 command = "./bench.test -test.run=NONE -test.bench=. -test.benchmem"
 build   = "go test -c -o bench.test ./parser"   # once per side, optional
-adapter = "go"          # go, json, time, criterion, google-benchmark, pytest-benchmark, vitest
+adapter = "go"          # go, json, time, instructions, criterion, google-benchmark, pytest-benchmark, vitest
 # output = "results.json"  # a file the command writes its results to, if not stdout
 # size = ["bin/app"]       # files whose size is gated, measured after the build
 # history = "jvq-history.jsonl"  # add a line per run to this file
@@ -436,6 +461,7 @@ time   = "5%"           # how much slower is allowed; always a percentage
 bytes  = "10%"          # B/op: a percentage, an amount, or "off" (default)
 allocs = "0"            # allocs/op: any increase fails; default "off"
 size   = "1%"           # files listed in size = [...]; default "1%"
+instructions = "1%"     # the instructions adapter's count; default "1%"
 
 [budget.bench."BenchmarkParse*"]   # tighter for the hot path
 time = "2%"
@@ -460,8 +486,8 @@ jvq run [flags] [-- command]
   -rounds N              rounds per side to start with (default 10)
   -max-rounds N          most rounds per side while undecided (default 30)
   -build CMD             command run once per side first
-  -adapter NAME          how to read results: go, json, time, criterion,
-                         google-benchmark, pytest-benchmark or vitest
+  -adapter NAME          how to read results: go, json, time, instructions,
+                         criterion, google-benchmark, pytest-benchmark or vitest
   -output FILE           read results from this file the command writes
   -timeout D             limit per command run, such as 10m
   -json FILE             also write the report as JSON

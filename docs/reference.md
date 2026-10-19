@@ -1,6 +1,6 @@
 # jvq reference
 
-Everything jvq v0.5 does, in one place. The [README](../README.md) is the
+Everything jvq v0.6 does, in one place. The [README](../README.md) is the
 introduction.
 
 ## Commands
@@ -82,7 +82,7 @@ that doesn't write it is an error.
 | `-rounds N` | 10 | rounds per side to start with, at least 3 |
 | `-max-rounds N` | 30 | most rounds per side while undecided; at or below `-rounds` turns adding rounds off |
 | `-build CMD` | none | command run once per side before the rounds |
-| `-adapter NAME` | `go` | how to read results: `go`, `json`, `time`, `criterion`, `google-benchmark`, `pytest-benchmark` or `vitest` |
+| `-adapter NAME` | `go` | how to read results: `go`, `json`, `time`, `instructions`, `criterion`, `google-benchmark`, `pytest-benchmark` or `vitest` |
 | `-output FILE` | none | read results from this file, which the command writes, instead of its standard output |
 | `-timeout D` | `10m` | limit for each command run (Go duration: `90s`, `10m`) |
 | `-json FILE` | none | also write the report as JSON |
@@ -206,7 +206,7 @@ back to a default quietly.
 |---|---|---|---|
 | `command` | string | see above | the benchmark command |
 | `build` | string | none | runs once per side before the rounds |
-| `adapter` | string | `"go"` | how to read results: `go`, `json`, `time`, `criterion`, `google-benchmark`, `pytest-benchmark` or `vitest` |
+| `adapter` | string | `"go"` | how to read results: `go`, `json`, `time`, `instructions`, `criterion`, `google-benchmark`, `pytest-benchmark` or `vitest` |
 | `output` | string | none | a file the command writes its results to, read instead of its standard output; not with `time` |
 | `size` | list of patterns | none | files whose size is gated, measured once per side after the build |
 | `history` | string | none | a history file each run adds a line to |
@@ -221,7 +221,8 @@ back to a default quietly.
 | `[budget]` `bytes` | percentage, amount or `"off"` | `"off"` | B/op allowance |
 | `[budget]` `allocs` | percentage, amount or `"off"` | `"off"` | allocs/op allowance |
 | `[budget]` `size` | percentage, amount or `"off"` | `"1%"` | how much a file listed in `size` may grow; an amount is in bytes |
-| `[budget.bench."PATTERN"]` | the four budget keys | | overrides for matching benchmarks (or file paths, for size); later tables win |
+| `[budget]` `instructions` | percentage or `"off"` | `"1%"` | how many more instructions the instructions adapter may count |
+| `[budget.bench."PATTERN"]` | the five budget keys | | overrides for matching benchmarks (or file paths, for size); later tables win |
 | `[ignore]` `bench` | list of patterns | none | benchmarks left out of the report |
 
 Budgets: `"5%"` allows 5% more than base; an amount such as `"0"` or `"64"`
@@ -332,6 +333,31 @@ default, which for a small file is only a few bytes; an amount such as
 `"2000"` suits those. A file on one side only is new or removed, not
 gated; a pattern that matches nothing on either side is an error. With no
 `build`, sizes are measured before the first run.
+
+## The instructions adapter
+
+On Linux, jvq runs each measured run of the command as
+
+```
+valgrind --tool=cachegrind --cache-sim=no --cachegrind-out-file=/dev/null \
+  --trace-children=yes --log-file=<temp>/vg.%p sh -c '<command>'
+```
+
+and adds up the instruction counts (`I refs`) of every process it ran,
+recording one sample per run named `command`, metric `instructions`,
+judged like time: the Hodges-Lehmann shift in the log of the counts and
+its interval against a percentage budget, `[budget] instructions`, 1% by
+default. Whatever the command prints is ignored, and `output` can't be
+used with it. jvq checks for valgrind and Linux before the first run and
+says what's missing.
+
+The command must do a fixed amount of work: a count tells how much work
+was done, so a benchmark that runs for a set time does more work when the
+machine is fast. For Go, build the test binary and run it with
+`-test.benchtime=1000x` (a fixed count) rather than a time. Under
+valgrind the command runs 20 to 50 times slower. Counts vary a little from
+run to run in programs whose work depends on timing (garbage collectors,
+schedulers, Python's start-up), less than time does by far.
 
 ## The time adapter
 
