@@ -91,8 +91,9 @@ func main() {
 		pyAB      = flag.Int("python-ab", 30, "runs per Python slowdown")
 		pyWork    = flag.Int("python-work", 800000, "loop rounds in the Python script")
 		harnessAA = flag.Int("harness-aa", 10, "no-change runs per benchmark harness")
+		instrRuns = flag.Int("instructions-runs", 20, "runs per case for the instructions adapter")
 		harnessAB = flag.Int("harness-ab", 10, "+20% runs per benchmark harness")
-		only      = flag.String("only", "", "run only these scenarios: noisy, drift, python, harness (comma-separated)")
+		only      = flag.String("only", "", "run only these scenarios: noisy, drift, python, instructions, harness (comma-separated)")
 		out       = flag.String("out", "test/results", "where to write scenarios.json and scenarios.md")
 		jvqPath   = flag.String("jvq", "", "jvq binary (default: build ./cmd/jvq)")
 	)
@@ -120,10 +121,11 @@ func main() {
 		Date: time.Now().UTC().Format("2006-01-02"), JVQ: strings.TrimSpace(string(ver)), Machine: machine(),
 		Settings: map[string]any{
 			"budget": "5% time (the default)", "confidence": 0.95,
-			"noisy":   fmt.Sprintf("the Go fixture benchmark (20 ms a round, 10 rounds to start, up to 30), beside a process keeping %d of the %d CPUs busy and churning through %d MB", *hogCPUs, runtime.NumCPU(), *hogMB),
-			"drift":   fmt.Sprintf("the fixture program with the json adapter, each run %g%% slower than the one before, 10 rounds a side, no warm-up, no added rounds", *driftPct),
-			"harness": "the real harnesses through jvq run with their adapters: pytest-benchmark, Google Benchmark (its Python bindings), vitest bench and Rust's criterion, each timing a loop whose length is set per commit; 10 rounds to start, up to 30",
-			"python":  fmt.Sprintf("a Python script running a %d-round loop: timed whole by the time adapter, or timing 5 batches of a tenth of it with the json adapter; 10 rounds to start, up to 30", *pyWork),
+			"noisy":        fmt.Sprintf("the Go fixture benchmark (20 ms a round, 10 rounds to start, up to 30), beside a process keeping %d of the %d CPUs busy and churning through %d MB", *hogCPUs, runtime.NumCPU(), *hogMB),
+			"drift":        fmt.Sprintf("the fixture program with the json adapter, each run %g%% slower than the one before, 10 rounds a side, no warm-up, no added rounds", *driftPct),
+			"instructions": "the fixture program under valgrind's cachegrind (the instructions adapter, 1% budget), 5 rounds to start, up to 30; the neighbour case runs beside the noisy neighbour",
+			"harness":      "the real harnesses through jvq run with their adapters: pytest-benchmark, Google Benchmark (its Python bindings), vitest bench and Rust's criterion, each timing a loop whose length is set per commit; 10 rounds to start, up to 30",
+			"python":       fmt.Sprintf("a Python script running a %d-round loop: timed whole by the time adapter, or timing 5 batches of a tenth of it with the json adapter; 10 rounds to start, up to 30", *pyWork),
 		},
 	}
 
@@ -138,6 +140,14 @@ func main() {
 			fail("the python scenario needs %s on the PATH", python())
 		}
 		o.Trials = append(o.Trials, pythonRuns(bin, *pyWork, *pyAA, *pyAB)...)
+	}
+	if want("instructions") {
+		if _, err := exec.LookPath("valgrind"); err != nil {
+			o.Settings["instructions_skipped"] = "valgrind isn't installed"
+			fmt.Fprintln(os.Stderr, "instructions skipped: valgrind isn't installed")
+		} else {
+			o.Trials = append(o.Trials, instructionRuns(bin, *hogCPUs, *hogMB, *instrRuns)...)
+		}
 	}
 	if want("harness") {
 		trials, skipped := harnessRuns(bin, *harnessAA, *harnessAB)
@@ -183,19 +193,7 @@ func beNeighbour(cpus, mb int) {
 }
 
 func noisy(bin string, cpus, mb, aa, ab int) []trial {
-	self, err := os.Executable()
-	check(err)
-	hog := exec.Command(self, "-hog", "-hog-cpus", fmt.Sprint(cpus), "-hog-mb", fmt.Sprint(mb))
-	stdin, err := hog.StdinPipe()
-	check(err)
-	check(hog.Start())
-	stopHog = func() {
-		stdin.Close()
-		hog.Process.Kill()
-		hog.Wait()
-	}
-	defer stopHog()
-	time.Sleep(time.Second) // let it get going
+	defer startHog(cpus, mb)()
 	cfg := fixture.Config(10, "20ms", "max_rounds = 30\n")
 	var trials []trial
 	r := mustRepo(fixture.Spec{Work: work}, fixture.Spec{Work: work, Extra: "nothing measured changed"}, cfg)
@@ -380,7 +378,7 @@ func cli(bin, dir, scenario, label, name string) trial {
 func fromRows(scenario, label string, rows []verdict.Row, name string, rounds int, d time.Duration) trial {
 	t := trial{Scenario: scenario, Case: label, Rounds: rounds, Seconds: d.Seconds()}
 	for _, r := range rows {
-		if r.Name == name && r.Metric == "time" {
+		if r.Name == name && (r.Metric == "time" || r.Metric == "instructions") {
 			t.Verdict, t.Change, t.Lo, t.Hi = r.Verdict, r.Change, r.Lo, r.Hi
 		}
 	}
@@ -408,7 +406,7 @@ func summarise(trials []trial) []row {
 		i, ok := index[k]
 		if !ok {
 			exp := "regression"
-			if t.Case == "no change" || strings.Contains(t.Case, "order") {
+			if t.Case == "no change" || strings.Contains(t.Case, "order") || strings.Contains(t.Case, "within") || strings.HasPrefix(t.Case, "no change") {
 				exp = "no regression"
 			}
 			rows = append(rows, row{Scenario: t.Scenario, Case: t.Case, Expected: exp})
@@ -450,7 +448,7 @@ func markdown(o output) string {
 	for _, t := range o.Trials {
 		ran[strings.SplitN(t.Scenario, ",", 2)[0]] = true
 	}
-	for _, k := range []string{"noisy", "drift", "python", "harness"} {
+	for _, k := range []string{"noisy", "drift", "python", "instructions", "harness"} {
 		if ran[k] {
 			fmt.Fprintf(&b, "- **%s**: %s.\n", k, o.Settings[k])
 		}
@@ -517,6 +515,25 @@ func check(err error) {
 	if err != nil {
 		fail("%v", err)
 	}
+}
+
+// startHog starts the noisy neighbour and returns the function that stops
+// it.
+func startHog(cpus, mb int) func() {
+	self, err := os.Executable()
+	check(err)
+	hog := exec.Command(self, "-hog", "-hog-cpus", fmt.Sprint(cpus), "-hog-mb", fmt.Sprint(mb))
+	stdin, err := hog.StdinPipe()
+	check(err)
+	check(hog.Start())
+	stopHog = func() {
+		stdin.Close()
+		hog.Process.Kill()
+		hog.Wait()
+		stopHog = func() {}
+	}
+	time.Sleep(time.Second) // let it get going
+	return func() { stopHog() }
 }
 
 // stopHog stops the noisy neighbour, if one is running, before an exit
