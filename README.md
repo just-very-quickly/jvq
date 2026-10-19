@@ -305,12 +305,19 @@ default branch add a line to it; pull requests read it and don't
 run prints the trend to the job summary:
 
 ```
-jvq history: 24 runs, 2026-10-01 (4be1c0f2a9) to 2026-10-19 (9d01e77c3b) in jvq-history.jsonl
+jvq history: 12 runs, 2026-10-19 (ee5dbba2bf) to 2026-10-19 (283f0bbbdb) in jvq-history.jsonl
 
-BENCHMARK       METRIC  RUNS  IN ALL  REGRESSIONS  RUN BY RUN
-BenchmarkParse  time    24    +11.8%  0            ··▂·▃▁·▂▂·▃·▂·▁▂··▃▂·▂▂·
-BenchmarkWrite  time    24    -2.1%   0            ·▁··▁·▂▁··▁···▁·▂··▁···▁
+BENCHMARK       METRIC  RUNS  IN ALL                   REGRESSIONS  RUN BY RUN
+BenchmarkParse  time    12    +12.5% (-6.2% … +31.7%)  0            ▁▃▁▅▁▂▄▂▃█▁▂
+BenchmarkWrite  time    12    -8.6% (-23.1% … +7.1%)   0            ▁▁▃▁▁▁▁▁▂▃▁▄
 ```
+
+That's a real one ([test/results/history-example.jsonl](test/results/history-example.jsonl)), from 12 commits on our noisy 2-core test machine, each
+making BenchmarkParse 2% slower (about +27% in all) and leaving
+BenchmarkWrite alone. Every run passed it or called it inconclusive, as a
+2% step under a 5% budget should, and on a machine this
+noisy the chain doesn't settle it either: Parse's interval reaches +31.7%
+and Write's covers zero. On a quiet runner the intervals are much tighter.
 
 *In all* chains each run's own change, base to head. Medians from
 different runs come from different machines and can't be compared, but
