@@ -25,11 +25,11 @@ jvq run -adapter time -- python3 bench.py      # time the whole command
 jvq run -adapter json -- node bench.js         # read {"name", "unit", "value"} lines
 ```
 
-**Status: v0.2.0.** Go benchmark output, whole-command timing, a small JSON
-format, `jvq compare` for two saved outputs, time, bytes and allocation
-budgets, adaptive rounds, a GitHub Action, Linux, macOS and Windows. Rust,
-C++, Python and JavaScript benchmark tools come next. jvq is open source
-under the Apache License 2.0.
+**Status: v0.3.0.** Go benchmark output, Rust's criterion, Google
+Benchmark, pytest-benchmark and vitest as they are, whole-command timing, a
+small JSON format, `jvq compare` for two saved outputs, time, bytes,
+allocation and file-size budgets, adaptive rounds, a GitHub Action, Linux,
+macOS and Windows. jvq is open source under the Apache License 2.0.
 
 ## Why it exists
 
@@ -178,6 +178,47 @@ for _ in range(5):
     print(json.dumps({"name": "parse", "unit": "ns", "value": ns}))
 ```
 
+### Benchmark harnesses, read as they are
+
+| Adapter | Harness | Command | Reads |
+|---|---|---|---|
+| `criterion` | Rust's [criterion](https://github.com/bheisler/criterion.rs) | `cargo bench` | the `time: [low estimate high]` lines it prints; also `test x ... bench: N ns/iter` lines |
+| `google-benchmark` | [Google Benchmark](https://github.com/google/benchmark), C++ or its Python bindings | `./bench --benchmark_format=json` | each repetition's real time |
+| `pytest-benchmark` | [pytest-benchmark](https://github.com/ionelmc/pytest-benchmark) | `pytest --benchmark-json=bench.json`, with `output = "bench.json"` | each test's median |
+| `vitest` | [vitest bench](https://vitest.dev/guide/features.html#benchmarking) | `vitest bench --run --outputJson bench.json`, with `output = "bench.json"` | each benchmark's median |
+
+For example, a Rust crate:
+
+```toml
+adapter = "criterion"
+build   = "cargo bench --no-run"
+command = "cargo bench"
+```
+
+Each worktree is a fresh checkout, so cargo builds from scratch in each
+jvq run. On Linux and macOS, `--target-dir "$HOME/.cache/jvq-$JVQ_SIDE"` in
+both commands keeps one build folder per side between runs. Each adapter gives one time per benchmark
+per run; jvq's own rounds do the rest.
+The harness's own comparison with its last run (criterion's "change:"
+lines, for one) is ignored, since jvq measures base and head itself.
+
+## A file-size budget
+
+```toml
+size = ["target/release/app", "dist/*.js"]   # measured after the build
+
+[budget]
+size = "1%"     # the default once size is set; an amount such as "50000" works too
+```
+
+jvq measures each file the patterns match, on both sides, once the build
+has run (or before the first round, with no build), and fails the run when
+one grows by more than its budget. Patterns are relative to where the
+command runs, `*` matches within one folder, and `[budget.bench."dist/*"]`
+can set a different budget for some files. A file on one side only is
+reported as new or removed. A pattern that matches nothing on either side
+is an error.
+
 ## Two saved outputs: jvq compare
 
 ```sh
@@ -249,8 +290,9 @@ repository root.
 # go test -run=NONE -bench=. -benchmem ./...
 command = "./bench.test -test.run=NONE -test.bench=. -test.benchmem"
 build   = "go test -c -o bench.test ./parser"   # once per side, optional
-adapter = "go"          # go, json or time
+adapter = "go"          # go, json, time, criterion, google-benchmark, pytest-benchmark, vitest
 # output = "results.json"  # a file the command writes its results to, if not stdout
+# size = ["bin/app"]       # files whose size is gated, measured after the build
 
 rounds     = 10         # per side, to start with
 max_rounds = 30         # per side, at most, while undecided
@@ -263,6 +305,7 @@ fail_on_inconclusive = false
 time   = "5%"           # how much slower is allowed; always a percentage
 bytes  = "10%"          # B/op: a percentage, an amount, or "off" (default)
 allocs = "0"            # allocs/op: any increase fails; default "off"
+size   = "1%"           # files listed in size = [...]; default "1%"
 
 [budget.bench."BenchmarkParse*"]   # tighter for the hot path
 time = "2%"
@@ -287,7 +330,8 @@ jvq run [flags] [-- command]
   -rounds N              rounds per side to start with (default 10)
   -max-rounds N          most rounds per side while undecided (default 30)
   -build CMD             command run once per side first
-  -adapter NAME          how to read results: go, json or time
+  -adapter NAME          how to read results: go, json, time, criterion,
+                         google-benchmark, pytest-benchmark or vitest
   -output FILE           read results from this file the command writes
   -timeout D             limit per command run, such as 10m
   -json FILE             also write the report as JSON
@@ -298,7 +342,8 @@ jvq run [flags] [-- command]
   -keep                  keep the worktrees, for debugging
   -q                     no progress lines
 jvq compare [flags] OLD NEW
-  -adapter NAME          go or json (default: json for .json files, else go)
+  -adapter NAME          any adapter but time (default: jvq.toml's adapter,
+                         else json for .json files, else go)
   -config FILE           config file, for budgets and ignores
   -json FILE, -markdown FILE, -fail-on-inconclusive    as for run
 jvq check [-config FILE]
@@ -312,9 +357,8 @@ report's fields.
 
 ## What it doesn't do (yet)
 
-- Other harnesses' own formats: Rust criterion, Google Benchmark,
-  pytest-benchmark and vitest are planned for v0.3. Until then, the `time`
-  and `json` adapters cover any of them.
+- Other harnesses' own formats beyond the four above. The `time` and
+  `json` adapters cover the rest.
 - Benchmarks that take minutes per run: jvq runs the command 20 to 60
   times. Narrow the command to the benchmarks that matter.
 - Submodules aren't initialised in the worktrees.

@@ -90,8 +90,8 @@ func main() {
 		pyAA      = flag.Int("python-aa", 60, "no-change runs per Python adapter")
 		pyAB      = flag.Int("python-ab", 30, "runs per Python slowdown")
 		pyWork    = flag.Int("python-work", 800000, "loop rounds in the Python script")
-		harnessAA = flag.Int("harness-aa", 20, "no-change runs per benchmark harness")
-		harnessAB = flag.Int("harness-ab", 20, "+20% runs per benchmark harness")
+		harnessAA = flag.Int("harness-aa", 10, "no-change runs per benchmark harness")
+		harnessAB = flag.Int("harness-ab", 10, "+20% runs per benchmark harness")
 		only      = flag.String("only", "", "run only these scenarios: noisy, drift, python, harness (comma-separated)")
 		out       = flag.String("out", "test/results", "where to write scenarios.json and scenarios.md")
 		jvqPath   = flag.String("jvq", "", "jvq binary (default: build ./cmd/jvq)")
@@ -446,8 +446,14 @@ func markdown(o output) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "# jvq in harder settings\n\nRecorded %s with %s on %s, %v CPUs (%s). Total time %s. The time budget is the default 5%%, at 95%% confidence.\n\n",
 		o.Date, o.JVQ, o.Machine["cpu"], o.Machine["cpus"], o.Machine["os"], (time.Duration(o.TotalSecs) * time.Second).String())
+	ran := map[string]bool{}
+	for _, t := range o.Trials {
+		ran[strings.SplitN(t.Scenario, ",", 2)[0]] = true
+	}
 	for _, k := range []string{"noisy", "drift", "python", "harness"} {
-		fmt.Fprintf(&b, "- **%s**: %s.\n", k, o.Settings[k])
+		if ran[k] {
+			fmt.Fprintf(&b, "- **%s**: %s.\n", k, o.Settings[k])
+		}
 	}
 	if sk, ok := o.Settings["harness_skipped"].([]string); ok {
 		fmt.Fprintf(&b, "- Skipped, for want of the tool: %s.\n", strings.Join(sk, "; "))
@@ -458,7 +464,7 @@ func markdown(o output) string {
 		fmt.Fprintf(&b, "| %s | %s | %d | %d (%s) | %d | %d | %+.1f%% | %d | %s |\n", r.Scenario, r.Case, r.Runs,
 			r.Regression, pct(r.Regression, r.Runs), r.Pass, r.Inconcl, r.MedChange*100, r.MedRounds, r.Expected)
 	}
-	fmt.Fprintln(&b, "\nIn the drift rows head is the same as base; only the order of the runs differs. In the Python rows, \"+10% work\" is 10% more rounds of the loop: with the time adapter the whole command also includes Python's start-up, so its measured change is a little smaller.")
+	fmt.Fprintln(&b, "\nIn the drift rows head is the same as base; only the order of the runs differs. In the Python and harness rows, \"+10% work\" or \"+20% work\" is that many more rounds of the loop: with the time adapter the whole command also includes Python's start-up, so its measured change is a little smaller.")
 	return b.String()
 }
 

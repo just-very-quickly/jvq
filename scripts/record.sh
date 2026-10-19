@@ -11,11 +11,14 @@
 #   smoke.txt         the smoke check on a release-style static build
 #   accuracy.json     the accuracy suite: false alarms and detection rates
 #   accuracy.md       its tables
-#   scenarios.json    harder settings: a noisy neighbour, drift, Python commands
+#   scenarios.json    harder settings: a noisy neighbour, drift, Python commands,
+#                     and the real harnesses (pytest-benchmark, Google
+#                     Benchmark, vitest, criterion; one whose tools are
+#                     missing is skipped and listed)
 #   scenarios.md      its table
 #
 # It needs Go, git and Python 3. The accuracy suite takes 20 to 40 minutes
-# and the scenarios 30 to 60 more; set SKIP_ACCURACY=1 to leave the last
+# and the scenarios 60 to 120 more; set SKIP_ACCURACY=1 to leave the last
 # recordings of both in place.
 #
 # The accuracy-results branch holds the same suite recorded on a GitHub-hosted

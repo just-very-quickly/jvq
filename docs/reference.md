@@ -1,6 +1,6 @@
 # jvq reference
 
-Everything jvq v0.2 does, in one place. The [README](../README.md) is the
+Everything jvq v0.3 does, in one place. The [README](../README.md) is the
 introduction.
 
 ## Commands
@@ -71,7 +71,7 @@ that doesn't write it is an error.
 | `-rounds N` | 10 | rounds per side to start with, at least 3 |
 | `-max-rounds N` | 30 | most rounds per side while undecided; at or below `-rounds` turns adding rounds off |
 | `-build CMD` | none | command run once per side before the rounds |
-| `-adapter NAME` | `go` | how to read results: `go`, `json` or `time` |
+| `-adapter NAME` | `go` | how to read results: `go`, `json`, `time`, `criterion`, `google-benchmark`, `pytest-benchmark` or `vitest` |
 | `-output FILE` | none | read results from this file, which the command writes, instead of its standard output |
 | `-timeout D` | `10m` | limit for each command run (Go duration: `90s`, `10m`) |
 | `-json FILE` | none | also write the report as JSON |
@@ -95,17 +95,20 @@ the file names.
 
 | Flag | Default | Meaning |
 |---|---|---|
-| `-adapter NAME` | see below | `go` or `json` |
+| `-adapter NAME` | see below | any adapter but `time` |
 | `-config FILE` | found | config file, for budgets, ignores, confidence and `fail_on_inconclusive` |
 | `-json FILE` | none | also write the report as JSON |
 | `-markdown FILE` | none | also write the report as Markdown |
 | `-fail-on-inconclusive` | off | exit 1 when the overall verdict is inconclusive |
 
-The format is `-adapter`, or `json` when both files end in `.json` or
-`.jsonl`, or the `adapter` set in a jvq.toml (unless it's `time`), or `go`.
+The format is `-adapter`, or the `adapter` set in a jvq.toml (unless it's
+`time`), or `json` when both files end in `.json` or `.jsonl`, or `go`.
 The `time` adapter can't be used: it times a command as it runs. Each file
 needs at least 3 samples of a benchmark for a time verdict (4 a side for an
-interval at 95%); with Go output that means `-count`. A file with no results
+interval at 95%); with Go output that means `-count`, with Google Benchmark
+`--benchmark_repetitions`, and with criterion several `cargo bench` outputs
+in one file. pytest-benchmark and vitest give one value per benchmark per
+file, which compare can't judge. A file with no results
 is an error. Unlike `jvq run`, the two outputs weren't interleaved, so a
 machine that changed between them looks like a change in the code. The
 report says so in its note and has `"mode": "compare"`, the file names as
@@ -141,8 +144,9 @@ back to a default quietly.
 |---|---|---|---|
 | `command` | string | see above | the benchmark command |
 | `build` | string | none | runs once per side before the rounds |
-| `adapter` | string | `"go"` | how to read results: `go`, `json` or `time` |
+| `adapter` | string | `"go"` | how to read results: `go`, `json`, `time`, `criterion`, `google-benchmark`, `pytest-benchmark` or `vitest` |
 | `output` | string | none | a file the command writes its results to, read instead of its standard output; not with `time` |
+| `size` | list of patterns | none | files whose size is gated, measured once per side after the build |
 | `rounds` | integer, 3 to 1000 | 10 | rounds per side to start with |
 | `max_rounds` | integer, 3 to 1000 | 30 | most rounds per side while undecided |
 | `warmup` | boolean | true | one thrown-away run per side first |
@@ -152,7 +156,8 @@ back to a default quietly.
 | `[budget]` `time` | percentage | `"5%"` | how much slower is allowed |
 | `[budget]` `bytes` | percentage, amount or `"off"` | `"off"` | B/op allowance |
 | `[budget]` `allocs` | percentage, amount or `"off"` | `"off"` | allocs/op allowance |
-| `[budget.bench."PATTERN"]` | the three budget keys | | overrides for matching benchmarks; later tables win |
+| `[budget]` `size` | percentage, amount or `"off"` | `"1%"` | how much a file listed in `size` may grow; an amount is in bytes |
+| `[budget.bench."PATTERN"]` | the four budget keys | | overrides for matching benchmarks (or file paths, for size); later tables win |
 | `[ignore]` `bench` | list of patterns | none | benchmarks left out of the report |
 
 Budgets: `"5%"` allows 5% more than base; an amount such as `"0"` or `"64"`
@@ -187,6 +192,64 @@ the time metric, `B/op` bytes, `allocs/op` allocations (these two need
 custom `b.ReportMetric`, is reported but not gated. Every other line is
 ignored. With `-count=N` a run prints N lines per benchmark, and jvq takes
 their median as that run's value (see Samples).
+
+## The harness adapters
+
+Each reads one harness's own output as it is, and gives one time per
+benchmark per run, in nanoseconds. If a run gives several (Google
+Benchmark's `--benchmark_repetitions`), jvq takes their median, as for
+every adapter (see Samples). The harness's own comparisons with an earlier
+run are ignored.
+
+**criterion** reads what Rust's criterion prints on standard output during
+`cargo bench`:
+
+```
+parse/small             time:   [1.8615 µs 1.8732 µs 1.8884 µs]
+a long benchmark name that wraps
+                        time:   [191.47 ns 193.63 ns 195.52 ns]
+```
+
+The middle value, criterion's estimate, is the run's time; a name too long
+for its column is on the line before. Throughput (`thrpt:`) and change
+lines are skipped. The bencher format, from `cargo bench -- --output-format
+bencher` or Rust's own `#[bench]`, works too:
+`test parse_small ... bench: 1,873 ns/iter (+/- 21)`. Units ps, ns, µs (us),
+ms and s.
+
+**google-benchmark** reads the JSON that Google Benchmark writes with
+`--benchmark_format=json` (or to a file with `--benchmark_out=FILE
+--benchmark_out_format=json` and `output = "FILE"`). Each iteration entry is
+a sample of its `real_time`, in its `time_unit`; aggregate entries (mean,
+median, stddev, cv) are skipped. The name is `run_name`, so repetitions of
+one benchmark share it. An entry with `error_occurred` fails the run with
+its message. Counters aren't read.
+
+**pytest-benchmark** reads the file pytest-benchmark writes with
+`--benchmark-json=FILE`; set `output` to it. Each benchmark's `stats.median`
+is its time. Its name is the test's `name` (`test_parse[small]` for a
+parametrised test), and the rest of its `fullname`, the file and any class,
+is its group, so tests of the same name in two files stay apart.
+
+**vitest** reads the file `vitest bench --run --outputJson FILE` writes; set
+`output` to it. Each benchmark's `median` (or `mean`, where there's no
+median) is its time. The group is vitest's name for the file and `describe`
+blocks around it, such as `parse.bench.js > json`.
+
+For the JSON harnesses, the document may follow other output, as long as
+it starts on a line of its own.
+
+## File sizes
+
+`size = ["target/release/app", "dist/*.js"]` lists files whose size jvq
+gates. After the build (or before the first round, with no build), jvq
+measures each regular file the patterns match on each side, in the folder
+the command runs in; patterns use Go's `filepath.Glob`, where `*` matches
+within one folder name. A file matched by two patterns counts once. Each
+file is a row with metric `size` and its path as the name, judged like
+bytes: a regression when head's size is over base's plus the budget, 1% by
+default. A file on one side only is new or removed; a pattern that matches
+nothing on either side is an error.
 
 ## The time adapter
 
