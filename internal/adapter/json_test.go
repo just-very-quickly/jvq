@@ -119,3 +119,49 @@ func TestTimeAdapter(t *testing.T) {
 		t.Error("criterion known")
 	}
 }
+
+func TestJSONFromRealScripts(t *testing.T) {
+	// A UTF-8 byte order mark, as some Windows tools write it.
+	got := parseJSON(t, "\xEF\xBB\xBF{\"name\": \"first\", \"unit\": \"ns\", \"value\": 1}\n{\"name\": \"x\", \"unit\": \"ns\", \"value\": 2}\n")
+	if len(got) != 2 || got[0].Name != "first" {
+		t.Errorf("BOM: %+v", got)
+	}
+	if _, err := Parse("json", strings.NewReader("\xFF\xFE{\x00")); err == nil || !strings.Contains(err.Error(), "UTF-16") {
+		t.Errorf("UTF-16: %v", err)
+	}
+	// Log lines in brackets, and JSON log lines, are skipped.
+	got = parseJSON(t, "[INFO] starting\n{\"level\": \"info\", \"msg\": \"warm\"}\n[1/5]\n{\"name\": \"a\", \"unit\": \"ns\", \"value\": 3}\r\n")
+	if len(got) != 1 || got[0].Value != 3 {
+		t.Errorf("logs: %+v", got)
+	}
+	// A pretty-printed document after a log line, as print() then
+	// json.dump(doc, sys.stdout, indent=2) gives.
+	got = parseJSON(t, "running\n{\n  \"results\": [\n    {\"name\": \"a\", \"unit\": \"ms\", \"value\": 2}\n  ]\n}\ndone\n")
+	if len(got) != 1 || got[0].Value != 2e6 {
+		t.Errorf("document after logs: %+v", got)
+	}
+	// Spelled-out units are time; unknown ones stay custom.
+	if got := parseJSON(t, `{"name": "a", "unit": "seconds", "value": 1.5}`); got[0].Metric != Time || got[0].Value != 1.5e9 {
+		t.Errorf("seconds: %+v", got)
+	}
+	if got := parseJSON(t, `{"name": "a", "unit": "Ms", "value": 1}`); got[0].Metric == Time {
+		t.Errorf("Ms taken as milliseconds: %+v", got)
+	}
+}
+
+func TestJSONMoreErrors(t *testing.T) {
+	cases := map[string]string{
+		`{"name": "a", "unit": "ns", "value": 0}`:   "time of 0",
+		`{"Name": "a", "unit": "ns", "value": 1}`:   `unknown field "Name"`,
+		`{"name": "a", "unit": "ns", "value": NaN}`: "NaN and Infinity",
+		`{'name': 'a', 'unit': 'ns', 'value': 1}`:   "double quotes",
+		`42`: "want a result object",
+		"ok\n{\"name\": \"a\", \"unit\": \"ns\", \"value\": null}\n": "null",
+	}
+	for in, want := range cases {
+		_, err := Parse("json", strings.NewReader(in))
+		if err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("%s: got %v, want %q", in, err, want)
+		}
+	}
+}

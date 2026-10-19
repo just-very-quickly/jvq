@@ -262,6 +262,9 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 			fmt.Fprintln(progress, "jvq: note: uncommitted changes aren't measured; jvq compares commits")
 		}
 		fmt.Fprintf(progress, "jvq: command: %s\n", cfg.Command)
+		if cfg.Adapter == "time" && cfg.Command == config.DefaultGoCommand {
+			fmt.Fprintln(progress, "jvq: note: the time adapter times the whole go test command, compiling included; the go adapter reads its results")
+		}
 	}
 
 	ws, err := repo.NewWorkspace()
@@ -301,10 +304,17 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 	}
 
 	rows := verdict.Compare(res.Base, res.Head, cfg)
+	note := pick.Note
+	if n := verdict.UngatedNote(rows); n != "" {
+		if note != "" {
+			note += "; "
+		}
+		note += n
+	}
 	rep := report.Report{
 		JVQ: Version, Mode: report.ModeRun, Verdict: verdict.Overall(rows),
 		Base: report.Commit{Ref: pick.Ref, SHA: pick.SHA}, Head: report.Commit{Ref: f.head, SHA: headSHA},
-		Note: pick.Note, Command: cfg.Command, Build: cfg.Build, Adapter: cfg.Adapter,
+		Note: note, Command: cfg.Command, Build: cfg.Build, Adapter: cfg.Adapter,
 		Rounds: res.Rounds, MaxRounds: cfg.MaxRounds, Warmup: cfg.Warmup, Confidence: cfg.Confidence, Order: res.Order,
 		Seconds: time.Since(started).Seconds(), Counts: verdict.Counts(rows), Rows: rows,
 	}

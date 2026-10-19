@@ -16,6 +16,8 @@ package adapter
 
 import (
 	"bufio"
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"regexp"
@@ -76,6 +78,14 @@ func TimeSample(d time.Duration) Sample {
 
 // Parse reads output in the named adapter's format.
 func Parse(adapter string, r io.Reader) ([]Sample, error) {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	if data, err = utf8Text(data); err != nil {
+		return nil, err
+	}
+	r = bytes.NewReader(data)
 	switch adapter {
 	case "go", "":
 		return ParseGo(r)
@@ -86,6 +96,19 @@ func Parse(adapter string, r io.Reader) ([]Sample, error) {
 	default:
 		return nil, fmt.Errorf("unknown adapter %q (jvq has: %s)", adapter, strings.Join(Names, ", "))
 	}
+}
+
+// utf8Text drops a UTF-8 byte order mark, which some editors and Windows
+// tools write, and refuses UTF-16 (Windows PowerShell 5.1's > writes it)
+// with a message that says what to do.
+func utf8Text(b []byte) ([]byte, error) {
+	switch {
+	case bytes.HasPrefix(b, []byte{0xEF, 0xBB, 0xBF}):
+		return b[3:], nil
+	case bytes.HasPrefix(b, []byte{0xFF, 0xFE}), bytes.HasPrefix(b, []byte{0xFE, 0xFF}):
+		return nil, errors.New("the output is UTF-16; write it as UTF-8 (in PowerShell, pipe to Out-File -Encoding utf8, or use PowerShell 7)")
+	}
+	return b, nil
 }
 
 var procsSuffix = regexp.MustCompile(`-[0-9]+$`)

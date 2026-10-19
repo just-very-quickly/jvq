@@ -1,6 +1,6 @@
 # jvq reference
 
-Everything jvq v0.1 does, in one place. The [README](../README.md) is the
+Everything jvq v0.2 does, in one place. The [README](../README.md) is the
 introduction.
 
 ## Commands
@@ -57,7 +57,11 @@ Each command run gets `JVQ_SIDE` (`base` or `head`) and `JVQ_ROUND` (0 for
 the build and warm-up, then 1, 2, ...) in its environment. It runs with
 `sh -c` on Linux and macOS and `cmd.exe /S /C` on Windows, in its own
 process group, so a timeout or an interrupt stops everything it started.
-Only its standard output is parsed; both outputs are shown if it fails.
+Only its standard output is parsed (or the `output` file, if set); both
+outputs are shown if it fails. With `output` set, that file (relative to
+where the command runs, or absolute) is deleted before each run and read
+after it, so a file left by an earlier run can't pass for a new one; a run
+that doesn't write it is an error.
 
 | Flag | Default | Meaning |
 |---|---|---|
@@ -67,7 +71,8 @@ Only its standard output is parsed; both outputs are shown if it fails.
 | `-rounds N` | 10 | rounds per side to start with, at least 3 |
 | `-max-rounds N` | 30 | most rounds per side while undecided; at or below `-rounds` turns adding rounds off |
 | `-build CMD` | none | command run once per side before the rounds |
-| `-adapter NAME` | `go` | output format of the command |
+| `-adapter NAME` | `go` | how to read results: `go`, `json` or `time` |
+| `-output FILE` | none | read results from this file, which the command writes, instead of its standard output |
 | `-timeout D` | `10m` | limit for each command run (Go duration: `90s`, `10m`) |
 | `-json FILE` | none | also write the report as JSON |
 | `-markdown FILE` | none | also write the report as Markdown |
@@ -76,6 +81,35 @@ Only its standard output is parsed; both outputs are shown if it fails.
 | `-no-warmup` | off | skip the warm-up runs |
 | `-keep` | off | leave the worktrees in place and print where |
 | `-q` | off | no progress lines on stderr |
+
+### jvq compare
+
+```
+jvq compare [flags] OLD NEW
+```
+
+Judges two saved benchmark outputs, such as `go test -bench=. -count=10`
+before and after a change, with the same statistics, budgets and exit codes
+as `jvq run`. OLD plays base, NEW plays head. Flags may come before or after
+the file names.
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `-adapter NAME` | see below | `go` or `json` |
+| `-config FILE` | found | config file, for budgets, ignores, confidence and `fail_on_inconclusive` |
+| `-json FILE` | none | also write the report as JSON |
+| `-markdown FILE` | none | also write the report as Markdown |
+| `-fail-on-inconclusive` | off | exit 1 when the overall verdict is inconclusive |
+
+The format is `-adapter`, or `json` when both files end in `.json` or
+`.jsonl`, or the `adapter` set in a jvq.toml (unless it's `time`), or `go`.
+The `time` adapter can't be used: it times a command as it runs. Each file
+needs at least 3 samples of a benchmark for a time verdict (4 a side for an
+interval at 95%); with Go output that means `-count`. A file with no results
+is an error. Unlike `jvq run`, the two outputs weren't interleaved, so a
+machine that changed between them looks like a change in the code. The
+report says so in its note and has `"mode": "compare"`, the file names as
+the base and head `ref`, and no commit hashes or rounds.
 
 ### jvq check
 
@@ -107,7 +141,8 @@ back to a default quietly.
 |---|---|---|---|
 | `command` | string | see above | the benchmark command |
 | `build` | string | none | runs once per side before the rounds |
-| `adapter` | string | `"go"` | output format; v0.1 has `go` |
+| `adapter` | string | `"go"` | how to read results: `go`, `json` or `time` |
+| `output` | string | none | a file the command writes its results to, read instead of its standard output; not with `time` |
 | `rounds` | integer, 3 to 1000 | 10 | rounds per side to start with |
 | `max_rounds` | integer, 3 to 1000 | 30 | most rounds per side while undecided |
 | `warmup` | boolean | true | one thrown-away run per side first |
@@ -150,7 +185,72 @@ lines after them, so equal names in different packages stay apart. `ns/op` is
 the time metric, `B/op` bytes, `allocs/op` allocations (these two need
 `-benchmem` or `b.ReportAllocs()`). Any other unit, such as `MB/s` or a
 custom `b.ReportMetric`, is reported but not gated. Every other line is
-ignored. Each result line is one sample; with `-count=N` a round gives N.
+ignored. With `-count=N` a run prints N lines per benchmark, and jvq takes
+their median as that run's value (see Samples).
+
+## The time adapter
+
+jvq times each run of the command itself, from the moment it starts the
+shell to the moment the shell exits, and records one sample per run named
+`command`, metric `time`. Whatever the command prints is ignored. The
+measured time includes starting the shell and the program, so it suits
+commands that run for a tenth of a second or more; for shorter work, have
+the program time a loop itself and use the json adapter. There are no
+bytes or allocation results.
+
+## The json adapter
+
+The command prints results as JSON, either one result per line:
+
+```
+{"name": "parse/small", "unit": "ns", "value": 912.3}
+{"name": "parse/small", "unit": "ns", "value": 905.1}
+{"name": "parse/small", "unit": "B", "value": 128}
+```
+
+or one document, `{"results": [result, ...]}`, or a bare array of results.
+In the one-per-line form, lines that don't start with `{` (after spaces)
+are skipped, so the command may print logs too, and so are JSON objects
+with none of a result's fields, such as structured log lines. A line that
+does look like a result must be a valid one. A document printed after some
+other lines, even pretty-printed over many lines, is found too. A UTF-8
+byte order mark is ignored; UTF-16 output is an error that says so.
+
+A result has:
+
+| Field | Required | Meaning |
+|---|---|---|
+| `name` | yes | the benchmark's name, matched by `[budget.bench]` and `[ignore]` patterns |
+| `unit` | yes | see below |
+| `value` | one of these | one sample, a number |
+| `values` | one of these | several samples, an array of numbers |
+| `group` | no | keeps equal names apart, like a Go package; patterns may match `group.name` |
+
+Any other field is an error, so a typo can't be lost quietly.
+
+| Unit | Metric | Stored as |
+|---|---|---|
+| `ns`, `us` (or `µs`), `ms`, `s`, or spelled out (`seconds`, `milliseconds`) | time | nanoseconds |
+| `B`, `bytes` | bytes | bytes |
+| `allocs`, `allocations` | allocations | allocations |
+| anything else | custom, reported but not gated | as given |
+
+`/op` may follow any of these units (`ns/op`, `B/op`). Values must be
+finite numbers (JSON has no NaN or Infinity, and JavaScript writes them as
+`null`, which is an error here); time, bytes and allocations can't be
+negative, and a time can't be 0. If no result in a run is gated, because
+every unit is a custom one, the report says so.
+
+## Samples
+
+A run may print several values for one benchmark and metric: Go's
+`-count`, several JSON lines, or `values`. In `jvq run`, jvq takes their
+median as the run's one value. Values from one run share that run's state
+of the machine, so they aren't independent observations, and counting each
+as one would make the intervals too narrow; each run is one observation.
+More values per run still help, by making each run's median steadier.
+`jvq compare` can't tell runs apart in a saved file, so it uses every value
+as it is; give it values from separate runs where you can.
 
 ## Verdicts
 
@@ -201,7 +301,8 @@ are pass, improved, regression and inconclusive.
 
 ```json
 {
-  "jvq": "0.1.0",
+  "jvq": "0.2.0",
+  "mode": "run",
   "verdict": "regression",
   "base": {"ref": "merge-base(origin/main, head)", "sha": "…"},
   "head": {"ref": "HEAD", "sha": "…"},
@@ -235,7 +336,8 @@ are pass, improved, regression and inconclusive.
 }
 ```
 
-`rounds` is how many rounds per side ran, extra ones included. `order` lists
+`mode` is `run`, or `compare` for `jvq compare` (which leaves out the
+commit hashes, and has 0 rounds and an empty order). `rounds` is how many rounds per side ran, extra ones included. `order` lists
 the measured runs in the order they ran. `change`, `ci_lo` and `ci_hi` are
 relative (0.1 means +10%); `ci_lo`, `ci_hi` and `p` (the two-sided
 Mann-Whitney p-value for no difference) appear for time only. `change` is

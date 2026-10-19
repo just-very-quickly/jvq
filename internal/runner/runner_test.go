@@ -14,6 +14,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/just-very-quickly/jvq/internal/adapter"
 )
 
 // The test binary doubles as the benchmark command: with JVQ_TEST_HELPER set
@@ -320,5 +322,42 @@ func TestNoResultsHintFollowsTheAdapter(t *testing.T) {
 	_, err := Run(context.Background(), Options{Command: self(t, "nothing"), Adapter: "json", Rounds: 3}, base, head)
 	if !errors.Is(err, ErrNoResults) || !strings.Contains(err.Error(), "json adapter") {
 		t.Errorf("got %v", err)
+	}
+}
+
+func TestTimeAdapterStopsAtExit(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses sh")
+	}
+	base, head := sides(t)
+	// The command exits at once but leaves a child holding its output for
+	// two seconds. The clock must stop at the exit.
+	res, err := Run(context.Background(), Options{Command: "sleep 2 & echo started", Adapter: "time", Rounds: 1}, base, head)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v := res.Base[0].Value; v > 1e9 {
+		t.Errorf("timed %.2fs, want the command's own few milliseconds", v/1e9)
+	}
+}
+
+func TestPerRunTakesTheMedian(t *testing.T) {
+	in := []adapter.Sample{
+		{Name: "a", Metric: "time", Unit: "ns", Value: 3},
+		{Name: "b", Metric: "time", Unit: "ns", Value: 7},
+		{Name: "a", Metric: "time", Unit: "ns", Value: 1},
+		{Name: "a", Metric: "time", Unit: "ns", Value: 2},
+		{Name: "a", Metric: "bytes", Unit: "B", Value: 16},
+		{Package: "p", Name: "a", Metric: "time", Unit: "ns", Value: 9},
+	}
+	got := PerRun(in)
+	want := []adapter.Sample{
+		{Name: "a", Metric: "time", Unit: "ns", Value: 2},
+		{Name: "b", Metric: "time", Unit: "ns", Value: 7},
+		{Name: "a", Metric: "bytes", Unit: "B", Value: 16},
+		{Package: "p", Name: "a", Metric: "time", Unit: "ns", Value: 9},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %+v", got)
 	}
 }

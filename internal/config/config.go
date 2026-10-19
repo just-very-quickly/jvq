@@ -266,7 +266,7 @@ func (c Config) Check() error {
 		return fmt.Errorf("adapter %q: jvq has %s", c.Adapter, strings.Join(adapter.Names, ", "))
 	}
 	if c.Output != "" && adapter.Timed(c.Adapter) {
-		return errors.New("output is set, but the time adapter reads no results; it times the command")
+		return errors.New("output is set (in jvq.toml or with -output), but the time adapter reads no results; it times the command")
 	}
 	return nil
 }

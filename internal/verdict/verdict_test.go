@@ -257,3 +257,17 @@ func TestNeedsMore(t *testing.T) {
 		}
 	}
 }
+
+func TestUngatedNote(t *testing.T) {
+	rows := []Row{{Name: "a", Metric: "seconds", Unit: "seconds", Verdict: Info}}
+	if n := UngatedNote(rows); !strings.Contains(n, `"seconds"`) {
+		t.Errorf("note %q", n)
+	}
+	rows = append(rows, Row{Name: "b", Metric: "time", Unit: "ns", Verdict: Pass})
+	if n := UngatedNote(rows); n != "" {
+		t.Errorf("note on a gated run: %q", n)
+	}
+	if n := UngatedNote([]Row{{Name: "b", Metric: "time", Verdict: Info}}); !strings.Contains(n, "budget is off") {
+		t.Errorf("note %q", n)
+	}
+}

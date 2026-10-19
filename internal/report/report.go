@@ -231,7 +231,7 @@ func Markdown(w io.Writer, rep Report) {
 
 // mdCode makes s safe inside a Markdown code span.
 func mdCode(s string) string {
-	return strings.NewReplacer("`", "'", "\n", " ", "|", `\|`).Replace(s)
+	return strings.NewReplacer("`", "'", "\n", " ").Replace(s)
 }
 
 func capitalise(s string) string {

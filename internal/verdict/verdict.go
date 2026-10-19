@@ -330,6 +330,34 @@ func Overall(rows []Row) string {
 	return Pass
 }
 
+// UngatedNote explains a run where no row is gated, which is otherwise
+// puzzling: every budget off, or units jvq doesn't gate. It is "" when some
+// row is gated.
+func UngatedNote(rows []Row) string {
+	var units []string
+	seen := map[string]bool{}
+	for _, r := range rows {
+		if r.Gated() {
+			return ""
+		}
+		switch r.Metric {
+		case adapter.Time, adapter.Bytes, adapter.Allocs:
+		default:
+			if !seen[r.Unit] {
+				seen[r.Unit] = true
+				units = append(units, fmt.Sprintf("%q", r.Unit))
+			}
+		}
+	}
+	if len(rows) == 0 {
+		return ""
+	}
+	if len(units) > 0 {
+		return "nothing was gated: jvq gates time (ns, us, ms, s), bytes (B) and allocs, and reports other units, here " + strings.Join(units, ", ") + ", without judging them"
+	}
+	return "nothing was gated: every result's budget is off, or it is only on one side"
+}
+
 // Counts tallies rows by verdict.
 func Counts(rows []Row) map[string]int {
 	c := map[string]int{}

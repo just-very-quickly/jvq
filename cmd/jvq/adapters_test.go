@@ -47,16 +47,16 @@ func TestTimeAdapterPassesNoChange(t *testing.T) {
 func TestJSONAdapterCatchesASlowdown(t *testing.T) {
 	r := newFixture(t, "sub", fixture.Spec{Work: base})
 	commit(t, r, fixture.Spec{Work: base * 2}, "twice the work")
-	r.WriteConfig(fixture.ProgConfig("json", 3, 200, ""))
+	r.WriteConfig(fixture.ProgConfig("json", 5, 200, "max_rounds = 5\n"))
 	res := jvq(t, r.ModDir(), nil, "run")
 	expect(t, res, 1)
 	row := find(rows(t, res), "work", "time")
 	if row == nil || row["verdict"] != "regression" {
 		t.Fatalf("row %v\n%s", row, res.stdout)
 	}
-	// Five batches a run, three rounds a side.
-	if n := row["base"].(map[string]any)["n"].(float64); n != 15 {
-		t.Errorf("base n = %v, want 15", n)
+	// Five batches a run, reduced to their median: one value a round.
+	if n := row["base"].(map[string]any)["n"].(float64); n != 5 {
+		t.Errorf("base n = %v, want 5", n)
 	}
 }
 
@@ -160,5 +160,24 @@ func TestCompareErrors(t *testing.T) {
 		if res.code != 2 || !strings.Contains(res.stderr, c.want) {
 			t.Errorf("%v: exit %d, stderr %q", c.args, res.code, res.stderr)
 		}
+	}
+}
+
+func TestCompareDashes(t *testing.T) {
+	dir := t.TempDir()
+	writeGo(t, filepath.Join(dir, "-old.txt"), 1000, 1010, 990, 1005, 995)
+	writeGo(t, filepath.Join(dir, "new.txt"), 1001, 1009, 991, 1004, 996)
+	expect(t, jvq(t, dir, nil, "compare", "--", "-old.txt", "new.txt"), 0)
+	expect(t, jvq(t, dir, nil, "compare", "-fail-on-inconclusive=false", "--", "-old.txt", "new.txt"), 0)
+}
+
+func TestNothingGatedSaysWhy(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "a.json"), []byte(`{"name": "x", "unit": "frames", "values": [10, 11, 12, 10]}`), 0o644)
+	os.WriteFile(filepath.Join(dir, "b.json"), []byte(`{"name": "x", "unit": "frames", "values": [90, 91, 92, 90]}`), 0o644)
+	res := jvq(t, dir, nil, "compare", "a.json", "b.json")
+	expect(t, res, 0)
+	if !strings.Contains(res.stdout, "nothing was gated") || !strings.Contains(res.stdout, `"frames"`) {
+		t.Errorf("stdout:\n%s", res.stdout)
 	}
 }

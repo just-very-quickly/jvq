@@ -28,9 +28,9 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
-	"os/signal"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -86,7 +86,7 @@ func main() {
 		noisyAA   = flag.Int("noisy-aa", 100, "no-change runs beside the neighbour")
 		noisyAB   = flag.Int("noisy-ab", 50, "+10% runs beside the neighbour")
 		driftRuns = flag.Int("drift", 50, "drift runs for each order")
-		driftPct  = flag.Float64("drift-pct", 1, "how much slower each run is than the one before, in percent")
+		driftPct  = flag.Float64("drift-pct", 2, "how much slower each run is than the one before, in percent")
 		pyAA      = flag.Int("python-aa", 60, "no-change runs per Python adapter")
 		pyAB      = flag.Int("python-ab", 30, "runs per Python slowdown")
 		pyWork    = flag.Int("python-work", 800000, "loop rounds in the Python script")
@@ -167,31 +167,24 @@ func beNeighbour(cpus, mb int) {
 			}
 		}(i)
 	}
-	// Stop with the parent, even if it dies without killing this process.
-	parent := os.Getppid()
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt)
-	for {
-		select {
-		case <-ch:
-			return
-		case <-time.After(time.Second):
-			if os.Getppid() != parent {
-				return
-			}
-		}
-	}
+	// Stop with the parent, however it ends: its end of the stdin pipe
+	// closes then, on every system.
+	io.Copy(io.Discard, os.Stdin)
 }
 
 func noisy(bin string, cpus, mb, aa, ab int) []trial {
 	self, err := os.Executable()
 	check(err)
 	hog := exec.Command(self, "-hog", "-hog-cpus", fmt.Sprint(cpus), "-hog-mb", fmt.Sprint(mb))
+	stdin, err := hog.StdinPipe()
+	check(err)
 	check(hog.Start())
-	defer func() {
+	stopHog = func() {
+		stdin.Close()
 		hog.Process.Kill()
 		hog.Wait()
-	}()
+	}
+	defer stopHog()
 	time.Sleep(time.Second) // let it get going
 	cfg := fixture.Config(10, "20ms", "max_rounds = 30\n")
 	var trials []trial
@@ -507,7 +500,12 @@ func check(err error) {
 	}
 }
 
+// stopHog stops the noisy neighbour, if one is running, before an exit
+// that skips deferred calls.
+var stopHog = func() {}
+
 func fail(format string, a ...any) {
+	stopHog()
 	fmt.Fprintf(os.Stderr, "scenarios: "+format+"\n", a...)
 	os.Exit(1)
 }

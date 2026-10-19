@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/just-very-quickly/jvq/internal/adapter"
+	"github.com/just-very-quickly/jvq/internal/stats"
 )
 
 // Side is one of the two checkouts.
@@ -163,6 +164,7 @@ func Run(ctx context.Context, opt Options, base, head Side) (*Result, error) {
 			if err != nil {
 				return err
 			}
+			samples = PerRun(samples)
 			total := opt.Rounds
 			if res.Rounds+1 > total {
 				total = opt.MaxRounds
@@ -199,6 +201,36 @@ func Run(ctx context.Context, opt Options, base, head Side) (*Result, error) {
 		res.Rounds += 2
 	}
 	return res, nil
+}
+
+// PerRun reduces one run's samples to one per benchmark and metric: the
+// median of what the run printed for it. Values from one run share that
+// run's state of the machine (its caches, its neighbours, its clock speed),
+// so they aren't independent of each other; judging them as if they were
+// would make the intervals too narrow. Each run is one observation.
+func PerRun(samples []adapter.Sample) []adapter.Sample {
+	type key struct{ k, metric, unit string }
+	order := []key{}
+	values := map[key][]float64{}
+	first := map[key]adapter.Sample{}
+	for _, x := range samples {
+		k := key{x.Key(), x.Metric, x.Unit}
+		if _, ok := values[k]; !ok {
+			order = append(order, k)
+			first[k] = x
+		}
+		values[k] = append(values[k], x.Value)
+	}
+	if len(order) == len(samples) {
+		return samples
+	}
+	out := make([]adapter.Sample, 0, len(order))
+	for _, k := range order {
+		x := first[k]
+		x.Value = stats.Median(values[k])
+		out = append(out, x)
+	}
+	return out
 }
 
 func parse(opt Options, s Side, out []byte, elapsed time.Duration) ([]adapter.Sample, error) {
@@ -254,9 +286,32 @@ func step(ctx context.Context, opt Options, s Side, stage, command string, round
 	// share is locked.
 	var stdout bytes.Buffer
 	combined := &lockedBuffer{}
-	cmd.Stdout = io.MultiWriter(&stdout, combined)
-	cmd.Stderr = combined
-	cmd.WaitDelay = 5 * time.Second
+	timed := stage == "run" && adapter.Timed(opt.Adapter)
+	var logFile *os.File
+	if timed {
+		// The time adapter ignores the output, and its clock must stop
+		// when the command exits, not when the last background process it
+		// started lets go of a pipe. A file needs no copying goroutines,
+		// so Wait returns at the exit.
+		f, err := os.CreateTemp("", "jvq-output-*")
+		if err != nil {
+			return nil, 0, &StepError{Side: s.Name, Stage: stage, Err: err}
+		}
+		defer os.Remove(f.Name())
+		defer f.Close()
+		logFile = f
+		cmd.Stdout, cmd.Stderr = f, f
+	} else {
+		cmd.Stdout = io.MultiWriter(&stdout, combined)
+		cmd.Stderr = combined
+		cmd.WaitDelay = 5 * time.Second
+	}
+	output := func() string {
+		if logFile != nil {
+			return fileTail(logFile)
+		}
+		return tail(combined.Bytes())
+	}
 	var outFile string
 	if opt.Output != "" && stage == "run" {
 		outFile = opt.Output
@@ -264,8 +319,13 @@ func step(ctx context.Context, opt Options, s Side, stage, command string, round
 			outFile = filepath.Join(dir, outFile)
 		}
 		// A file left by an earlier run must not pass for this run's.
-		if err := os.Remove(outFile); err != nil && !os.IsNotExist(err) {
-			return nil, 0, &StepError{Side: s.Name, Stage: stage, Err: fmt.Errorf("removing the old output file: %w", err)}
+		if fi, err := os.Lstat(outFile); err == nil {
+			if !fi.Mode().IsRegular() {
+				return nil, 0, &StepError{Side: s.Name, Stage: stage, Err: fmt.Errorf("the output path %s isn't a regular file", opt.Output)}
+			}
+			if err := os.Remove(outFile); err != nil {
+				return nil, 0, &StepError{Side: s.Name, Stage: stage, Err: fmt.Errorf("removing the old output file: %w", err)}
+			}
 		}
 	}
 	start := time.Now()
@@ -282,17 +342,32 @@ func step(ctx context.Context, opt Options, s Side, stage, command string, round
 		} else if ctx.Err() != nil {
 			err = ctx.Err()
 		}
-		return nil, 0, &StepError{Side: s.Name, Stage: stage, Output: tail(combined.Bytes()), Err: err}
+		return nil, 0, &StepError{Side: s.Name, Stage: stage, Output: output(), Err: err}
 	}
 	if outFile != "" {
 		b, err := os.ReadFile(outFile)
 		if err != nil {
-			return nil, 0, &StepError{Side: s.Name, Stage: stage, Output: tail(combined.Bytes()),
+			return nil, 0, &StepError{Side: s.Name, Stage: stage, Output: output(),
 				Err: fmt.Errorf("the command didn't write its output file: %w", err)}
 		}
 		return b, elapsed, nil
 	}
 	return stdout.Bytes(), elapsed, nil
+}
+
+// fileTail is the end of what a command wrote to f.
+func fileTail(f *os.File) string {
+	fi, err := f.Stat()
+	if err != nil {
+		return ""
+	}
+	off := fi.Size() - tailBytes
+	if off < 0 {
+		off = 0
+	}
+	b := make([]byte, fi.Size()-off)
+	n, _ := f.ReadAt(b, off)
+	return string(b[:n])
 }
 
 type lockedBuffer struct {

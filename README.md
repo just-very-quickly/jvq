@@ -17,9 +17,19 @@ runs the benchmarks on each in alternating rounds, prints a verdict table,
 adds a Markdown report to the CI job summary, and exits 0 for pass, 1 for
 regression or 2 for an error.
 
-**Status: v0.1.0.** Go's benchmark format, time, bytes and allocation budgets,
-adaptive rounds, a GitHub Action, Linux, macOS and Windows. Other benchmark
-formats come next. jvq is open source under the Apache License 2.0.
+It works for any language. jvq reads Go's benchmark output as it is, times
+any command whole, or reads a few lines of JSON your benchmark prints:
+
+```sh
+jvq run -adapter time -- python3 bench.py      # time the whole command
+jvq run -adapter json -- node bench.js         # read {"name", "unit", "value"} lines
+```
+
+**Status: v0.2.0.** Go benchmark output, whole-command timing, a small JSON
+format, `jvq compare` for two saved outputs, time, bytes and allocation
+budgets, adaptive rounds, a GitHub Action, Linux, macOS and Windows. Rust,
+C++, Python and JavaScript benchmark tools come next. jvq is open source
+under the Apache License 2.0.
 
 ## Why it exists
 
@@ -105,6 +115,57 @@ has that recording.
 Near the budget, jvq would rather say "can't tell" than guess. That's the
 design: a gate that cries wolf gets switched off.
 
+## Any language
+
+The adapter says how jvq gets numbers out of a run.
+
+- **`go`** (the default) reads `go test -bench` output.
+- **`time`** times the whole command, from start to exit, and calls the
+  result `command`. Nothing to change in your code; the start-up of the
+  program is part of what's measured, so a slow start counts. Best for
+  commands that take a tenth of a second or more.
+- **`json`** reads results your benchmark prints, one per line:
+
+  ```json
+  {"name": "parse/small", "unit": "ns", "value": 912.3}
+  {"name": "parse/small", "unit": "B", "value": 128}
+  ```
+
+  Units `ns`, `us`, `ms` and `s` are time; `B` is bytes; `allocs` is
+  allocations; any other unit is reported but not gated. `"values": [...]`
+  gives several samples at once, and a single `{"results": [...]}` document
+  works too. Lines that don't start with `{` are skipped, so the benchmark
+  can print other things. When a run prints several values for one
+  benchmark, jvq takes their median as that run's value.
+  [docs/reference.md](docs/reference.md#the-json-adapter) has the whole
+  format.
+
+Set `output = "results.json"` (or `-output`) when the benchmark writes its
+results to a file instead of printing them. A Python benchmark could end
+with:
+
+```python
+import json, time
+for _ in range(5):
+    t = time.perf_counter_ns(); parse(sample); ns = time.perf_counter_ns() - t
+    print(json.dumps({"name": "parse", "unit": "ns", "value": ns}))
+```
+
+## Two saved outputs: jvq compare
+
+```sh
+go test -run=NONE -bench=. -count=10 > old.txt   # before
+go test -run=NONE -bench=. -count=10 > new.txt   # after
+jvq compare old.txt new.txt
+```
+
+`jvq compare` judges two saved outputs with the same statistics, budgets and
+exit codes as `jvq run`. Files ending in `.json` are read with the json
+adapter, others as Go output (or name it with `-adapter`). Each file needs
+several samples per benchmark. The two runs weren't interleaved, so anything
+that changed on the machine between them counts as a change; `jvq run` is
+the safer gate, and `compare` suits a quick check on a quiet machine.
+
 ## In GitHub Actions
 
 ```yaml
@@ -120,7 +181,7 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: stable
-      - uses: just-very-quickly/jvq@v0.1.0
+      - uses: just-very-quickly/jvq@v0.2.0
         with:
           command: go test -run=NONE -bench=. -benchmem ./...
 ```
@@ -161,7 +222,8 @@ repository root.
 # go test -run=NONE -bench=. -benchmem ./...
 command = "./bench.test -test.run=NONE -test.bench=. -test.benchmem"
 build   = "go test -c -o bench.test ./parser"   # once per side, optional
-adapter = "go"          # the output format; v0.1 reads Go's
+adapter = "go"          # go, json or time
+# output = "results.json"  # a file the command writes its results to, if not stdout
 
 rounds     = 10         # per side, to start with
 max_rounds = 30         # per side, at most, while undecided
@@ -198,7 +260,8 @@ jvq run [flags] [-- command]
   -rounds N              rounds per side to start with (default 10)
   -max-rounds N          most rounds per side while undecided (default 30)
   -build CMD             command run once per side first
-  -adapter NAME          output format: go
+  -adapter NAME          how to read results: go, json or time
+  -output FILE           read results from this file the command writes
   -timeout D             limit per command run, such as 10m
   -json FILE             also write the report as JSON
   -markdown FILE         also write the report as Markdown
@@ -207,6 +270,10 @@ jvq run [flags] [-- command]
   -no-warmup             skip the warm-up runs
   -keep                  keep the worktrees, for debugging
   -q                     no progress lines
+jvq compare [flags] OLD NEW
+  -adapter NAME          go or json (default: json for .json files, else go)
+  -config FILE           config file, for budgets and ignores
+  -json FILE, -markdown FILE, -fail-on-inconclusive    as for run
 jvq check [-config FILE]
 jvq version
 ```
@@ -218,9 +285,9 @@ report's fields.
 
 ## What it doesn't do (yet)
 
-- Formats other than Go's benchmark output. Timing any command (`time`), a
-  small JSON format, Rust criterion, Google Benchmark, pytest-benchmark and
-  vitest are planned.
+- Other harnesses' own formats: Rust criterion, Google Benchmark,
+  pytest-benchmark and vitest are planned for v0.3. Until then, the `time`
+  and `json` adapters cover any of them.
 - Benchmarks that take minutes per run: jvq runs the command 20 to 60
   times. Narrow the command to the benchmarks that matter.
 - Submodules aren't initialised in the worktrees.

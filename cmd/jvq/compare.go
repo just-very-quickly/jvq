@@ -44,6 +44,10 @@ func cmdCompare(args []string, stdout, stderr io.Writer) int {
 	var files []string
 	rest := args
 	for {
+		if len(rest) > 0 && rest[0] == "--" {
+			files = append(files, rest[1:]...)
+			break
+		}
 		if err := fs.Parse(rest); err != nil {
 			if errors.Is(err, flag.ErrHelp) {
 				return exitPass
@@ -51,6 +55,12 @@ func cmdCompare(args []string, stdout, stderr io.Writer) int {
 			return exitError
 		}
 		if fs.NArg() == 0 {
+			break
+		}
+		// Parse stops at the first file name, or after a "--" it removes:
+		// then everything left is file names.
+		if n := len(rest) - fs.NArg(); n > 0 && rest[n-1] == "--" {
+			files = append(files, fs.Args()...)
 			break
 		}
 		files = append(files, fs.Arg(0))
@@ -104,10 +114,14 @@ func compare(f runFlags, oldPath, newPath string, stdout, stderr io.Writer) (int
 		return exitError, err
 	}
 	rows := verdict.Compare(base, head, cfg)
+	note := "two saved outputs, not interleaved: a machine that changed between them shows up as a change"
+	if n := verdict.UngatedNote(rows); n != "" {
+		note += "; " + n
+	}
 	rep := report.Report{
 		JVQ: Version, Mode: report.ModeCompare, Verdict: verdict.Overall(rows),
 		Base: report.Commit{Ref: oldPath}, Head: report.Commit{Ref: newPath},
-		Note:    "two saved outputs, not interleaved: a machine that changed between them shows up as a change",
+		Note:    note,
 		Adapter: name, Confidence: cfg.Confidence, Order: []string{},
 		Seconds: time.Since(started).Seconds(), Counts: verdict.Counts(rows), Rows: rows,
 	}
@@ -166,7 +180,7 @@ func readSamples(name, path string) ([]adapter.Sample, error) {
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}
 	if len(samples) == 0 {
-		return nil, fmt.Errorf("%s: no results in the %s format", path, name)
+		return nil, fmt.Errorf("%s: no results in the %s format; name the format with -adapter if it's another", path, name)
 	}
 	return samples, nil
 }
