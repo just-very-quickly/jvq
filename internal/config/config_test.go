@@ -136,6 +136,8 @@ func TestErrorsNameTheProblem(t *testing.T) {
 		"command = 1":                         "must be a string",
 		"[budget]\ntime = \"-5%\"":            "percentage",
 		"[budget.bench.\"B*\"]\ntime = \"x\"": "B*",
+		"output = \"\"":                       "output is empty",
+		"adapter = \"time\"\noutput = \"r.json\"": "time adapter reads no results",
 	}
 	for src, want := range cases {
 		_, err := Parse(src)
@@ -321,5 +323,27 @@ func TestUnderscoresOnlyBetweenDigits(t *testing.T) {
 	}
 	if m, err := parseTOML("x = 1_000_000\ny = 1_0.5"); err != nil || m["x"] != int64(1000000) || m["y"] != 10.5 {
 		t.Errorf("%v %v", m, err)
+	}
+}
+
+func TestAdaptersAndOutput(t *testing.T) {
+	for _, a := range []string{"go", "json", "time"} {
+		c, err := Parse("adapter = \"" + a + "\"")
+		if err != nil || c.Adapter != a {
+			t.Errorf("adapter %s: %+v %v", a, c.Adapter, err)
+		}
+	}
+	c, err := Parse("adapter = \"json\"\noutput = \"out/results.json\"")
+	if err != nil || c.Output != "out/results.json" {
+		t.Errorf("output: %q %v", c.Output, err)
+	}
+	c = Default()
+	c.Adapter, c.Output = "time", "x"
+	if c.Check() == nil {
+		t.Error("Check let the time adapter read a file")
+	}
+	c.Adapter = "nope"
+	if c.Check() == nil {
+		t.Error("Check let an unknown adapter through")
 	}
 }

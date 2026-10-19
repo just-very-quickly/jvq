@@ -29,6 +29,7 @@ type Commit struct {
 // docs/reference.md.
 type Report struct {
 	JVQ        string         `json:"jvq"`
+	Mode       string         `json:"mode"` // "run", or "compare" for two saved outputs
 	Verdict    string         `json:"verdict"`
 	Base       Commit         `json:"base"`
 	Head       Commit         `json:"head"`
@@ -45,6 +46,12 @@ type Report struct {
 	Counts     map[string]int `json:"counts"`
 	Rows       []verdict.Row  `json:"results"`
 }
+
+// Report modes.
+const (
+	ModeRun     = "run"
+	ModeCompare = "compare"
+)
 
 // Value formats a metric value in its unit, scaling times to ns, µs, ms or s.
 func Value(metric, unit string, v float64) string {
@@ -121,8 +128,12 @@ func label(v string) string {
 
 // Text writes the terminal table.
 func Text(w io.Writer, rep Report) {
-	fmt.Fprintf(w, "\njvq %s: base %s (%s) vs head %s (%s), %d rounds, %.0f%% intervals\n",
-		rep.JVQ, gitx.Short(rep.Base.SHA), rep.Base.Ref, gitx.Short(rep.Head.SHA), rep.Head.Ref, rep.Rounds, rep.Confidence*100)
+	if rep.Mode == ModeCompare {
+		fmt.Fprintf(w, "\njvq %s: old %s vs new %s, %.0f%% intervals\n", rep.JVQ, rep.Base.Ref, rep.Head.Ref, rep.Confidence*100)
+	} else {
+		fmt.Fprintf(w, "\njvq %s: base %s (%s) vs head %s (%s), %d rounds, %.0f%% intervals\n",
+			rep.JVQ, gitx.Short(rep.Base.SHA), rep.Base.Ref, gitx.Short(rep.Head.SHA), rep.Head.Ref, rep.Rounds, rep.Confidence*100)
+	}
 	if rep.MaxRounds > 0 && rep.Rounds >= rep.MaxRounds && rep.Verdict == verdict.Inconclusive {
 		fmt.Fprintf(w, "note: still undecided at the %d-round limit; raise max_rounds or loosen the budget to settle it\n", rep.MaxRounds)
 	}
@@ -193,9 +204,14 @@ func Markdown(w io.Writer, rep Report) {
 		verdict.Inconclusive: "jvq: inconclusive",
 	}[rep.Verdict]
 	fmt.Fprintf(w, "### %s\n\n", head)
-	fmt.Fprintf(w, "Base `%s` (%s) against head `%s` (%s), %d interleaved rounds, %.0f%% intervals. %s.\n\n",
-		gitx.Short(rep.Base.SHA), md(rep.Base.Ref), gitx.Short(rep.Head.SHA), md(rep.Head.Ref), rep.Rounds,
-		rep.Confidence*100, capitalise(summary(rep.Counts)))
+	if rep.Mode == ModeCompare {
+		fmt.Fprintf(w, "Old `%s` against new `%s`, %.0f%% intervals. %s.\n\n",
+			mdCode(rep.Base.Ref), mdCode(rep.Head.Ref), rep.Confidence*100, capitalise(summary(rep.Counts)))
+	} else {
+		fmt.Fprintf(w, "Base `%s` (%s) against head `%s` (%s), %d interleaved rounds, %.0f%% intervals. %s.\n\n",
+			gitx.Short(rep.Base.SHA), md(rep.Base.Ref), gitx.Short(rep.Head.SHA), md(rep.Head.Ref), rep.Rounds,
+			rep.Confidence*100, capitalise(summary(rep.Counts)))
+	}
 	if rep.Note != "" {
 		fmt.Fprintf(w, "_%s._\n\n", md(rep.Note))
 	}
@@ -211,6 +227,11 @@ func Markdown(w io.Writer, rep Report) {
 			md(side(r, r.Base)), md(side(r, r.Head)), md(Pct(r.Change)), md(Interval(r.Lo, r.Hi)), md(r.Budget), v)
 	}
 	fmt.Fprintln(w)
+}
+
+// mdCode makes s safe inside a Markdown code span.
+func mdCode(s string) string {
+	return strings.NewReplacer("`", "'", "\n", " ", "|", `\|`).Replace(s)
 }
 
 func capitalise(s string) string {

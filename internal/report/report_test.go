@@ -138,3 +138,19 @@ func TestFormatting(t *testing.T) {
 		t.Error("empty summary")
 	}
 }
+
+func TestCompareMode(t *testing.T) {
+	rep := sample()
+	rep.Mode = ModeCompare
+	rep.Base, rep.Head = Commit{Ref: "old.txt"}, Commit{Ref: "new `x`.txt"}
+	var b bytes.Buffer
+	Text(&b, rep)
+	if !strings.Contains(b.String(), "old old.txt vs new new `x`.txt, 95% intervals") || strings.Contains(b.String(), "rounds") {
+		t.Errorf("text:\n%s", b.String())
+	}
+	b.Reset()
+	Markdown(&b, rep)
+	if !strings.Contains(b.String(), "Old `old.txt` against new `new 'x'.txt`, 95% intervals.") {
+		t.Errorf("markdown:\n%s", b.String())
+	}
+}

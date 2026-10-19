@@ -38,7 +38,11 @@ type Options struct {
 	Command string
 	Build   string // runs once per side before the rounds, if set
 	Adapter string
-	Rounds  int // rounds per side to start with
+	// Output is a file, relative to where the command runs, that the
+	// command writes its results to. It's removed before each run and read
+	// after it, instead of the command's standard output. "" reads stdout.
+	Output string
+	Rounds int // rounds per side to start with
 	// MaxRounds caps the rounds per side when More asks for more. At or
 	// below Rounds, no extra rounds run.
 	MaxRounds int
@@ -126,7 +130,7 @@ func Run(ctx context.Context, opt Options, base, head Side) (*Result, error) {
 		for _, s := range sides {
 			progress("jvq: building %s", s.Name)
 			start := time.Now()
-			if _, err := step(ctx, opt, s, "build", opt.Build, 0); err != nil {
+			if _, _, err := step(ctx, opt, s, "build", opt.Build, 0); err != nil {
 				return nil, err
 			}
 			progress("jvq: built %s in %s", s.Name, time.Since(start).Round(time.Millisecond))
@@ -135,11 +139,11 @@ func Run(ctx context.Context, opt Options, base, head Side) (*Result, error) {
 	if opt.Warmup {
 		for _, s := range sides {
 			progress("jvq: warm-up run on %s", s.Name)
-			out, err := step(ctx, opt, s, "run", opt.Command, 0)
+			out, elapsed, err := step(ctx, opt, s, "run", opt.Command, 0)
 			if err != nil {
 				return nil, err
 			}
-			if _, err := parse(opt, s, out); err != nil {
+			if _, err := parse(opt, s, out, elapsed); err != nil {
 				return nil, err
 			}
 		}
@@ -151,13 +155,11 @@ func Run(ctx context.Context, opt Options, base, head Side) (*Result, error) {
 			if opt.Sequential {
 				round = first + i%opt.Rounds
 			}
-			start := time.Now()
-			out, err := step(ctx, opt, s, "run", opt.Command, round)
+			out, wall, err := step(ctx, opt, s, "run", opt.Command, round)
 			if err != nil {
 				return err
 			}
-			wall := time.Since(start)
-			samples, err := parse(opt, s, out)
+			samples, err := parse(opt, s, out, wall)
 			if err != nil {
 				return err
 			}
@@ -199,15 +201,30 @@ func Run(ctx context.Context, opt Options, base, head Side) (*Result, error) {
 	return res, nil
 }
 
-func parse(opt Options, s Side, out []byte) ([]adapter.Sample, error) {
+func parse(opt Options, s Side, out []byte, elapsed time.Duration) ([]adapter.Sample, error) {
+	if adapter.Timed(opt.Adapter) {
+		return []adapter.Sample{adapter.TimeSample(elapsed)}, nil
+	}
 	samples, err := adapter.Parse(opt.Adapter, bytes.NewReader(out))
 	if err != nil {
 		return nil, &StepError{Side: s.Name, Stage: "run", Output: tail(out), Err: err}
 	}
 	if len(samples) == 0 {
-		return nil, &StepError{Side: s.Name, Stage: "run", Output: tail(out), Err: ErrNoResults}
+		return nil, &StepError{Side: s.Name, Stage: "run", Output: tail(out), Err: fmt.Errorf("%w; %s", ErrNoResults, hint(opt))}
 	}
 	return samples, nil
+}
+
+// hint says what the adapter looks for, for an output with no results.
+func hint(opt Options) string {
+	where := "its standard output"
+	if opt.Output != "" {
+		where = opt.Output
+	}
+	if opt.Adapter == "json" {
+		return "the json adapter reads results such as {\"name\": \"parse\", \"unit\": \"ns\", \"value\": 912} from " + where
+	}
+	return "the go adapter reads `go test -bench` output from " + where + "; check the command prints Benchmark lines"
 }
 
 func tail(b []byte) string {
@@ -217,10 +234,10 @@ func tail(b []byte) string {
 	return string(b)
 }
 
-// step runs one shell command in a side's worktree and returns its stdout.
-// The output keeps stdout and stderr apart: only stdout is parsed, but the
-// error message shows both.
-func step(ctx context.Context, opt Options, s Side, stage, command string, round int) ([]byte, error) {
+// step runs one shell command in a side's worktree and returns its results
+// (its stdout, or the Output file for a run) and how long it took. Only the
+// results are parsed, but an error message shows stdout and stderr both.
+func step(ctx context.Context, opt Options, s Side, stage, command string, round int) ([]byte, time.Duration, error) {
 	if opt.Timeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, opt.Timeout)
@@ -240,7 +257,20 @@ func step(ctx context.Context, opt Options, s Side, stage, command string, round
 	cmd.Stdout = io.MultiWriter(&stdout, combined)
 	cmd.Stderr = combined
 	cmd.WaitDelay = 5 * time.Second
+	var outFile string
+	if opt.Output != "" && stage == "run" {
+		outFile = opt.Output
+		if !filepath.IsAbs(outFile) {
+			outFile = filepath.Join(dir, outFile)
+		}
+		// A file left by an earlier run must not pass for this run's.
+		if err := os.Remove(outFile); err != nil && !os.IsNotExist(err) {
+			return nil, 0, &StepError{Side: s.Name, Stage: stage, Err: fmt.Errorf("removing the old output file: %w", err)}
+		}
+	}
+	start := time.Now()
 	err := cmd.Run()
+	elapsed := time.Since(start)
 	if errors.Is(err, exec.ErrWaitDelay) && cmd.ProcessState != nil && cmd.ProcessState.Success() {
 		// The command finished and succeeded, but something it started in
 		// the background kept its output open. The results are complete.
@@ -252,9 +282,17 @@ func step(ctx context.Context, opt Options, s Side, stage, command string, round
 		} else if ctx.Err() != nil {
 			err = ctx.Err()
 		}
-		return nil, &StepError{Side: s.Name, Stage: stage, Output: tail(combined.Bytes()), Err: err}
+		return nil, 0, &StepError{Side: s.Name, Stage: stage, Output: tail(combined.Bytes()), Err: err}
 	}
-	return stdout.Bytes(), nil
+	if outFile != "" {
+		b, err := os.ReadFile(outFile)
+		if err != nil {
+			return nil, 0, &StepError{Side: s.Name, Stage: stage, Output: tail(combined.Bytes()),
+				Err: fmt.Errorf("the command didn't write its output file: %w", err)}
+		}
+		return b, elapsed, nil
+	}
+	return stdout.Bytes(), elapsed, nil
 }
 
 type lockedBuffer struct {

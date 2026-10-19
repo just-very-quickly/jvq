@@ -6,6 +6,7 @@
 // fails when the change is slower than its budget allows.
 //
 //	jvq run [flags] [-- command]
+//	jvq compare [flags] OLD NEW
 //	jvq check [--config jvq.toml]
 //	jvq version
 //
@@ -45,6 +46,7 @@ const usage = `jvq: a performance budget gate for CI
 
 Usage:
   jvq run [flags] [-- command]   compare base and head; fail on a regression
+  jvq compare [flags] OLD NEW    compare two saved benchmark outputs
   jvq check [--config FILE]      read jvq.toml and show the settings
   jvq version                    print the version
 
@@ -56,7 +58,7 @@ jvq.toml, or in a Go module: ` + config.DefaultGoCommand + `
 Exit codes: 0 pass (inconclusive passes unless fail_on_inconclusive),
 1 regression, 2 error.
 
-Run "jvq run -h" for its flags. Docs: https://jvq.net
+Run "jvq run -h" or "jvq compare -h" for their flags. Docs: https://jvq.net
 `
 
 func main() {
@@ -71,6 +73,8 @@ func cli(args []string, stdout, stderr io.Writer) int {
 	switch args[0] {
 	case "run":
 		return cmdRun(args[1:], stdout, stderr)
+	case "compare":
+		return cmdCompare(args[1:], stdout, stderr)
 	case "check":
 		return cmdCheck(args[1:], stdout, stderr)
 	case "version", "--version", "-version", "-v":
@@ -85,9 +89,9 @@ func cli(args []string, stdout, stderr io.Writer) int {
 }
 
 type runFlags struct {
-	base, head, configPath, build, adapter, jsonPath, mdPath, timeout string
-	rounds, maxRounds                                                 int
-	baseMayFail, failOnInconclusive, keep, quiet, noWarmup            bool
+	base, head, configPath, build, adapter, output, jsonPath, mdPath, timeout string
+	rounds, maxRounds                                                         int
+	baseMayFail, failOnInconclusive, keep, quiet, noWarmup                    bool
 }
 
 func cmdRun(args []string, stdout, stderr io.Writer) int {
@@ -100,7 +104,8 @@ func cmdRun(args []string, stdout, stderr io.Writer) int {
 	fs.IntVar(&f.rounds, "rounds", 0, "measured rounds per side to start with (default 10)")
 	fs.IntVar(&f.maxRounds, "max-rounds", 0, "most rounds per side while a result is undecided (default 30; equal to -rounds turns adding rounds off)")
 	fs.StringVar(&f.build, "build", "", "command run once per side before the rounds")
-	fs.StringVar(&f.adapter, "adapter", "", "output format of the command: go")
+	fs.StringVar(&f.adapter, "adapter", "", "how to read results: go (Go benchmark output), json (jvq's JSON format) or time (time the whole command)")
+	fs.StringVar(&f.output, "output", "", "read results from this file, which the command writes, instead of its standard output")
 	fs.StringVar(&f.timeout, "timeout", "", "time limit for each command run, such as 10m")
 	fs.StringVar(&f.jsonPath, "json", "", "also write the report as JSON to this file")
 	fs.StringVar(&f.mdPath, "markdown", "", "also write the report as Markdown to this file")
@@ -136,9 +141,6 @@ func cmdRun(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintf(stderr, "jvq: %v\n", err)
 			if out := strings.TrimSpace(se.Output); out != "" {
 				fmt.Fprintf(stderr, "--- output (end) ---\n%s\n---\n", out)
-			}
-			if errors.Is(err, runner.ErrNoResults) {
-				fmt.Fprintln(stderr, "jvq: the go adapter reads `go test -bench` output; check the command prints Benchmark lines")
 			}
 			annotate(stderr, "error", err.Error())
 			return exitError
@@ -181,6 +183,12 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 	}
 	if f.adapter != "" {
 		cfg.Adapter = f.adapter
+	}
+	if f.output != "" {
+		cfg.Output = f.output
+	}
+	if err := cfg.Check(); err != nil {
+		return exitError, err
 	}
 	if f.rounds != 0 {
 		if f.rounds < 3 {
@@ -275,7 +283,7 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 	}
 
 	res, err := runner.Run(ctx, runner.Options{
-		Command: cfg.Command, Build: cfg.Build, Adapter: cfg.Adapter,
+		Command: cfg.Command, Build: cfg.Build, Adapter: cfg.Adapter, Output: cfg.Output,
 		Rounds: cfg.Rounds, MaxRounds: cfg.MaxRounds, Warmup: cfg.Warmup, Timeout: cfg.Timeout,
 		Subdir: sub, Progress: progress,
 		More: func(r *runner.Result) bool {
@@ -294,7 +302,7 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 
 	rows := verdict.Compare(res.Base, res.Head, cfg)
 	rep := report.Report{
-		JVQ: Version, Verdict: verdict.Overall(rows),
+		JVQ: Version, Mode: report.ModeRun, Verdict: verdict.Overall(rows),
 		Base: report.Commit{Ref: pick.Ref, SHA: pick.SHA}, Head: report.Commit{Ref: f.head, SHA: headSHA},
 		Note: pick.Note, Command: cfg.Command, Build: cfg.Build, Adapter: cfg.Adapter,
 		Rounds: res.Rounds, MaxRounds: cfg.MaxRounds, Warmup: cfg.Warmup, Confidence: cfg.Confidence, Order: res.Order,
@@ -473,6 +481,9 @@ func cmdCheck(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stdout, "build:       %s\n", cfg.Build)
 	}
 	fmt.Fprintf(stdout, "adapter:     %s\n", cfg.Adapter)
+	if cfg.Output != "" {
+		fmt.Fprintf(stdout, "output:      %s (read after each run)\n", cfg.Output)
+	}
 	fmt.Fprintf(stdout, "rounds:      %d, up to %d while undecided (warm-up %v)\n", cfg.Rounds, cfg.MaxRounds, cfg.Warmup)
 	fmt.Fprintf(stdout, "confidence:  %g\n", cfg.Confidence)
 	fmt.Fprintf(stdout, "timeout:     %s per run\n", cfg.Timeout)

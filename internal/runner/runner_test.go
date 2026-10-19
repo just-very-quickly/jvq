@@ -48,6 +48,18 @@ func helper(mode string) {
 		fmt.Println("BenchmarkA-2 10 100 ns/op")
 	case "nothing":
 		fmt.Println("PASS")
+	case "nap":
+		d := 20 * time.Millisecond
+		if side == "head" {
+			d = 80 * time.Millisecond
+		}
+		time.Sleep(d)
+	case "write-file":
+		// Results go to a file; stdout holds only chatter.
+		fmt.Println("BenchmarkStdout-2 10 999 ns/op")
+		if os.Getenv("JVQ_ROUND") != "3" || side != "head" {
+			os.WriteFile("results.json", []byte(`{"name": "a", "unit": "ns", "value": 7}`), 0o644)
+		}
 	case "sleep":
 		time.Sleep(time.Minute)
 	}
@@ -260,5 +272,53 @@ func TestBackgroundChildDoesNotFailASuccessfulRun(t *testing.T) {
 	}
 	if len(res.Base) != 1 || len(res.Head) != 1 {
 		t.Errorf("samples %+v", res)
+	}
+}
+
+func TestTimeAdapterTimesTheCommand(t *testing.T) {
+	base, head := sides(t)
+	res, err := Run(context.Background(), Options{Command: self(t, "nap"), Adapter: "time", Rounds: 3, Warmup: true}, base, head)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.Base) != 3 || len(res.Head) != 3 {
+		t.Fatalf("got %d and %d samples", len(res.Base), len(res.Head))
+	}
+	for i := range res.Base {
+		b, h := res.Base[i], res.Head[i]
+		if b.Name != "command" || b.Metric != "time" || b.Value < 20e6 || h.Value < 80e6 || h.Value < b.Value {
+			t.Errorf("round %d: base %+v head %+v", i+1, b, h)
+		}
+	}
+}
+
+func TestOutputFile(t *testing.T) {
+	base, head := sides(t)
+	cmd := self(t, "write-file")
+	// The helper skips writing on head's round 3. The file from round 2 is
+	// removed before each run, so that run must fail rather than count the
+	// old file again.
+	_, err := Run(context.Background(), Options{Command: cmd, Adapter: "json", Output: "results.json", Rounds: 4, Subdir: "sub"}, base, head)
+	var se *StepError
+	if !errors.As(err, &se) || se.Side != "head" || !strings.Contains(err.Error(), "didn't write its output file") {
+		t.Fatalf("got %v", err)
+	}
+	res, err := Run(context.Background(), Options{Command: cmd, Adapter: "json", Output: "results.json", Rounds: 2, Subdir: "sub"}, base, head)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.Base) != 2 || res.Base[0].Name != "a" || res.Base[0].Value != 7 {
+		t.Errorf("read stdout instead of the file? %+v", res.Base)
+	}
+	if _, err := os.Stat(filepath.Join(base.Dir, "sub", "results.json")); err != nil {
+		t.Errorf("the output file should be where the command runs: %v", err)
+	}
+}
+
+func TestNoResultsHintFollowsTheAdapter(t *testing.T) {
+	base, head := sides(t)
+	_, err := Run(context.Background(), Options{Command: self(t, "nothing"), Adapter: "json", Rounds: 3}, base, head)
+	if !errors.Is(err, ErrNoResults) || !strings.Contains(err.Error(), "json adapter") {
+		t.Errorf("got %v", err)
 	}
 }

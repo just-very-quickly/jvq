@@ -73,6 +73,77 @@ func %s(b *testing.B) {
 `, s.Extra, s.Work, s.Allocs, broken, name)
 }
 
+// program is a command-line twin of the benchmark, for the time and json
+// adapters: it runs op() -reps times and exits, or with -json times its
+// own batches and prints them in jvq's JSON format. JVQ_FIXTURE_DRIFT, a
+// file path and a percentage such as "/tmp/n:1", makes every run on the
+// machine slower than the one before (a counter in the file), the same for
+// base and head, to stand for a machine that heats up during a run.
+func program(s Spec) string {
+	return fmt.Sprintf(`package main
+
+// %s
+
+import (
+	"flag"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+)
+
+const Work = %d
+
+var sink uint64
+
+func op() {
+	x := uint64(88172645463325252)
+	for i := 0; i < Work; i++ {
+		x ^= x << 13
+		x ^= x >> 7
+		x ^= x << 17
+	}
+	sink = x
+}
+
+func drift() float64 {
+	spec := os.Getenv("JVQ_FIXTURE_DRIFT")
+	i := strings.LastIndex(spec, ":")
+	if i < 0 {
+		return 1
+	}
+	path := spec[:i]
+	pct, _ := strconv.ParseFloat(spec[i+1:], 64)
+	b, _ := os.ReadFile(path)
+	n, _ := strconv.Atoi(strings.TrimSpace(string(b)))
+	os.WriteFile(path, []byte(strconv.Itoa(n+1)), 0o644)
+	return 1 + pct*float64(n)/100
+}
+
+func main() {
+	reps := flag.Int("reps", 1000, "ops per run, or per batch with -json")
+	asJSON := flag.Bool("json", false, "time 5 batches and print them as jvq json results")
+	flag.Parse()
+	n := int(float64(*reps) * drift())
+	if !*asJSON {
+		for i := 0; i < n; i++ {
+			op()
+		}
+		return
+	}
+	for b := 0; b < 5; b++ {
+		start := time.Now()
+		for i := 0; i < n; i++ {
+			op()
+		}
+		ns := float64(time.Since(start).Nanoseconds()) / float64(*reps)
+		fmt.Printf("{\"name\": \"work\", \"unit\": \"ns\", \"value\": %%.1f}\n", ns)
+	}
+}
+`, s.Extra, s.Work)
+}
+
 // Git runs git in dir with a clean identity and no user or system config,
 // so commits work the same on every machine.
 func Git(dir string, args ...string) (string, error) {
@@ -132,6 +203,12 @@ func (r *Repo) Commit(s Spec, msg string) (string, error) {
 	if err := os.WriteFile(filepath.Join(r.ModDir(), "work_test.go"), []byte(source(s)), 0o644); err != nil {
 		return "", err
 	}
+	if err := os.MkdirAll(filepath.Join(r.ModDir(), "prog"), 0o755); err != nil {
+		return "", err
+	}
+	if err := os.WriteFile(filepath.Join(r.ModDir(), "prog", "main.go"), []byte(program(s)), 0o644); err != nil {
+		return "", err
+	}
 	if _, err := Git(r.Dir, "add", "-A"); err != nil {
 		return "", err
 	}
@@ -168,6 +245,33 @@ func Build() string {
 // It avoids characters that need quoting in either sh or cmd.exe.
 func Command(benchtime string) string {
 	return Exe() + " -test.run=NONE -test.bench=. -test.benchtime=" + benchtime
+}
+
+// ProgExe is the program's file name on this system.
+func ProgExe() string {
+	if runtime.GOOS == "windows" {
+		return "work.exe"
+	}
+	return "./work"
+}
+
+// ProgBuild compiles the program once per side.
+func ProgBuild() string {
+	name := "work"
+	if runtime.GOOS == "windows" {
+		name = "work.exe"
+	}
+	return "go build -o " + name + " ./prog"
+}
+
+// ProgConfig is a jvq.toml that runs the program: timed whole by the time
+// adapter, or reporting its own batches with the json adapter.
+func ProgConfig(adapterName string, rounds, reps int, extra string) string {
+	cmd := fmt.Sprintf("%s -reps %d", ProgExe(), reps)
+	if adapterName == "json" {
+		cmd += " -json"
+	}
+	return fmt.Sprintf("adapter = %q\nbuild = %q\ncommand = %q\nrounds = %d\n%s", adapterName, ProgBuild(), cmd, rounds, extra)
 }
 
 // Config is a jvq.toml for the fixture: build once per side, then run.

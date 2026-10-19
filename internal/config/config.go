@@ -30,8 +30,9 @@ type Config struct {
 	Command            string
 	Adapter            string
 	Build              string
-	Rounds             int // rounds per side to start with
-	MaxRounds          int // the most rounds per side while results are undecided
+	Output             string // a file the command writes its results to, instead of stdout
+	Rounds             int    // rounds per side to start with
+	MaxRounds          int    // the most rounds per side while results are undecided
 	Warmup             bool
 	Confidence         float64
 	Timeout            time.Duration // per command run
@@ -200,11 +201,16 @@ func Parse(src string) (Config, error) {
 			c.Command, err = str(k, v)
 		case "adapter":
 			c.Adapter, err = str(k, v)
-			if err == nil && !known(c.Adapter) {
+			if err == nil && !adapter.Known(c.Adapter) {
 				err = fmt.Errorf("adapter %q: jvq has %s", c.Adapter, strings.Join(adapter.Names, ", "))
 			}
 		case "build":
 			c.Build, err = str(k, v)
+		case "output":
+			c.Output, err = str(k, v)
+			if err == nil && strings.TrimSpace(c.Output) == "" {
+				err = errors.New("output is empty; leave it out to read the command's standard output")
+			}
 		case "rounds":
 			var n int64
 			n, err = integer(k, v)
@@ -251,16 +257,18 @@ func Parse(src string) (Config, error) {
 			return c, err
 		}
 	}
-	return c, nil
+	return c, c.Check()
 }
 
-func known(name string) bool {
-	for _, n := range adapter.Names {
-		if n == name {
-			return true
-		}
+// Check reports settings that can't work together.
+func (c Config) Check() error {
+	if !adapter.Known(c.Adapter) {
+		return fmt.Errorf("adapter %q: jvq has %s", c.Adapter, strings.Join(adapter.Names, ", "))
 	}
-	return false
+	if c.Output != "" && adapter.Timed(c.Adapter) {
+		return errors.New("output is set, but the time adapter reads no results; it times the command")
+	}
+	return nil
 }
 
 func (c *Config) readBudgets(v any) error {

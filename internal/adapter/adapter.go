@@ -3,13 +3,15 @@
 
 // Package adapter turns the output of a benchmark command into samples.
 //
-// v0.1 reads the standard Go benchmark format, the one `go test -bench`
-// prints:
+// The go adapter reads the standard Go benchmark format, the one
+// `go test -bench` prints:
 //
 //	pkg: example.com/parse
 //	BenchmarkParse/small-8   	 1234567	       912.3 ns/op	     128 B/op	       3 allocs/op
 //
-// Every result line becomes one sample per metric on it.
+// Every result line becomes one sample per metric on it. The json adapter
+// reads jvq's own small JSON format (json.go), and the time adapter reads
+// nothing: the runner times the whole command (TimeSample).
 package adapter
 
 import (
@@ -19,6 +21,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Metric names jvq knows how to judge. Anything else on a result line is
@@ -47,15 +50,41 @@ func (s Sample) Key() string {
 }
 
 // Names lists the adapters jvq has.
-var Names = []string{"go"}
+var Names = []string{"go", "json", "time"}
+
+// TimeName is the benchmark name the time adapter reports.
+const TimeName = "command"
+
+// Known reports whether jvq has the named adapter.
+func Known(name string) bool {
+	for _, n := range Names {
+		if n == name {
+			return true
+		}
+	}
+	return false
+}
+
+// Timed reports whether the adapter measures the command's own run time
+// instead of reading its output.
+func Timed(name string) bool { return name == "time" }
+
+// TimeSample is the time adapter's one sample for a run that took d.
+func TimeSample(d time.Duration) Sample {
+	return Sample{Name: TimeName, Metric: Time, Unit: "ns", Value: float64(d.Nanoseconds())}
+}
 
 // Parse reads output in the named adapter's format.
 func Parse(adapter string, r io.Reader) ([]Sample, error) {
 	switch adapter {
 	case "go", "":
 		return ParseGo(r)
+	case "json":
+		return ParseJSON(r)
+	case "time":
+		return nil, fmt.Errorf("the time adapter reads no output; jvq times the command itself")
 	default:
-		return nil, fmt.Errorf("unknown adapter %q (jvq %s has: %s)", adapter, "v0.1", strings.Join(Names, ", "))
+		return nil, fmt.Errorf("unknown adapter %q (jvq has: %s)", adapter, strings.Join(Names, ", "))
 	}
 }
 

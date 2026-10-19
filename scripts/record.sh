@@ -11,9 +11,12 @@
 #   smoke.txt         the smoke check on a release-style static build
 #   accuracy.json     the accuracy suite: false alarms and detection rates
 #   accuracy.md       its tables
+#   scenarios.json    harder settings: a noisy neighbour, drift, Python commands
+#   scenarios.md      its table
 #
-# It needs Go, git and Python 3. The accuracy suite takes 20 to 40 minutes;
-# set SKIP_ACCURACY=1 to leave the last recording in place.
+# It needs Go, git and Python 3. The accuracy suite takes 20 to 40 minutes
+# and the scenarios 30 to 60 more; set SKIP_ACCURACY=1 to leave the last
+# recordings of both in place.
 #
 # The accuracy-results branch holds the same suite recorded on a GitHub-hosted
 # runner by .github/workflows/accuracy.yml; this script copies it into
@@ -40,12 +43,16 @@ rm -rf "$bin"
 if [ "${SKIP_ACCURACY:-}" != 1 ]; then
   echo "record: accuracy suite (this takes a while)"
   go run ./test/accuracy -out "$out"
+  echo "record: scenarios (this takes a while too)"
+  go run ./test/scenarios -out "$out"
 fi
 
 if git fetch -q origin accuracy-results 2> /dev/null; then
   mkdir -p "$out/github"
-  for f in accuracy.json accuracy.md progress.txt COMMIT; do
-    git show "FETCH_HEAD:github-ubuntu-latest/$f" > "$out/github/$f"
+  for f in accuracy.json accuracy.md progress.txt COMMIT scenarios.json scenarios.md scenarios-progress.txt; do
+    if git cat-file -e "FETCH_HEAD:github-ubuntu-latest/$f" 2> /dev/null; then
+      git show "FETCH_HEAD:github-ubuntu-latest/$f" > "$out/github/$f"
+    fi
   done
   echo "record: copied the GitHub runner recording ($(cat "$out/github/COMMIT" | cut -c1-10))"
 fi
