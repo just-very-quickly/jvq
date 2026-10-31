@@ -308,3 +308,5 @@ own release with a review, a fresh recording and site posts:
   counters, so it runs the command under valgrind's cachegrind, which
   works without them (checked October 2026: a Go program's count repeats to
   within a few in ten million).
+
+- Oct 31 2026: the accuracy workflow's failures since Oct 19 (runs on 5981c1e, 9e5bfe9, c4e3d5c) were not a jvq bug. pytest 9.2.0 removed `Function._nodeid`, which pytest-benchmark 5.3.0 still reads, so the pytest-benchmark harness scenario errored (`AttributeError: 'Function' object has no attribute '_nodeid'`, read from the failure annotation added in 0.7.1; reproduced locally, and pytest 8.4.2 passes). Fix: accuracy.yml pins `pytest<9`. Lift the pin once pytest-benchmark supports pytest 9. Users pairing pytest 9 with pytest-benchmark 5.3 will hit the same error in their own CI.
