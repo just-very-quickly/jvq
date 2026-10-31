@@ -17,6 +17,13 @@ and push to `main`; never ask the owner to publish one.
 afterwards. This session's `gh` has no valid token, but the repository is
 public: read runs and releases from `https://api.github.com/repos/just-very-quickly/jvq/...`.
 
+## In progress: independent review of flaky gate
+
+October 31 2026, an independent review of `jvq flaky` (v0.7.0): identity
+mapping, retries, package and build failures, commit detection, history
+damage and trimming, output injection, exit codes. Each suspected bug gets
+a failing test first; fixes ship as 0.7.1 only if something real is found.
+
 ## Where things stand
 
 v0.1.0 is the first release (October 2026): a performance budget gate for CI
