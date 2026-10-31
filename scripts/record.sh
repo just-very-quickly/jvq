@@ -16,10 +16,15 @@
 #                     Benchmark, vitest, criterion; one whose tools are
 #                     missing is skipped and listed)
 #   scenarios.md      its table
+#   flaky.json        the flaky test gate on simulated CI histories: flaky
+#                     tests quarantined, broken ones blocking, a fixed one
+#                     released, a damaged and a lost history
+#   flaky.md          its tables
 #
 # It needs Go, git and Python 3. The accuracy suite takes 20 to 40 minutes
 # and the scenarios 60 to 120 more; set SKIP_ACCURACY=1 to leave the last
-# recordings of both in place.
+# recordings of both in place. The flaky gate's simulation takes about 10
+# minutes; SKIP_FLAKY=1 leaves its last recording in place.
 #
 # The accuracy-results branch holds the same suite recorded on a GitHub-hosted
 # runner by .github/workflows/accuracy.yml; this script copies it into
@@ -42,6 +47,11 @@ bin=$(mktemp -d)
 CGO_ENABLED=0 go build -trimpath -ldflags '-s -w' -o "$bin/jvq" ./cmd/jvq
 python3 scripts/smoke.py "$bin" > "$out/smoke.txt" 2>&1
 rm -rf "$bin"
+
+if [ "${SKIP_FLAKY:-}" != 1 ]; then
+  echo "record: flaky test gate simulation"
+  go run ./test/flaky -out "$out"
+fi
 
 if [ "${SKIP_ACCURACY:-}" != 1 ]; then
   echo "record: accuracy suite (this takes a while)"

@@ -83,7 +83,7 @@ Steps (mark each done as it lands, with the commit):
    history, mixed input, stable test leaves).
 4. [done] config `[flaky]`, `jvq flaky` command, text/Markdown/JSON output,
    `jvq check` shows the settings, end-to-end tests on the binary.
-5. [ ] test/flaky simulation suite (simulated CI histories through the
+5. [done] test/flaky simulation suite (simulated CI histories through the
    real binary), recorded by scripts/record.sh into test/results/flaky.*.
 6. [ ] README, docs/reference.md, independent review and fixes,
    re-record.
