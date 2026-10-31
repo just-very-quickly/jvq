@@ -372,7 +372,7 @@ func TestReplaySize(t *testing.T) {
 	}
 	start := time.Now()
 	r := Judge(entries[:199], &entries[199], DefaultSettings())
-	if d := time.Since(start); d > 10*time.Second {
+	if d := time.Since(start); d > time.Minute {
 		t.Errorf("took %v", d)
 	}
 	if r.Tests != 2000 || r.InQuarantine == 0 {

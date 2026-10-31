@@ -199,8 +199,18 @@ func step(states map[string]*State, i int, e Entry, s Settings) {
 		st.LastRun = i
 		st.Runs++
 		out := Outcome(a)
-		letter := map[string]string{OutPass: "p", OutFail: "f", OutFlaky: "x", OutSkip: "s"}[out]
-		st.Recent += letter
+		var letter byte
+		switch out {
+		case OutPass:
+			letter = 'p'
+		case OutFail:
+			letter = 'f'
+		case OutFlaky:
+			letter = 'x'
+		default:
+			letter = 's'
+		}
+		st.Recent += string(letter)
 		if len(st.Recent) > recentRuns {
 			st.Recent = st.Recent[len(st.Recent)-recentRuns:]
 		}

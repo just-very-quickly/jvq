@@ -26,11 +26,22 @@ jvq run -adapter time -- python3 bench.py      # time the whole command
 jvq run -adapter json -- node bench.js         # read {"name", "unit", "value"} lines
 ```
 
-**Status: v0.3.0.** Go benchmark output, Rust's criterion, Google
+It also has a second gate, for tests. `jvq flaky` reads your test results
+(JUnit XML or `go test -json`), keeps a small history across CI runs, and
+quarantines tests that pass and fail on the same code, so they stop
+blocking merges while every failure is still reported:
+
+```sh
+jvq flaky -history jvq-tests.jsonl go-test.json junit/
+```
+
+**Status: v0.7.0.** Go benchmark output, Rust's criterion, Google
 Benchmark, pytest-benchmark and vitest as they are, whole-command timing, a
-small JSON format, `jvq compare` for two saved outputs, time, bytes,
-allocation and file-size budgets, adaptive rounds, a GitHub Action, Linux,
-macOS and Windows. jvq is open source under the Apache License 2.0.
+small JSON format, instruction counts on Linux, `jvq compare` for two saved
+outputs, time, bytes, allocation, instruction and file-size budgets,
+adaptive rounds, a history across runs, a flaky test gate, a GitHub Action
+and a GitLab template, Linux, macOS and Windows. jvq is open source under
+the Apache License 2.0.
 
 ## Why it exists
 
@@ -387,6 +398,90 @@ the newest 1000 (`history_keep`). `-history -` turns off a history
 jvq.toml sets; in the action, use the `history` input rather than the
 jvq.toml key, so the cache and the writing rules go with it.
 
+## Flaky tests: jvq flaky
+
+A test that fails one run in twenty blocks good pull requests. People learn
+to click "re-run", and then a real failure gets re-run too. `jvq flaky` is
+a gate for test results that tells the two apart and keeps the flaky ones
+out of the way, in the open.
+
+```sh
+go test -json ./... > go-test.json          # or any runner's JUnit XML
+jvq flaky -history jvq-tests.jsonl go-test.json
+```
+
+It reads one CI run's results, JUnit XML or `go test -json`, from any
+number of files and folders (shards and mixed formats add up), adds the
+run to a history file, and exits 1 if a test failed that isn't in
+quarantine. Everything else exits 0.
+
+- **Flaky** means it passed and failed on the same commit: a retry within
+  the run (`go test -count=2`, gotestsum's `--rerun-fails`, Surefire's
+  `rerunFailingTestsCount`), or a re-run of the job. A test that passed
+  yesterday and fails today on new code isn't counted, since the code
+  changed.
+- **Quarantine** starts when a test has been flaky on 2 commits within its
+  last 100 runs. Its failures are then listed and annotated, and don't
+  block.
+- **Out again** after 30 passing runs in a row. Its next failure blocks.
+- **Broken, not flaky:** a test whose last 3 attempts all failed leaves
+  quarantine at once and blocks. A test that fails every time never goes
+  in.
+
+```
+jvq flaky: 412 tests from 1 go test -json and 2 JUnit XML, commit 4e1f0c2a9b; history jvq-tests.jsonl, 57 run(s) before this one
+
+TEST                             THIS RUN  STATUS                                                         FLAKY COMMITS  LAST RUNS
+example.com/app.TestParseDate    f         failed, blocks                                                 0              pppppppppf
+web.Checkout.pays by card        f         failed in quarantine, doesn't block; in quarantine, 0 of 30 passes to leave  3   ppxppfpppf
+example.com/app.TestUpload       fp        failed, passed on retry                                        1              pppppppppx
+
+FAIL: 1 test(s) failed (example.com/app.TestParseDate). 1 quarantined test(s) failed and didn't block. 1 test(s) failed and passed on retry. 1 test(s) in quarantine.
+```
+
+Retries make it sharper. With two retries for a failed test, a
+quarantined test that really broke fails all three attempts and blocks in
+the run that broke it. Without retries, it's listed as a quarantined
+failure until its third failure in a row, which blocks. The cost of
+retries: a flaky test that happens to fail three attempts in one run is
+taken for broken and blocks once.
+
+Nothing is stored but the runs: one JSON line each, the newest 200 kept.
+Quarantine is worked out again from the whole file every time, so it can't
+drift from what happened. A damaged line is skipped with a note and the
+other runs still count; a missing file starts a new history. `jvq flaky
+-history jvq-tests.jsonl` with no results shows what's in quarantine and
+why.
+
+In GitHub Actions, keep the file in the cache and let pushes to the
+default branch write it:
+
+```yaml
+      - run: go test -json ./... > go-test.json || true
+      - run: go install github.com/just-very-quickly/jvq/cmd/jvq@v0.7.0
+      - uses: actions/cache/restore@v5
+        with:
+          path: jvq-tests.jsonl
+          key: jvq-tests-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: jvq-tests-
+      - run: jvq flaky -history jvq-tests.jsonl ${{ github.ref != 'refs/heads/main' && '-no-write' || '' }} go-test.json
+      - if: always() && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v5
+        with:
+          path: jvq-tests.jsonl
+          key: jvq-tests-${{ github.run_id }}-${{ github.run_attempt }}
+```
+
+The commit comes from `GITHUB_SHA`, `CI_COMMIT_SHA` or git (`-commit`
+sets it), so a re-run of a failed job counts as the same code. The report
+goes to the job summary, and each blocking failure becomes an error
+annotation, each quarantined one a warning. `[flaky]` in jvq.toml sets
+the file and the rules (`window`, `quarantine_after`, `release_after`,
+`broken_after`, `history_keep`); [docs/reference.md](docs/reference.md#jvq-flaky)
+has the details.
+
+FLAKY_NUMBERS
+
 ## In GitLab CI
 
 ```yaml
@@ -483,6 +578,14 @@ time = "2%"
 
 [ignore]
 bench = ["BenchmarkNetwork*"]      # too noisy to gate
+
+[flaky]                            # jvq flaky, the test gate
+history = "jvq-tests.jsonl"        # the test history file
+history_keep = 200                 # runs it keeps
+window = 100                       # a test's latest runs searched for flaky commits
+quarantine_after = 2               # flaky commits that put a test in quarantine
+release_after = 30                 # passing runs in a row that take it out
+broken_after = 3                   # failed attempts in a row: broken, blocks
 ```
 
 `*` in a name matches anything, slashes included, so `BenchmarkParse*`
@@ -526,11 +629,20 @@ jvq history [flags] FILE
   -fail-over PCT         exit 1 if a gated result has moved more than this
                          in all, beyond its noise
   -markdown FILE         also write the table as Markdown
+jvq flaky [flags] [RESULTS...]
+  -history FILE          the test history (default: [flaky] history; - for none)
+  -commit SHA            the commit tested (default: GITHUB_SHA, CI_COMMIT_SHA, git HEAD)
+  -no-write              judge against the history without adding this run
+  -config FILE           config file
+  -json FILE             also write the report as JSON
+  -markdown FILE         also write the report as Markdown
+  -q                     the verdict and notes, not the table
 jvq check [-config FILE]
 jvq version
 ```
 
 Exit codes: 0 pass (inconclusive too, by default), 1 regression, 2 error.
+For `jvq flaky`: 0 when no test failed outside quarantine, 1 when one did.
 jvq compares commits, so uncommitted changes aren't measured.
 [docs/reference.md](docs/reference.md) has every detail, including the JSON
 report's fields.
@@ -549,6 +661,11 @@ report's fields.
 go test ./...                    # unit tests and the binary on fixture repos
 sh scripts/record.sh             # everything, written to test/results/
 ```
+
+The flaky gate's tests read real `go test -json` and pytest output, run
+the binary through a flaky test's whole life, and check the promises one
+by one: a broken test blocks, a test that always fails never goes into
+quarantine, a damaged or missing history doesn't stop the gate.
 
 The fixture tests run the real binary on throwaway git repositories: a 50%
 slowdown caught, an unchanged head passed, one extra allocation caught, a

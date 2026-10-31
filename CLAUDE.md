@@ -85,8 +85,14 @@ Steps (mark each done as it lands, with the commit):
    `jvq check` shows the settings, end-to-end tests on the binary.
 5. [done] test/flaky simulation suite (simulated CI histories through the
    real binary), recorded by scripts/record.sh into test/results/flaky.*.
-6. [ ] README, docs/reference.md, independent review and fixes,
-   re-record.
+6. [done, apart from the numbers] README, docs/reference.md, review and
+   fixes. No subagent could be spawned, so the review was a second pass
+   over the diff; it fixed: non-result JSON files in a results folder
+   (such as jvq's own -json report) now skipped with a note instead of
+   failing the run; a broken event shown on a flaky-this-run row; a
+   wrong note with -no-write; a map built per test per run in the replay.
+   The README's FLAKY_NUMBERS placeholder is filled from
+   test/results/flaky.md after the 0.7.0 recording.
 7. [ ] Version 0.7.0 (README/action/GitLab examples), push, watch CI and
    the release, check files, SHA256SUMS, latest links, run a binary.
 8. [ ] Site: release post, quick start / reference / download / gate

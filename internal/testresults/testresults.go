@@ -45,6 +45,14 @@ type Result struct {
 	Outcome byte
 }
 
+// Skipped is a file in a results folder that was left out, and why.
+type Skipped struct {
+	Path, Reason string
+}
+
+// ErrNotResults is returned for a file in neither format.
+var ErrNotResults = errors.New("not JUnit XML or go test -json output")
+
 // File is what one results file held.
 type File struct {
 	Path   string
@@ -55,6 +63,9 @@ type File struct {
 // Run is every attempt of every test in one CI run, from one or more files.
 type Run struct {
 	Files []File
+	// Skipped lists files in a results folder that aren't test results
+	// (a package.json, jvq's own JSON report), which are left out.
+	Skipped []Skipped
 	// Attempts maps a test to its attempts in order, such as "fp" for a
 	// test that failed and then passed.
 	Attempts map[string]string
@@ -81,6 +92,7 @@ func Collect(paths []string) (*Run, error) {
 			return nil, err
 		}
 		files := []string{p}
+		inFolder := st.IsDir()
 		if st.IsDir() {
 			files = nil
 			ents, err := os.ReadDir(p)
@@ -99,6 +111,10 @@ func Collect(paths []string) (*Run, error) {
 		}
 		for _, f := range files {
 			format, results, err := ReadFile(f)
+			if inFolder && errors.Is(err, ErrNotResults) {
+				run.Skipped = append(run.Skipped, Skipped{Path: f, Reason: ErrNotResults.Error()})
+				continue
+			}
 			if err != nil {
 				return nil, err
 			}
@@ -145,7 +161,7 @@ func Parse(b []byte) (string, []Result, error) {
 		r, err := parseGoJSON(b)
 		return GoJSON, r, err
 	}
-	return "", nil, errors.New("not JUnit XML or go test -json output")
+	return "", nil, ErrNotResults
 }
 
 func looksLikeGoJSON(b []byte) bool {

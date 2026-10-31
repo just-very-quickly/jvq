@@ -120,10 +120,10 @@ func cmdFlaky(args []string, stdout, stderr io.Writer) int {
 		if err != nil {
 			return fail(err)
 		}
-		if missing && len(paths) > 0 {
+		if missing && len(paths) > 0 && !*noWrite {
 			rep.Notes = append(rep.Notes, fmt.Sprintf("%s doesn't exist yet, so this run starts the history", histPath))
 		} else if missing {
-			rep.Notes = append(rep.Notes, fmt.Sprintf("%s doesn't exist yet", histPath))
+			rep.Notes = append(rep.Notes, fmt.Sprintf("%s doesn't exist yet, so nothing is in quarantine", histPath))
 		}
 		if bad > 0 {
 			rep.Notes = append(rep.Notes, fmt.Sprintf("skipped %d damaged line(s) of %s; the other runs still count", bad, histPath))
@@ -152,6 +152,9 @@ func cmdFlaky(args []string, stdout, stderr io.Writer) int {
 	}
 	for _, f := range run.Files {
 		rep.Files = append(rep.Files, flakyFile{f.Path, f.Format, f.Tests})
+	}
+	for _, sk := range run.Skipped {
+		rep.Notes = append(rep.Notes, fmt.Sprintf("skipped %s in a results folder: %s", sk.Path, sk.Reason))
 	}
 	if len(run.Attempts) == 0 {
 		return fail(fmt.Errorf("no test results in %s; did the tests run?", strings.Join(paths, ", ")))
@@ -262,12 +265,23 @@ func statusText(r flaky.Row, s flakyRules, inRun bool) string {
 		t += "; into quarantine"
 	case flaky.EventReleased:
 		t += fmt.Sprintf("; left quarantine (%d passing runs in a row)", s.ReleaseAfter)
+	case flaky.EventBroken:
+		if r.Status != flaky.StatusBroken {
+			t += fmt.Sprintf("; left quarantine as broken (%d failed attempts in a row)", r.FailStreak)
+		}
 	}
 	if r.Quarantined && r.Event != flaky.EventEntered {
-		if t != "quarantined" {
+		switch r.Status {
+		case flaky.StatusQuarantined:
+			// says so already, and its pass streak is 0
+		case flaky.StatusFlaky:
 			t += "; in quarantine"
+		default:
+			if t != "quarantined" {
+				t += "; in quarantine"
+			}
+			t += fmt.Sprintf(", %d of %d passes to leave", r.PassStreak, s.ReleaseAfter)
 		}
-		t += fmt.Sprintf(", %d of %d passes to leave", r.PassStreak, s.ReleaseAfter)
 	}
 	return t
 }

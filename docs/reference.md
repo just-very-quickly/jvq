@@ -1,6 +1,6 @@
 # jvq reference
 
-Everything jvq v0.6 does, in one place. The [README](../README.md) is the
+Everything jvq v0.7 does, in one place. The [README](../README.md) is the
 introduction.
 
 ## Commands
@@ -176,6 +176,121 @@ it; a creep that every run measured tightly does.
 (under 0.05%), `▁` for faster or smaller, and taller blocks for slower or
 bigger, scaled to the largest change shown.
 
+### jvq flaky
+
+```
+jvq flaky [flags] [RESULTS...]
+```
+
+The flaky test gate. Reads one CI run's test results, judges them against
+a test history, adds the run to the history, and exits 1 only when a test
+failed outside quarantine.
+
+RESULTS are files, or folders whose `*.xml` and `*.json` files are read
+(not their subfolders; a file in a folder that is neither format, such as
+jvq's own JSON report, is left out with a note). Each file's format is told from its content: JUnit
+XML when it starts with `<` (after a UTF-8 byte order mark, if any),
+`go test -json` when it has a line that is a JSON test event. Lines that
+aren't JSON in a `go test -json` file (stderr mixed in) are skipped. All
+the files together are one run, so shards and a mix of formats add up.
+UTF-16 files, other XML encodings than UTF-8, ASCII and Latin-1, a file
+cut short, and a run with no test results at all are errors.
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `-history FILE` | `[flaky] history` | the test history; `-` for none |
+| `-commit SHA` | see below | the commit the results are for |
+| `-no-write` | off | judge against the history without adding this run, as on a pull request |
+| `-config FILE` | as for run | config file |
+| `-json FILE` | none | also write the report as JSON |
+| `-markdown FILE` | none | also write the report as Markdown |
+| `-q` | off | print the verdict and notes, not the table |
+
+Flags may come before or after RESULTS; everything after `--` is a
+result. With no RESULTS it prints the history's quarantine and exits 0.
+
+**Tests and attempts.** A test is named `classname.name` in JUnit (the
+enclosing `<testsuite>`'s name when there's no classname) and
+`package.Test/sub` in `go test -json`, so gotestsum's JUnit and its JSON
+name a Go test the same way. Every result of a test in the run is one
+attempt, in file order: `go test -count=N`, gotestsum `--rerun-fails`
+(its JSON file holds each rerun), a testcase listed again, and Surefire's
+rerun elements (`flakyFailure` and `flakyError` are failed attempts before
+the pass, `rerunFailure` and `rerunError` failed attempts after the first
+failure). A JUnit testcase with `<failure>` or `<error>` failed, with
+`<skipped>` was skipped, and otherwise passed. In `go test -json`, a test
+still running when its package failed (a panic, a `-timeout`) failed; a
+package that failed with no failing test (a build error, a crash before
+any test) is the entry `package (package)`, which fails like a test, and a
+package that passed adds a passing `package (package)` attempt, so that
+entry can recover. Those entries aren't counted as tests in the summary.
+
+In one run a test **passed** (every attempt that ran passed), **failed**
+(no attempt passed), was **flaky** (failed and passed) or was skipped.
+
+**The commit** is `-commit`, else `$GITHUB_SHA`, else `$CI_COMMIT_SHA`,
+else `git rev-parse HEAD` in the current folder. With none, each run is
+its own code, and only its own retries count as the same commit.
+
+**The rules**, applied by replaying the whole history, oldest run first,
+with this run last:
+
+1. A **flaky commit** is a commit on which a test both passed and failed,
+   in one run's retries or across runs of that commit. Runs on different
+   commits never add up to one.
+2. A test goes **into quarantine** when it has `quarantine_after` (2)
+   flaky commits among its last `window` (100) runs (runs where it was
+   only skipped don't count), unless its last
+   `broken_after` attempts all failed.
+3. It **leaves, stable again**, after `release_after` (30) passing runs in
+   a row. A failed or flaky run starts the count again; skipped runs don't
+   count either way. Its flaky commits are forgotten, so it needs
+   `quarantine_after` new ones to come back.
+4. It **leaves, broken**, when its last `broken_after` (3) attempts all
+   failed, counting this run's retries and earlier runs. Its flaky commits
+   are forgotten too.
+
+**The gate:** a test that failed in this run blocks (exit 1) unless it is
+in quarantine after this run. A broken test is never in quarantine, so it
+blocks. A test that was flaky in this run doesn't block: it passed on
+retry, though its failure counts towards quarantine. A quarantined test
+that didn't run is listed as not in this run; one missing for a whole
+window is no longer listed (most likely renamed or deleted).
+
+Without retries, a quarantined test that broke for real is listed as a
+quarantined failure until its `broken_after`-th failure in a row, which
+blocks. With `broken_after - 1` retries for a failed test (2 by default),
+it blocks in the run that broke it; the price is that a flaky test that
+fails every retry in one run is taken for broken and blocks.
+
+The table lists every test that failed, was flaky, is in quarantine, or
+entered or left it in this run: its attempts in this run (`fp` failed,
+then passed), its status, its flaky commits in the window, and its last 30
+runs (`p` pass, `f` fail, `x` flaky, `s` skipped). Markdown goes to
+`-markdown` and `$GITHUB_STEP_SUMMARY`; in GitHub Actions each blocking
+failure is an error annotation and each quarantined failure a warning.
+Exit codes: 0 pass, 1 a test failed outside quarantine, 2 an error. A
+history that can't be written is a warning, and the verdict stands.
+
+The JSON report (`-json`):
+
+```json
+{"jvq": "0.7.0", "mode": "flaky", "commit": "4e1f0c2a…",
+ "history": "jvq-tests.jsonl", "history_runs": 57, "written": true,
+ "files": [{"path": "go-test.json", "format": "go-json", "tests": 412}],
+ "settings": {"window": 100, "quarantine_after": 2, "release_after": 30, "broken_after": 3},
+ "result": {"verdict": "fail", "tests": 412, "failed": 1, "broken": 0,
+            "quarantined_failures": 1, "flaky": 1, "in_quarantine": 1,
+            "tests_of_note": [{"test": "web.Checkout.pays by card", "attempts": "f",
+              "status": "quarantined", "blocks": false, "quarantined": true,
+              "quarantined_since": "2026-10-28T09:12:00Z", "flaky_commits": 3,
+              "pass_streak": 0, "fail_streak": 1, "runs": 57, "recent": "ppxppfpppf"}]}}
+```
+
+`status` is `failed`, `broken`, `quarantined` (failed in quarantine),
+`flaky`, `passed`, `skipped` or `absent`; `event` is `entered`,
+`released` or `broken` when this run moved the test in or out.
+
 ### jvq check
 
 ```
@@ -196,6 +311,10 @@ Prints `jvq X.Y.Z (go version, os/arch)`.
 | 0 | pass, or inconclusive without `fail_on_inconclusive`, or base failed with `-base-may-fail` |
 | 1 | regression, or inconclusive with `fail_on_inconclusive` |
 | 2 | error: bad flags or config, git problems, a build or run that failed, output with no results, an interrupt |
+
+`jvq flaky` exits 0 when no test failed outside quarantine, 1 when one
+did, and 2 for an error (an unreadable or empty results file, no tests, a
+benchmark history given as the test history).
 
 ## jvq.toml
 
@@ -224,6 +343,12 @@ back to a default quietly.
 | `[budget]` `instructions` | percentage or `"off"` | `"1%"` | how many more instructions the instructions adapter, or a json result in instructions, may count |
 | `[budget.bench."PATTERN"]` | the five budget keys | | overrides for matching benchmarks (or file paths, for size); later tables win |
 | `[ignore]` `bench` | list of patterns | none | benchmarks left out of the report |
+| `[flaky]` `history` | string | none | `jvq flaky`'s test history file |
+| `[flaky]` `history_keep` | integer, 1 to 100000 | 200 | how many runs the test history keeps, the newest |
+| `[flaky]` `window` | integer, 1 to 100000 | 100 | a test's latest runs searched for flaky commits |
+| `[flaky]` `quarantine_after` | integer, 1 to 1000, at most `window` | 2 | flaky commits that put a test in quarantine |
+| `[flaky]` `release_after` | integer, 1 to 100000 | 30 | passing runs in a row that take it out |
+| `[flaky]` `broken_after` | integer, 1 to 1000 | 3 | failed attempts in a row that make it broken: out of quarantine, blocking |
 
 Budgets: `"5%"` allows 5% more than base; an amount such as `"0"` or `"64"`
 allows that much more in the metric's unit (bytes or allocations per op);
@@ -593,6 +718,35 @@ request pipelines only pull, and writes `jvq-history.md` as an artifact.
 protected branches' caches apart from others by default, so merge request
 pipelines may not see the default branch's history unless the project
 shares caches between protected and unprotected branches.
+
+## Test history file
+
+`jvq flaky` adds one line per run to its history (`-history` or
+`[flaky] history`), after judging, creating the file if needed and keeping
+the newest `history_keep` lines. Like the run history, it's rewritten
+through a temporary file beside it, a symlink is followed, and the file
+keeps its mode. A line:
+
+```json
+{"kind": "tests", "jvq": "0.7.0", "date": "2026-10-31T08:00:00Z",
+ "commit": "4e1f0c2a…", "tests": {"example.com/app.TestParse": "p",
+ "example.com/app.TestUpload": "fp", "web.Checkout.pays by card": "f"}}
+```
+
+Each test's attempts are letters in order: `p` pass, `f` fail, `s` skip.
+Nothing else is stored; quarantine is replayed from these lines every
+time. A re-run of the same commit adds a line of its own, since it's more
+evidence. A line that isn't a valid entry (cut short, binary junk, letters
+other than p, f and s, a `kind` other than `tests`) is skipped with a
+note, and left in the file until it's trimmed. A missing file is an empty
+history. A file holding `jvq run`'s benchmark history is refused, not
+written. Two runs writing at once can lose one of their lines.
+
+Each line repeats every test's name, so the file grows with the suite:
+measured with 2000 Go tests named like
+`github.com/acme/shop/internal/pkg07.TestSomething0123/case_4`, 200 runs
+came to 27 MB, and one `jvq flaky` run on it took about 1.5 seconds of
+CPU. Lower `history_keep` (not below `window`) for a big suite.
 
 ## JUnit report
 

@@ -4,6 +4,7 @@
 package testresults
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -196,6 +197,7 @@ func TestCollectMixed(t *testing.T) {
 	os.WriteFile(filepath.Join(reports, "a.xml"), []byte(`<testsuite><testcase classname="j" name="t1"><failure/></testcase></testsuite>`), 0o644)
 	os.WriteFile(filepath.Join(reports, "b.xml"), []byte(`<testsuite><testcase classname="j" name="t1"/></testsuite>`), 0o644)
 	os.WriteFile(filepath.Join(reports, "notes.txt"), []byte("ignored"), 0o644)
+	os.WriteFile(filepath.Join(reports, "flaky.json"), []byte(`{"jvq": "0.7.0", "mode": "flaky"}`), 0o644)
 	gj := filepath.Join(dir, "go.json")
 	os.WriteFile(gj, []byte(`{"Action":"run","Package":"g","Test":"T"}`+"\n"+`{"Action":"pass","Package":"g","Test":"T"}`+"\n"), 0o644)
 	run, err := Collect([]string{reports, gj})
@@ -208,6 +210,13 @@ func TestCollectMixed(t *testing.T) {
 	}
 	if len(run.Files) != 3 || run.Files[2].Format != GoJSON || run.Files[0].Format != JUnit {
 		t.Errorf("files %+v", run.Files)
+	}
+	if len(run.Skipped) != 1 || filepath.Base(run.Skipped[0].Path) != "flaky.json" {
+		t.Errorf("skipped %+v", run.Skipped)
+	}
+	// Named on its own, a file that isn't results is an error.
+	if _, err := Collect([]string{filepath.Join(reports, "flaky.json")}); !errors.Is(err, ErrNotResults) {
+		t.Errorf("named file: %v", err)
 	}
 	if _, err := Collect([]string{filepath.Join(dir, "missing.xml")}); err == nil {
 		t.Error("a missing file should be an error")
