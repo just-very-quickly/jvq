@@ -208,22 +208,22 @@ under -race, smoke's 3x case inconclusive), both passed once it was quiet.
 
 Not done yet: submodules in worktrees.
 
-## In progress: flaky case studies
+## Flaky case studies (done October 31 2026)
 
-Started October 31 2026 (no change to the gate's code; only new files under
-test/results/case-studies/flaky/ and this file):
-1. Retitle the site's 0.7.0 post without the dot ("jvq Quarantines Flaky
-   Tests So They Stop Blocking Merges") and fix links to its old URL.
-2. Two or three case studies from real test runs: clone real open source
-   projects with known flaky tests, run their suites several times on one
-   commit (go test -json, pytest --junitxml), feed the runs to the released
-   v0.7.0 binary, record commands, commits, trimmed results and jvq output
-   with a rerun script under test/results/case-studies/flaky/.
-3. A use examples post (GitHub Actions cache, gotestsum reruns, pytest
-   JUnit, reading the quarantine, releasing a fixed test, why 2 retries),
-   each recipe run for real.
-4. Link the posts from the 0.7.0 post and the gate page's case studies.
-5. A short done entry here.
+test/results/case-studies/flaky/ (README there): jvq-github-ci replays
+jvq's own 26 test.yml runs (API data, JUnit rebuilt from FAIL annotations,
+one history per OS and step): 100 steps, 7 blocked, none quarantined;
+jvq-suite ran the Linux CI steps (plain and -race) at 8 commits on the
+shared VM: 16 steps, all 1,258 results passed each time; recipes runs the
+use examples on a demo project. Running third-party projects' suites was
+blocked by the session's permission rules, and the k8s/GCS hosts by the
+egress proxy, so both real data sets are jvq's own. Site posts: the
+case study "jvq Replays 26 of Its Own CI Runs and Blocks a Windows Test
+Bug Four Pushes in a Row" and "How to Set Up jvq Flaky With GitHub Actions
+and Retries in pytest and Go"; the 0.7.0 post retitled without the dot.
+Found during case studies: no bug in jvq. pytest-rerunfailures 16.7
+writes a failed-then-passed test as two passing testcases, so jvq can't
+see those reruns (use pytest --lf per attempt; documented in the post).
 
 ## Test results
 
