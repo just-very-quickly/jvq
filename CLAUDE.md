@@ -100,6 +100,13 @@ Steps (mark each done as it lands, with the commit):
 
 Resume at the first step not marked done; run `go test ./...` first.
 
+Seen in CI while building this: the history file tests checked Unix file
+modes, which Windows doesn't have (fixed: skipped there).
+TestCommandAfterDashes (a 3-round no-change `jvq run` with a 10ms
+benchtime) once came out as a regression on the macOS runner (commit
+5981c1e) and passed on the next push: a timing flake in an old test,
+not caused by this work.
+
 ## Releases
 
 Releases are automated. To release, raise `Version` in `cmd/jvq/version.go`

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -280,7 +281,7 @@ func TestHistoryFile(t *testing.T) {
 	if err != nil || missing || bad != 0 || len(entries) != 3 || entries[0].Commit != "c2" || entries[2].Tests["U"] != "fp" {
 		t.Fatalf("got %+v %v %v %v", entries, bad, missing, err)
 	}
-	if st, _ := os.Stat(path); st.Mode().Perm() != 0o644 {
+	if st, _ := os.Stat(path); runtime.GOOS != "windows" && st.Mode().Perm() != 0o644 {
 		t.Errorf("mode %v", st.Mode())
 	}
 	tmps, _ := filepath.Glob(filepath.Join(dir, ".tests.jsonl.tmp-*"))
@@ -322,8 +323,8 @@ func TestCorruptedHistory(t *testing.T) {
 	if err != nil || len(entries) != 3 || bad != 5 {
 		t.Fatalf("after append: entries %d bad %d err %v", len(entries), bad, err)
 	}
-	if st, _ := os.Stat(path); st.Mode().Perm() != 0o600 {
-		t.Errorf("mode not kept: %v", st.Mode())
+	if st, _ := os.Stat(path); runtime.GOOS != "windows" && st.Mode().Perm() != 0o600 {
+		t.Errorf("mode not kept: %v", st.Mode()) // Windows has no such modes
 	}
 	// A file that is nothing but junk is an empty history, not an error.
 	junk := filepath.Join(dir, "junk.jsonl")
