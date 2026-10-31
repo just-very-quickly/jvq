@@ -179,6 +179,23 @@ scenarios weren't re-recorded (no change to the benchmark gate).
 
 Not done yet: submodules in worktrees.
 
+## In progress: flaky case studies
+
+Started October 31 2026 (no change to the gate's code; only new files under
+test/results/case-studies/flaky/ and this file):
+1. Retitle the site's 0.7.0 post without the dot ("jvq Quarantines Flaky
+   Tests So They Stop Blocking Merges") and fix links to its old URL.
+2. Two or three case studies from real test runs: clone real open source
+   projects with known flaky tests, run their suites several times on one
+   commit (go test -json, pytest --junitxml), feed the runs to the released
+   v0.7.0 binary, record commands, commits, trimmed results and jvq output
+   with a rerun script under test/results/case-studies/flaky/.
+3. A use examples post (GitHub Actions cache, gotestsum reruns, pytest
+   JUnit, reading the quarantine, releasing a fixed test, why 2 retries),
+   each recipe run for real.
+4. Link the posts from the 0.7.0 post and the gate page's case studies.
+5. A short done entry here.
+
 ## Test results
 
 `sh scripts/record.sh` runs every test, the race detector, the release plan
