@@ -11,9 +11,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
+	"unicode"
 
 	"github.com/just-very-quickly/jvq/internal/flaky"
 	"github.com/just-very-quickly/jvq/internal/gitx"
@@ -54,7 +56,7 @@ func cmdFlaky(args []string, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("jvq flaky", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	historyFlag := fs.String("history", "", "the test history file (default: [flaky] history in jvq.toml); - for none")
-	commitFlag := fs.String("commit", "", "the commit the results are for (default: $GITHUB_SHA, $CI_COMMIT_SHA, or git HEAD)")
+	commitFlag := fs.String("commit", "", "the commit the results are for (default: git HEAD, else $GITHUB_SHA or $CI_COMMIT_SHA)")
 	noWrite := fs.Bool("no-write", false, "judge against the history without adding this run to it")
 	configPath := fs.String("config", "", "config file (default: jvq.toml here or in a parent, up to the repository root)")
 	jsonPath := fs.String("json", "", "also write the report as JSON to this file")
@@ -159,21 +161,37 @@ func cmdFlaky(args []string, stdout, stderr io.Writer) int {
 	if len(run.Attempts) == 0 {
 		return fail(fmt.Errorf("no test results in %s; did the tests run?", strings.Join(paths, ", ")))
 	}
+	tests, failed := 0, false
+	for id, a := range run.Attempts {
+		if testresults.IsTest(id) {
+			tests++
+		}
+		failed = failed || strings.IndexByte(a, testresults.Fail) >= 0
+	}
+	if tests == 0 && !failed {
+		// Only Go packages that passed with no tests in them: a -run
+		// filter that matched nothing, say.
+		return fail(fmt.Errorf("no test ran in %s, only packages with no tests; did the tests run?", strings.Join(paths, ", ")))
+	}
 
+	// The checkout's HEAD comes before the CI variables: it's the code the
+	// tests ran on when they ran here, while GITHUB_SHA can be another
+	// commit (on pull_request_target and workflow_run it's the base
+	// branch's latest, the same for every pull request).
 	commit := *commitFlag
-	if commit == "" {
-		commit = os.Getenv("GITHUB_SHA")
-	}
-	if commit == "" {
-		commit = os.Getenv("CI_COMMIT_SHA")
-	}
 	if commit == "" && repo != nil {
 		if sha, err := repo.Resolve(context.Background(), "HEAD"); err == nil {
 			commit = sha
 		}
 	}
 	if commit == "" {
-		rep.Notes = append(rep.Notes, "no commit known (-commit, GITHUB_SHA, CI_COMMIT_SHA or a git checkout), so only this run's own retries count as the same code")
+		commit = os.Getenv("GITHUB_SHA")
+	}
+	if commit == "" {
+		commit = os.Getenv("CI_COMMIT_SHA")
+	}
+	if commit == "" {
+		rep.Notes = append(rep.Notes, "no commit known (-commit, a git checkout, GITHUB_SHA or CI_COMMIT_SHA), so only this run's own retries count as the same code")
 	}
 	rep.Commit = commit
 	if histPath == "" {
@@ -201,11 +219,11 @@ func cmdFlaky(args []string, stdout, stderr io.Writer) int {
 	for _, r := range rep.Result.Rows {
 		switch r.Status {
 		case flaky.StatusFailed:
-			annotate(stderr, "error", r.ID+" failed")
+			annotate(stderr, "error", showID(r.ID)+" failed")
 		case flaky.StatusBroken:
-			annotate(stderr, "error", fmt.Sprintf("%s failed %d attempts in a row: broken, not flaky, so it left quarantine and blocks", r.ID, r.FailStreak))
+			annotate(stderr, "error", fmt.Sprintf("%s failed %d attempts in a row: broken, not flaky, so it left quarantine and blocks", showID(r.ID), r.FailStreak))
 		case flaky.StatusQuarantined:
-			annotate(stderr, "warning", r.ID+" failed; it's in quarantine as flaky, so it didn't block")
+			annotate(stderr, "warning", showID(r.ID)+" failed; it's in quarantine as flaky, so it didn't block")
 		}
 	}
 	if rep.Result.Verdict == flaky.VerdictFail {
@@ -286,6 +304,24 @@ func statusText(r flaky.Row, s flakyRules, inRun bool) string {
 	return t
 }
 
+// showID is a test's name as printed. Test names come from the results
+// and the history, which a pull request can write, so a name that has a
+// character that isn't printable (a line break, a tab) or starts with ":"
+// is printed quoted: it can't break a line or begin one with "::", which
+// GitHub Actions would take for a workflow command.
+func showID(id string) string {
+	if id == "" || strings.HasPrefix(id, ":") || strings.IndexFunc(id, func(r rune) bool { return !unicode.IsPrint(r) }) >= 0 {
+		return strconv.Quote(id)
+	}
+	return id
+}
+
+// flakyMD escapes text for the Markdown report, HTML too, since test names
+// can come from a pull request.
+func flakyMD(s string) string {
+	return strings.ReplaceAll(mdCell(s), "<", "&lt;")
+}
+
 // verdictLine sums up the run in one sentence.
 func verdictLine(rep flakyReport) string {
 	res := rep.Result
@@ -299,7 +335,7 @@ func verdictLine(rep flakyReport) string {
 		var names []string
 		for _, r := range res.Rows {
 			if r.Blocks {
-				names = append(names, r.ID)
+				names = append(names, showID(r.ID))
 			}
 		}
 		if len(names) > 3 {
@@ -349,12 +385,12 @@ func writeFlaky(w io.Writer, rep flakyReport, md, quiet bool) {
 	}
 	legend := "LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right."
 	if md {
-		fmt.Fprintf(w, "### jvq flaky\n\n**%s**\n\n%s.\n\n", verdictLine(rep), head)
+		fmt.Fprintf(w, "### jvq flaky\n\n**%s**\n\n%s.\n\n", flakyMD(verdictLine(rep)), head)
 		if len(res.Rows) > 0 {
 			fmt.Fprintln(w, "| Test | This run | Status | Flaky commits | Last runs |")
 			fmt.Fprintln(w, "|---|---|---|---:|---|")
 			for _, r := range res.Rows {
-				fmt.Fprintf(w, "| %s | %s | %s | %d | `%s` |\n", mdCell(r.ID), dash(r.Attempts), statusText(r, rep.Settings, len(rep.Files) > 0), r.FlakyCommits, r.Recent)
+				fmt.Fprintf(w, "| %s | %s | %s | %d | `%s` |\n", flakyMD(showID(r.ID)), dash(r.Attempts), statusText(r, rep.Settings, len(rep.Files) > 0), r.FlakyCommits, r.Recent)
 			}
 			fmt.Fprintf(w, "\n_%s A test goes into quarantine after %d commits on which it both passed and failed, in its last %d runs; it leaves after %d passing runs in a row, or as broken after %d failed attempts in a row._\n",
 				strings.Replace(legend, "LAST RUNS", "Last runs", 1), rep.Settings.QuarantineAfter, rep.Settings.Window, rep.Settings.ReleaseAfter, rep.Settings.BrokenAfter)
@@ -371,7 +407,7 @@ func writeFlaky(w io.Writer, rep flakyReport, md, quiet bool) {
 		tw := tabwriter.NewWriter(w, 2, 0, 2, ' ', 0)
 		fmt.Fprintln(tw, "TEST\tTHIS RUN\tSTATUS\tFLAKY COMMITS\tLAST RUNS")
 		for _, r := range res.Rows {
-			fmt.Fprintf(tw, "%s\t%s\t%s\t%d\t%s\n", r.ID, dash(r.Attempts), statusText(r, rep.Settings, len(rep.Files) > 0), r.FlakyCommits, r.Recent)
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%d\t%s\n", showID(r.ID), dash(r.Attempts), statusText(r, rep.Settings, len(rep.Files) > 0), r.FlakyCommits, r.Recent)
 		}
 		tw.Flush()
 		fmt.Fprintf(w, "\n%s\n", legend)

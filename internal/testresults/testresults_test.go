@@ -45,7 +45,7 @@ func TestGoJSONReal(t *testing.T) {
 		"example.com/cap/beta.TestOne":           "pp",
 		"example.com/cap/beta.TestTwo":           "pp",
 		"example.com/cap/beta (package)":         "p",
-		"example.com/cap/broken (package)":       "f",
+		"example.com/cap/broken (build)":         "f",
 		"example.com/cap/crash.TestBefore":       "p",
 		"example.com/cap/crash.TestPanics":       "f",
 	}
@@ -225,5 +225,36 @@ func TestCollectMixed(t *testing.T) {
 	os.Mkdir(empty, 0o755)
 	if _, err := Collect([]string{empty}); err == nil || !strings.Contains(err.Error(), "no .xml or .json") {
 		t.Errorf("empty folder: %v", err)
+	}
+}
+
+// Independent review, October 2026: a package whose build failed is
+// "pkg (build)", told apart from a package that failed at run time with no
+// failing test ("pkg (package)"), both from Go 1.24's FailedBuild field and
+// from older Go's "[build failed]" / "[setup failed]" output line.
+func TestGoJSONBuildFailure(t *testing.T) {
+	src := `{"ImportPath":"ex.com/m/pb [ex.com/m/pb.test]","Action":"build-fail"}
+{"Action":"start","Package":"ex.com/m/pb"}
+{"Action":"output","Package":"ex.com/m/pb","Output":"FAIL\tex.com/m/pb [build failed]\n"}
+{"Action":"fail","Package":"ex.com/m/pb","Elapsed":0,"FailedBuild":"ex.com/m/pb [ex.com/m/pb.test]"}
+{"Action":"output","Package":"old/q","Output":"FAIL\told/q [build failed]\n"}
+{"Action":"fail","Package":"old/q","Elapsed":0}
+{"Action":"output","Package":"old/s","Output":"FAIL\told/s [setup failed]\n"}
+{"Action":"fail","Package":"old/s","Elapsed":0}
+{"Action":"start","Package":"ex.com/m/pc"}
+{"Action":"output","Package":"ex.com/m/pc","Output":"goleak: found unexpected goroutines\n"}
+{"Action":"fail","Package":"ex.com/m/pc","Elapsed":0.1}
+`
+	_, rs, err := Parse([]byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]string{}
+	for _, r := range rs {
+		got[r.ID] += string(r.Outcome)
+	}
+	want := map[string]string{"ex.com/m/pb (build)": "f", "old/q (build)": "f", "old/s (build)": "f", "ex.com/m/pc (package)": "f"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
 	}
 }

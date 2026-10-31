@@ -1,6 +1,6 @@
 {
   "date": "2026-10-31",
-  "jvq": "0.7.0",
+  "jvq": "0.7.1",
   "machine": {
     "cpu": "Intel(R) Xeon(R) Processor @ 2.80GHz",
     "cpus": 2,
@@ -56,7 +56,7 @@
     ],
     "first_runs_red_in_last_100_commits_with_jvq": 96,
     "first_runs_red_in_last_100_commits_without": 556,
-    "seconds": 485.35290282
+    "seconds": 401.482571103
   },
   "breaks_no_retries": {
     "trials": 50,
@@ -71,7 +71,7 @@
     "stable_test_blocked_in_first_run": 50,
     "runs_before_break_flaky_called_broken": 1,
     "runs_before_break": 705,
-    "seconds": 12.979548203
+    "seconds": 10.676615839
   },
   "breaks_with_retries": {
     "trials": 50,
@@ -84,7 +84,7 @@
     "stable_test_blocked_in_first_run": 50,
     "runs_before_break_flaky_called_broken": 6,
     "runs_before_break": 529,
-    "seconds": 7.185009283
+    "seconds": 5.732519133
   },
   "fixed": {
     "trials": 10,
@@ -92,7 +92,7 @@
     "runs_until_released": {
       "29": 10
     },
-    "seconds": 5.435901049
+    "seconds": 6.065511773
   },
   "damaged_history": {
     "trials": 10,
@@ -102,7 +102,7 @@
     "quarantined_before_damage": 36,
     "trials_with_a_note_after_deletion": 10,
     "flaky_tests_back_in_quarantine_50_commits_after_deletion": 34,
-    "seconds": 153.470458218
+    "seconds": 122.606102165
   },
-  "total_seconds": 665.119798575
+  "total_seconds": 547.254925824
 }

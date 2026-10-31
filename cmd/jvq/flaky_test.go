@@ -346,3 +346,122 @@ func TestFlakyGateCommitFromGit(t *testing.T) {
 		t.Errorf("want commit %s:\n%s", sha[:10], res.stdout)
 	}
 }
+
+// Independent review, October 2026: once leak-check flakes have put a Go
+// package's own entry in quarantine, a compile error in that package
+// still blocks.
+func TestFlakyGateBuildErrorBlocks(t *testing.T) {
+	c := newCI(t)
+	pkgFail := `{"Action":"start","Package":"example.com/app"}
+{"Action":"output","Package":"example.com/app","Output":"goleak: found unexpected goroutines\n"}
+{"Action":"fail","Package":"example.com/app","Elapsed":0.1}
+`
+	pkgPass := `{"Action":"start","Package":"example.com/app"}
+{"Action":"run","Package":"example.com/app","Test":"TestA"}
+{"Action":"pass","Package":"example.com/app","Test":"TestA"}
+{"Action":"pass","Package":"example.com/app","Elapsed":0.1}
+`
+	buildFail := `{"ImportPath":"example.com/app [example.com/app.test]","Action":"build-fail"}
+{"Action":"start","Package":"example.com/app"}
+{"Action":"output","Package":"example.com/app","Output":"FAIL\texample.com/app [build failed]\n"}
+{"Action":"fail","Package":"example.com/app","Elapsed":0,"FailedBuild":"example.com/app [example.com/app.test]"}
+`
+	p := filepath.Join(c.dir, "go.json")
+	runOne := func(commit, src string) result {
+		os.WriteFile(p, []byte(src), 0o644)
+		return jvq(t, c.dir, nil, "flaky", "-history", c.hist, "-commit", commit, p)
+	}
+	for _, commit := range []string{"a", "b"} {
+		runOne(commit, pkgFail)
+		runOne(commit, pkgPass)
+	}
+	res := runOne("c", buildFail)
+	expect(t, res, 1)
+}
+
+// Independent review, October 2026: a test name is printed so that it can
+// never start a line with "::" (a GitHub Actions workflow command) or
+// break a line, in the table, the verdict line or the Markdown summary.
+func TestFlakyGateNamesCantInjectCommands(t *testing.T) {
+	dir := t.TempDir()
+	src := `<testsuites><testsuite name="">
+<testcase name="::error::pwned"><failure/></testcase>
+<testcase classname="c" name="x&#10;::warning::injected&#13;::add-mask::y"><failure/></testcase>
+<testcase classname="c" name="a | b &lt;img src=x&gt;"><failure/></testcase>
+</testsuite></testsuites>`
+	p := filepath.Join(dir, "r.xml")
+	os.WriteFile(p, []byte(src), 0o644)
+	md := filepath.Join(dir, "summary.md")
+	res := jvq(t, dir, []string{"GITHUB_ACTIONS=true", "GITHUB_STEP_SUMMARY=" + md}, "flaky", "-commit", "a", p)
+	expect(t, res, 1)
+	for _, out := range []string{res.stdout, res.stderr} {
+		for _, l := range strings.FieldsFunc(out, func(r rune) bool { return r == '\n' || r == '\r' }) {
+			l = strings.TrimSpace(l)
+			if strings.HasPrefix(l, "::") && !strings.HasPrefix(l, "::error title=jvq::") && !strings.HasPrefix(l, "::warning title=jvq::") {
+				t.Errorf("a test name started a workflow command: %q", l)
+			}
+		}
+	}
+	b, _ := os.ReadFile(md)
+	for _, l := range strings.Split(string(b), "\n") {
+		if strings.Contains(l, "injected") && !strings.HasPrefix(l, "|") && !strings.HasPrefix(l, "**") {
+			t.Errorf("a test name broke a Markdown line: %q", l)
+		}
+		if strings.Contains(l, "<img") {
+			t.Errorf("raw HTML from a test name in the summary: %q", l)
+		}
+	}
+}
+
+// Independent review, October 2026: in a git checkout the commit is the
+// checkout's HEAD even when GITHUB_SHA says otherwise. On
+// pull_request_target and workflow_run, GITHUB_SHA is the base branch's
+// latest commit, the same for every pull request, so a test broken by one
+// pull request and passing in another looked flaky.
+func TestFlakyGateCommitPrefersCheckout(t *testing.T) {
+	dir := t.TempDir()
+	for _, args := range [][]string{{"init", "-q"}, {"-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", "x"}} {
+		cmd := exec.Command("git", args...)
+		cmd.Dir = dir
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %v %s", args, err, out)
+		}
+	}
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	cmd.Dir = dir
+	sha, _ := cmd.Output()
+	os.WriteFile(filepath.Join(dir, "r.json"), []byte(goJSON(map[string]string{"TestA": "p"})), 0o644)
+	res := jvq(t, dir, []string{"GITHUB_SHA=0123456789abcdef0123456789abcdef01234567"}, "flaky", "r.json")
+	expect(t, res, 0)
+	if !strings.Contains(res.stdout, "commit "+string(sha[:10])) {
+		t.Errorf("want the checkout's commit %s:\n%s", sha[:10], res.stdout)
+	}
+	// Outside a checkout, GITHUB_SHA is used.
+	out := t.TempDir()
+	os.WriteFile(filepath.Join(out, "r.json"), []byte(goJSON(map[string]string{"TestA": "p"})), 0o644)
+	res = jvq(t, out, []string{"GITHUB_SHA=0123456789abcdef0123456789abcdef01234567"}, "flaky", "r.json")
+	expect(t, res, 0)
+	if !strings.Contains(res.stdout, "commit 0123456789") {
+		t.Errorf("want GITHUB_SHA outside a checkout:\n%s", res.stdout)
+	}
+}
+
+// Independent review, October 2026: a run in which no test ran (a -run
+// filter that matched nothing leaves only packages that passed) is an
+// error, like a run with no results, not a pass.
+func TestFlakyGateNoTestRan(t *testing.T) {
+	dir := t.TempDir()
+	src := `{"Action":"start","Package":"example.com/app"}
+{"Action":"output","Package":"example.com/app","Output":"testing: warning: no tests to run\n"}
+{"Action":"pass","Package":"example.com/app","Elapsed":0.01}
+`
+	p := filepath.Join(dir, "r.json")
+	os.WriteFile(p, []byte(src), 0o644)
+	res := jvq(t, dir, nil, "flaky", "-commit", "a", p)
+	if res.code != 2 || !strings.Contains(res.stderr, "no test") {
+		t.Errorf("exit %d, stderr %q; want 2 and no test", res.code, res.stderr)
+	}
+	// A package that failed to build with no tests at all still fails.
+	os.WriteFile(p, []byte(`{"Action":"fail","Package":"example.com/app","Elapsed":0,"FailedBuild":"example.com/app"}`+"\n"), 0o644)
+	expect(t, jvq(t, dir, nil, "flaky", "-commit", "a", p), 1)
+}

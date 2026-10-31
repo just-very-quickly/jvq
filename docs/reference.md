@@ -194,7 +194,11 @@ XML when it starts with `<` (after a UTF-8 byte order mark, if any),
 aren't JSON in a `go test -json` file (stderr mixed in) are skipped. All
 the files together are one run, so shards and a mix of formats add up.
 UTF-16 files, other XML encodings than UTF-8, ASCII and Latin-1, a file
-cut short, and a run with no test results at all are errors.
+cut short, a run with no test results at all, and a run in which no test
+ran (only Go packages that passed with no tests, as when a `-run` filter
+matches nothing) are errors. Give one CI run's results: results of the
+same tests from different platforms or matrix jobs in one call would make
+a test that fails on one and passes on another look flaky.
 
 | Flag | Default | Meaning |
 |---|---|---|
@@ -223,14 +227,22 @@ still running when its package failed (a panic, a `-timeout`) failed; a
 package that failed with no failing test (a build error, a crash before
 any test) is the entry `package (package)`, which fails like a test, and a
 package that passed adds a passing `package (package)` attempt, so that
-entry can recover. Those entries aren't counted as tests in the summary.
+entry can recover. A package whose test binary didn't build, or whose
+setup failed (Go 1.24's `FailedBuild`, or the `[build failed]` line of
+older Go), is the entry `package (build)` instead: it only ever fails, so
+it can never be flaky or quarantined, and a compile error blocks even when
+`package (package)` is in quarantine for flaky leak checks. Those entries
+aren't counted as tests in the summary.
 
 In one run a test **passed** (every attempt that ran passed), **failed**
 (no attempt passed), was **flaky** (failed and passed) or was skipped.
 
-**The commit** is `-commit`, else `$GITHUB_SHA`, else `$CI_COMMIT_SHA`,
-else `git rev-parse HEAD` in the current folder. With none, each run is
-its own code, and only its own retries count as the same commit.
+**The commit** is `-commit`, else `git rev-parse HEAD` in the current
+folder, else `$GITHUB_SHA`, else `$CI_COMMIT_SHA`. The checkout comes
+first because it's the code the tests ran on: on `pull_request_target`
+and `workflow_run`, `GITHUB_SHA` is the base branch's latest commit, the
+same for every pull request. With none, each run is its own code, and
+only its own retries count as the same commit.
 
 **The rules**, applied by replaying the whole history, oldest run first,
 with this run last:
@@ -261,7 +273,9 @@ Without retries, a quarantined test that broke for real is listed as a
 quarantined failure until its `broken_after`-th failure in a row, which
 blocks. With `broken_after - 1` retries for a failed test (2 by default),
 it blocks in the run that broke it; the price is that a flaky test that
-fails every retry in one run is taken for broken and blocks.
+fails every retry in one run is taken for broken and blocks. A run with
+`-no-write` (a pull request) counts alone each time, so there only
+retries can show a quarantined test as broken.
 
 The table lists every test that failed, was flaky, is in quarantine, or
 entered or left it in this run: its attempts in this run (`fp` failed,
@@ -269,6 +283,9 @@ then passed), its status, its flaky commits in the window, and its last 30
 runs (`p` pass, `f` fail, `x` flaky, `s` skipped). Markdown goes to
 `-markdown` and `$GITHUB_STEP_SUMMARY`; in GitHub Actions each blocking
 failure is an error annotation and each quarantined failure a warning.
+A test name with a character that isn't printable (a line break, a tab)
+or starting with `:` is printed quoted, so it can't break the table or
+start a GitHub workflow command.
 Exit codes: 0 pass, 1 a test failed outside quarantine, 2 an error. A
 history that can't be written is a warning, and the verdict stands.
 
@@ -734,6 +751,7 @@ keeps its mode. A line:
 ```
 
 Each test's attempts are letters in order: `p` pass, `f` fail, `s` skip.
+A test with no letters is no evidence either way, like a skip.
 Nothing else is stored; quarantine is replayed from these lines every
 time. A re-run of the same commit adds a line of its own, since it's more
 evidence. A line that isn't a valid entry (cut short, binary junk, letters

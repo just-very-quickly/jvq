@@ -380,3 +380,40 @@ func TestReplaySize(t *testing.T) {
 		t.Errorf("tests %d in quarantine %d", r.Tests, r.InQuarantine)
 	}
 }
+
+// Independent review, October 2026: a history line whose test has no
+// attempts at all ("") is no evidence. It used to count as both a pass and
+// a failure, so two such lines quarantined a test and hid its next real
+// failure.
+func TestEmptyAttemptsAreNoEvidence(t *testing.T) {
+	src := `{"kind":"tests","jvq":"0.7.0","date":"2026-10-30T00:00:00Z","commit":"a","tests":{"p.TestA":""}}
+{"kind":"tests","jvq":"0.7.0","date":"2026-10-30T00:00:01Z","commit":"b","tests":{"p.TestA":""}}
+`
+	entries, _, err := Read(strings.NewReader(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	run := NewEntry("test", time.Now(), "c", map[string]string{"p.TestA": "f"})
+	r := Judge(entries, &run, DefaultSettings())
+	wantStatus(t, r, "p.TestA", StatusFailed, true)
+}
+
+// Independent review, October 2026: a package-level failure that is flaky
+// (a leak check in TestMain) may put "pkg (package)" in quarantine, but a
+// build error in that package must still block: it's recorded as
+// "pkg (build)", which never passes and so never goes into quarantine.
+func TestBuildFailureNeverQuarantined(t *testing.T) {
+	m := newSim(t)
+	m.run("a", map[string]string{"p (package)": "f"})
+	m.run("a", map[string]string{"p (package)": "p"})
+	m.run("b", map[string]string{"p (package)": "f"})
+	r := m.run("b", map[string]string{"p (package)": "p"})
+	if x, _ := row(r, "p (package)"); !x.Quarantined {
+		t.Fatalf("setup: p (package) should be in quarantine: %+v", r.Rows)
+	}
+	r = m.run("c", map[string]string{"p (build)": "f"})
+	wantStatus(t, r, "p (build)", StatusFailed, true)
+	if r.Verdict != VerdictFail {
+		t.Fatalf("a build failure passed the gate: %+v", r)
+	}
+}

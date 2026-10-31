@@ -1,6 +1,6 @@
 # jvq flaky test gate
 
-Recorded 2026-10-31 with jvq 0.7.0 (go1.24.7, linux/amd64) on Intel(R) Xeon(R) Processor @ 2.80GHz, 2 CPUs. Total time 11m5s.
+Recorded 2026-10-31 with jvq 0.7.1 (go1.24.7, linux/amd64) on Intel(R) Xeon(R) Processor @ 2.80GHz, 2 CPUs. Total time 9m7s.
 
 Simulated CI histories with a known truth. Every run writes real result files, half the tests as go test -json and half as JUnit XML, and runs `jvq flaky` with the default settings and a history file kept between runs.
 

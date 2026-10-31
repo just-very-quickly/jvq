@@ -17,13 +17,6 @@ and push to `main`; never ask the owner to publish one.
 afterwards. This session's `gh` has no valid token, but the repository is
 public: read runs and releases from `https://api.github.com/repos/just-very-quickly/jvq/...`.
 
-## In progress: independent review of flaky gate
-
-October 31 2026, an independent review of `jvq flaky` (v0.7.0): identity
-mapping, retries, package and build failures, commit detection, history
-damage and trimming, output injection, exit codes. Each suspected bug gets
-a failing test first; fixes ship as 0.7.1 only if something real is found.
-
 ## Where things stand
 
 v0.1.0 is the first release (October 2026): a performance budget gate for CI
@@ -183,6 +176,35 @@ under -race, and TestInstructionsSteadyWithGoroutines under -race
 (inconclusive at +0.4%). test/results/race.txt is the honest record of
 the last of those; tests.txt (no race) passed. The accuracy suite and
 scenarios weren't re-recorded (no change to the benchmark gate).
+
+v0.7.1 (October 31 2026), independent review of the flaky gate (a
+separate session that didn't write it). Five confirmed bugs, each with a
+test that failed first: a Go build failure shared the `pkg (package)`
+entry, so once leak-check flakes quarantined that entry a compile error
+didn't block (now `pkg (build)`, which only fails and can't be
+quarantined); test names from JUnit could start a line with `::` or break
+lines in the table, verdict and summary, so a pull request could inject
+GitHub workflow commands (now quoted when unprintable or starting with
+`:`; Markdown also escapes `<`); the commit preferred GITHUB_SHA over the
+checkout, and on pull_request_target / workflow_run that is the base
+branch's head for every pull request, so a test broken in one PR and
+passing in another looked flaky (now HEAD first, then GITHUB_SHA,
+CI_COMMIT_SHA); a history line with an empty attempts string counted as
+both pass and fail (now no evidence); a run where no test ran (only
+packages with no tests, a `-run` filter matching nothing) passed (now an
+error, exit 2). Docs now say that `-no-write` pull request runs count
+alone, so only retries catch a quarantined test the PR breaks, and that
+results from different platforms in one call make platform failures look
+flaky. Found sound: retries and Surefire elements, skip vs failure vs
+error, hung and panicking tests, XML entities (refused), damaged and
+missing histories, trimming, exit codes. Still open: a crash in a
+quarantined Go test stops its package's other tests, which then simply
+don't run; a JUnit suite that fails without any testcase element (jest-junit
+by default omits a suite that failed to run) is invisible; two runs writing
+the history at once can lose a line (documented). Recording: the flaky
+simulation gave the same numbers as 0.7.0; a first race run and smoke
+check failed on benchmark timing while the VM was at load 6 (TestHistory
+under -race, smoke's 3x case inconclusive), both passed once it was quiet.
 
 Not done yet: submodules in worktrees.
 

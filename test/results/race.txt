@@ -1,29 +1,16 @@
---- FAIL: TestInstructionsSteadyWithGoroutines (203.23s)
-    adapters_test.go:352: row map[base:map[median:2.11880499e+08 n:29] budget:1% change:0.003938210615791915 ci_hi:0.014110165124961549 ci_lo:-0.007288283881987656 head:map[median:2.12486379e+08 n:29] metric:instructions name:command note:the interval straddles the budget p:0.5237320235648273 unit:instructions verdict:inconclusive]
-        
-        jvq 0.7.0: base 0566498285 (head^) vs head 52640cde95 (HEAD), 29 rounds, 95% intervals
-        note: head is on main, so it is compared with its parent
-        
-        BENCHMARK  METRIC        BASE     HEAD     CHANGE  INTERVAL       BUDGET  VERDICT
-        command    instructions  211.9 M  212.5 M  +0.4%   -0.7% … +1.4%  1%      inconclusive
-        
-        verdict: inconclusive (1 inconclusive) in 3m23.1s
-          command instructions: the interval straddles the budget
-FAIL
-FAIL	github.com/just-very-quickly/jvq/cmd/jvq	359.484s
-ok  	github.com/just-very-quickly/jvq/internal/adapter	1.172s
-ok  	github.com/just-very-quickly/jvq/internal/config	1.098s
+ok  	github.com/just-very-quickly/jvq/cmd/jvq	181.355s
+ok  	github.com/just-very-quickly/jvq/internal/adapter	1.134s
+ok  	github.com/just-very-quickly/jvq/internal/config	1.072s
 ?   	github.com/just-very-quickly/jvq/internal/fixture	[no test files]
-ok  	github.com/just-very-quickly/jvq/internal/flaky	11.785s
-ok  	github.com/just-very-quickly/jvq/internal/gitx	5.054s
-ok  	github.com/just-very-quickly/jvq/internal/history	1.112s
-ok  	github.com/just-very-quickly/jvq/internal/report	1.046s
-ok  	github.com/just-very-quickly/jvq/internal/runner	89.967s
-ok  	github.com/just-very-quickly/jvq/internal/stats	3.574s
-ok  	github.com/just-very-quickly/jvq/internal/testresults	1.145s
+ok  	github.com/just-very-quickly/jvq/internal/flaky	8.014s
+ok  	github.com/just-very-quickly/jvq/internal/gitx	3.863s
+ok  	github.com/just-very-quickly/jvq/internal/history	1.160s
+ok  	github.com/just-very-quickly/jvq/internal/report	1.075s
+ok  	github.com/just-very-quickly/jvq/internal/runner	86.019s
+ok  	github.com/just-very-quickly/jvq/internal/stats	2.917s
+ok  	github.com/just-very-quickly/jvq/internal/testresults	1.040s
 ?   	github.com/just-very-quickly/jvq/internal/units	[no test files]
-ok  	github.com/just-very-quickly/jvq/internal/verdict	3.537s
+ok  	github.com/just-very-quickly/jvq/internal/verdict	3.492s
 ?   	github.com/just-very-quickly/jvq/test/accuracy	[no test files]
 ?   	github.com/just-very-quickly/jvq/test/flaky	[no test files]
 ?   	github.com/just-very-quickly/jvq/test/scenarios	[no test files]
-FAIL

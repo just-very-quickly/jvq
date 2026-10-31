@@ -228,7 +228,9 @@ func step(states map[string]*State, i int, e Entry, s Settings) {
 		case OutFail, OutFlaky:
 			st.PassStreak = 0
 		}
-		if out == OutSkip {
+		if out == OutSkip || out == "" {
+			// Skipped, or no attempts at all (only a damaged or hand-made
+			// line has none): no evidence either way.
 			continue
 		}
 		commit := e.Commit
@@ -291,7 +293,7 @@ const (
 // Result is a judged run.
 type Result struct {
 	Verdict string `json:"verdict"`
-	Tests   int    `json:"tests"` // in this run, not counting Go packages' own entries
+	Tests   int    `json:"tests"` // in this run, not counting Go packages' own entries (package) and (build)
 	// Counts of this run's tests by status.
 	Failed      int `json:"failed"`
 	Broken      int `json:"broken"`
@@ -319,7 +321,7 @@ func Judge(entries []Entry, run *Entry, s Settings) Result {
 	res := Result{Verdict: VerdictPass}
 	if run != nil {
 		for id := range run.Tests {
-			if !strings.HasSuffix(id, testresults.PackageSuffix) {
+			if testresults.IsTest(id) {
 				res.Tests++
 			}
 		}

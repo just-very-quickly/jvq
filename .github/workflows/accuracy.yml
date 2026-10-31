@@ -58,6 +58,16 @@ jobs:
         run: |
           cat "$RUNNER_TEMP/accuracy/accuracy.md" >> "$GITHUB_STEP_SUMMARY" || tail -50 "$RUNNER_TEMP/progress.txt"
           cat "$RUNNER_TEMP/accuracy/scenarios.md" >> "$GITHUB_STEP_SUMMARY" || tail -50 "$RUNNER_TEMP/scenarios-progress.txt" || true
+      - name: Show why a recording failed
+        # The job log isn't always reachable, so the tail of the failing
+        # step's stderr becomes an annotation, which the API can read.
+        if: failure()
+        run: |
+          for f in progress.txt scenarios-progress.txt; do
+            [ -s "$RUNNER_TEMP/$f" ] || continue
+            msg=$(tail -n 40 "$RUNNER_TEMP/$f" | cut -c1-300 | awk '{gsub(/%/,"%25"); gsub(/\r/,"%0D"); printf "%s%%0A", $0}')
+            echo "::error title=$f::$msg"
+          done
       - name: Publish to the accuracy-results branch
         run: |
           sha=$(git rev-parse HEAD)

@@ -316,26 +316,42 @@ type goEvent struct {
 	Action      string
 	Package     string
 	Test        string
+	Output      string
 	FailedBuild string
 }
 
-// PackageSuffix marks the entry for a Go package that failed with no test
-// to blame: a build error, a crash in TestMain, or a timeout before any
-// test ran.
+// PackageSuffix marks the entry for a Go package that failed at run time
+// with no test to blame: a crash in TestMain, a leak check after the
+// tests, or a timeout before any test ran.
 const PackageSuffix = " (package)"
+
+// BuildSuffix marks the entry for a Go package whose test binary didn't
+// build (or whose setup failed). It only ever fails, so it can never be
+// flaky and never goes into quarantine: a compile error always blocks,
+// even in a package whose (package) entry is in quarantine.
+const BuildSuffix = " (build)"
+
+// IsTest reports whether id is a test, not a Go package's own entry.
+func IsTest(id string) bool {
+	return !strings.HasSuffix(id, PackageSuffix) && !strings.HasSuffix(id, BuildSuffix)
+}
 
 // parseGoJSON reads go test -json events. Each pass, fail or skip of a
 // test is an attempt. When a package fails, every test of it that started
 // and didn't finish (a panic or a timeout) gets a failed attempt; if no
 // test of it failed at all, the package itself does, as "pkg (package)",
-// so a build error blocks like a failed test. A package that passes gets a
-// passing "pkg (package)" attempt, so that entry can recover. Lines that
-// aren't JSON (stderr mixed in) are skipped.
+// so a crash outside a test blocks like a failed test. A package that
+// passes gets a passing "pkg (package)" attempt, so that entry can
+// recover. A package whose build or setup failed (Go 1.24's FailedBuild,
+// or the "[build failed]" line older Go prints) fails as "pkg (build)"
+// instead, which never passes. Lines that aren't JSON (stderr mixed in)
+// are skipped.
 func parseGoJSON(b []byte) ([]Result, error) {
 	type pkgState struct {
-		pending  map[string]int
-		order    []string
-		testFail bool
+		pending     map[string]int
+		order       []string
+		testFail    bool
+		buildFailed bool
 	}
 	pkgs := map[string]*pkgState{}
 	get := func(p string) *pkgState {
@@ -365,6 +381,11 @@ func parseGoJSON(b []byte) ([]Result, error) {
 		}
 		id := ev.Package + "." + ev.Test
 		switch ev.Action {
+		case "output":
+			if ev.Test == "" && strings.HasPrefix(ev.Output, "FAIL") &&
+				(strings.Contains(ev.Output, " [build failed]") || strings.Contains(ev.Output, " [setup failed]")) {
+				get(ev.Package).buildFailed = true
+			}
 		case "start":
 			delete(pkgs, ev.Package) // a new go test of this package
 		case "run":
@@ -395,6 +416,10 @@ func parseGoJSON(b []byte) ([]Result, error) {
 			s := get(ev.Package)
 			switch ev.Action {
 			case "fail":
+				if ev.FailedBuild != "" || s.buildFailed {
+					out = append(out, Result{ID: ev.Package + BuildSuffix, Outcome: Fail})
+					break
+				}
 				hung := false
 				for _, t := range s.order {
 					for i := 0; i < s.pending[t]; i++ {

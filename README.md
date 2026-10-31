@@ -35,7 +35,7 @@ blocking merges while every failure is still reported:
 jvq flaky -history jvq-tests.jsonl go-test.json junit/
 ```
 
-**Status: v0.7.0.** Go benchmark output, Rust's criterion, Google
+**Status: v0.7.1.** Go benchmark output, Rust's criterion, Google
 Benchmark, pytest-benchmark and vitest as they are, whole-command timing, a
 small JSON format, instruction counts on Linux, `jvq compare` for two saved
 outputs, time, bytes, allocation, instruction and file-size budgets,
@@ -324,7 +324,7 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: stable
-      - uses: just-very-quickly/jvq@v0.7.0
+      - uses: just-very-quickly/jvq@v0.7.1
         with:
           command: go test -run=NONE -bench=. -benchmem ./...
 ```
@@ -343,7 +343,7 @@ in small steps, each inside the budget, passes every time. Keep a history
 and it shows:
 
 ```yaml
-      - uses: just-very-quickly/jvq@v0.7.0
+      - uses: just-very-quickly/jvq@v0.7.1
         with:
           history: jvq-history.jsonl
           history-fail-over: 10%     # optional: fail when something has moved more than this in all
@@ -445,9 +445,12 @@ FAIL: 1 test(s) failed (example.com/app.TestParseDate). 1 quarantined test(s) fa
 Retries make it sharper. With two retries for a failed test, a
 quarantined test that really broke fails all three attempts and blocks in
 the run that broke it. Without retries, it's listed as a quarantined
-failure until its third failure in a row, which blocks. The cost of
-retries: a flaky test that happens to fail three attempts in one run is
-taken for broken and blocks once.
+failure until its third failure in a row, which blocks. On a pull request
+run with `-no-write`, as below, each run counts alone, so without retries
+a pull request that breaks a quarantined test isn't stopped there; the
+break blocks on the default branch instead. The cost of retries: a flaky
+test that happens to fail three attempts in one run is taken for broken
+and blocks once.
 
 Nothing is stored but the runs: one JSON line each, the newest 200 kept.
 Quarantine is worked out again from the whole file every time, so it can't
@@ -461,7 +464,7 @@ default branch write it:
 
 ```yaml
       - run: go test -json ./... > go-test.json || true
-      - run: go install github.com/just-very-quickly/jvq/cmd/jvq@v0.7.0
+      - run: go install github.com/just-very-quickly/jvq/cmd/jvq@v0.7.1
       - uses: actions/cache/restore@v5
         with:
           path: jvq-tests.jsonl
@@ -475,8 +478,8 @@ default branch write it:
           key: jvq-tests-${{ github.run_id }}-${{ github.run_attempt }}
 ```
 
-The commit comes from `GITHUB_SHA`, `CI_COMMIT_SHA` or git (`-commit`
-sets it), so a re-run of a failed job counts as the same code. The report
+The commit is the checkout's HEAD, else `GITHUB_SHA` or `CI_COMMIT_SHA`
+(`-commit` sets it), so a re-run of a failed job counts as the same code. The report
 goes to the job summary, and each blocking failure becomes an error
 annotation, each quarantined one a warning. `[flaky]` in jvq.toml sets
 the file and the rules (`window`, `quarantine_after`, `release_after`,
@@ -515,7 +518,7 @@ each time a note, and the deleted history built its quarantine again.
 
 ```yaml
 include:
-  - remote: https://raw.githubusercontent.com/just-very-quickly/jvq/v0.7.0/ci/gitlab/jvq.yml
+  - remote: https://raw.githubusercontent.com/just-very-quickly/jvq/v0.7.1/ci/gitlab/jvq.yml
 
 benchmarks:
   extends: .jvq
@@ -660,7 +663,7 @@ jvq history [flags] FILE
   -markdown FILE         also write the table as Markdown
 jvq flaky [flags] [RESULTS...]
   -history FILE          the test history (default: [flaky] history; - for none)
-  -commit SHA            the commit tested (default: GITHUB_SHA, CI_COMMIT_SHA, git HEAD)
+  -commit SHA            the commit tested (default: git HEAD, GITHUB_SHA, CI_COMMIT_SHA)
   -no-write              judge against the history without adding this run
   -config FILE           config file
   -json FILE             also write the report as JSON
