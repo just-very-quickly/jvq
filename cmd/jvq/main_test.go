@@ -279,7 +279,13 @@ func TestCommandAfterDashes(t *testing.T) {
 	commit(t, r, fixture.Spec{Work: 2000, Extra: "x"}, "same")
 	args := append([]string{"run", "-rounds", "3", "-build", fixture.Build(), "--"}, strings.Fields(fixture.Command("10ms"))...)
 	res := jvq(t, r.Dir, nil, args...)
-	expect(t, res, 0)
+	// This test is about the command after --, not the verdict: 3 short
+	// rounds of an unchanged benchmark came out as a regression on a busy
+	// machine twice (macOS runner; this VM under -race), so any verdict
+	// is fine; an error isn't.
+	if res.code == 2 || res.report == nil {
+		t.Fatalf("exit %d\nstdout:\n%s\nstderr:\n%s", res.code, res.stdout, res.stderr)
+	}
 	if !strings.Contains(res.report["command"].(string), "-test.benchtime=10ms") {
 		t.Errorf("command %v", res.report["command"])
 	}

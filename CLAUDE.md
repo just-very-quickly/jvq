@@ -9,104 +9,6 @@ docs, CI, releases, site and upkeep; the owner gives the go-ahead. The code is
 Apache 2.0, the README is the manual, docs/ holds the reference, and there are
 no Word or PDF documents.
 
-## In progress: flaky test quarantine (v0.7.0)
-
-Started October 31 2026 at the owner's request. A second gate in the same
-binary: read test results across CI runs, keep a small history file, score
-each test's flakiness (pass and fail on the same code), and quarantine
-repeat offenders so they stop blocking merges while still being reported.
-Why: a flaky test that fails one run in twenty blocks good pull requests,
-people learn to click "re-run", and then a real failure gets re-run too.
-Quarantine must be visible (every quarantined failure is listed) and
-reversible (a test that is stable again leaves on its own), and a test that
-fails consistently is a real failure, never quarantined.
-
-Design decisions:
-- Command: `jvq flaky [flags] RESULTS...`. RESULTS are files or folders
-  (a folder's *.xml and *.json, not recursive); each file's format is
-  detected from its first character: `<` JUnit XML, `{` `go test -json`.
-  Several files are one CI run (shards, mixed JUnit and Go JSON). With no
-  RESULTS it only shows the history's state. Exit 0 pass (quarantined
-  failures don't block), 1 a failure that blocks, 2 error (no tests found,
-  unreadable file).
-- Flags: `-history FILE` (`-` for none), `-commit SHA` (default
-  GITHUB_SHA, CI_COMMIT_SHA, else git HEAD), `-no-write` (judge against the
-  history, don't add this run), `-json FILE`, `-markdown FILE`, `-q`.
-  Markdown also goes to GITHUB_STEP_SUMMARY; blocking failures become
-  error annotations, as `jvq run` does.
-- Attempts: every result of a test in this run is one attempt, in order
-  (go test -count=N, gotestsum --rerun-fails, surefire's flakyFailure /
-  rerunFailure, the same testcase listed again). Per run a test is pass,
-  fail (no attempt passed), flaky (failed and passed) or skip. Test id:
-  JUnit `classname.name`; Go `package.Test/sub`. A Go package that failed
-  with no failing test (build error, crash, timeout) becomes the test
-  `package (package)`; a test left running when its package failed counts
-  as a failed attempt.
-- Flaky evidence: a commit on which a test both passed and failed (within
-  one run's retries, or across re-runs of the same commit). Different
-  commits never count, since the code changed.
-- State, replayed from the whole history each time (nothing stored but the
-  runs, so it can't drift): a test enters quarantine when it has
-  `quarantine_after` (2) flaky commits within its last `window` (100)
-  runs; it leaves after `release_after` (30) passing runs in a row
-  (stable again), its evidence cleared so it must offend twice more to
-  come back; it leaves as broken when its last `broken_after` (3)
-  attempts all failed (history plus this run).
-- Gate: a test that failed this run blocks unless it is quarantined after
-  this run is replayed; a broken test is never quarantined, so it blocks.
-  A flaky-this-run test (passed on retry) doesn't block. With retries
-  (2 or more extra attempts), a quarantined test that really broke blocks
-  in the run that broke it; without retries, at the latest on its third
-  failing attempt in a row, and it is listed as a quarantined failure
-  until then.
-- jvq.toml `[flaky]`: `history`, `history_keep` (200 runs), `window`,
-  `quarantine_after`, `release_after`, `broken_after`.
-- History file: JSON lines, one per run:
-  `{"kind":"tests","jvq":"0.7.0","date":"...","commit":"sha","tests":{"pkg.TestA":"p","pkg.TestB":"fp"}}`,
-  attempts as letters p(ass) f(ail) s(kip) in order. Written atomically
-  through a temp file. A missing file starts a new history; damaged lines
-  are skipped, counted in a note and kept until trimmed; a run history
-  (jvq run -history) given by mistake is an error, not overwritten.
-- No action.yml input for now; the README shows actions/cache steps.
-- The accuracy workflow ignores the new files (internal/flaky,
-  internal/testresults, cmd/jvq/flaky*.go), so pushes of this work don't
-  start a 1 to 2 hour recording; the release commit (version.go) still
-  does.
-
-Steps (mark each done as it lands, with the commit):
-1. [done] Plan in CLAUDE.md.
-2. [done] internal/testresults: JUnit XML and go test -json parsers, with
-   tests (real captured go test -json and pytest output in testdata;
-   surefire-reruns.xml is hand-written, Maven Central was unreachable).
-3. [done] internal/flaky: history read/append, replay, scoring, gate, with
-   tests (broken never hidden, flaky stops blocking, corrupted and missing
-   history, mixed input, stable test leaves).
-4. [done] config `[flaky]`, `jvq flaky` command, text/Markdown/JSON output,
-   `jvq check` shows the settings, end-to-end tests on the binary.
-5. [done] test/flaky simulation suite (simulated CI histories through the
-   real binary), recorded by scripts/record.sh into test/results/flaky.*.
-6. [done, apart from the numbers] README, docs/reference.md, review and
-   fixes. No subagent could be spawned, so the review was a second pass
-   over the diff; it fixed: non-result JSON files in a results folder
-   (such as jvq's own -json report) now skipped with a note instead of
-   failing the run; a broken event shown on a flaky-this-run row; a
-   wrong note with -no-write; a map built per test per run in the replay.
-   The README's FLAKY_NUMBERS placeholder is filled from
-   test/results/flaky.md after the 0.7.0 recording.
-7. [ ] Version 0.7.0 (README/action/GitLab examples), push, watch CI and
-   the release, check files, SHA256SUMS, latest links, run a binary.
-8. [ ] Site: release post, quick start / reference / download / gate
-   pages; check the Cloudflare Pages deploy once.
-
-Resume at the first step not marked done; run `go test ./...` first.
-
-Seen in CI while building this: the history file tests checked Unix file
-modes, which Windows doesn't have (fixed: skipped there).
-TestCommandAfterDashes (a 3-round no-change `jvq run` with a 10ms
-benchtime) once came out as a regression on the macOS runner (commit
-5981c1e) and passed on the next push: a timing flake in an old test,
-not caused by this work.
-
 ## Releases
 
 Releases are automated. To release, raise `Version` in `cmd/jvq/version.go`
@@ -232,6 +134,49 @@ problem, fork-without-exec counting the parent twice (documented), json
 instruction units gated without checks, and `jvq check` missing the
 budget. test.yml installs valgrind on Linux.
 
+v0.7.0 (October 31 2026), the flaky test gate: `jvq flaky [flags]
+RESULTS...` reads one CI run's JUnit XML and `go test -json` results
+(files or folders; shards and mixed formats are one run; Surefire's
+flaky/rerun elements, -count and gotestsum reruns as attempts; a hung or
+panicking Go test failed; a package failing with no failing test is
+`pkg (package)`), adds the run to a test history (JSON lines,
+`{"kind":"tests",...,"commit":...,"tests":{"id":"fp"}}`, newest 200
+kept), and replays the whole history each time. A flaky commit is one
+where a test passed and failed; 2 of them in a test's last 100 runs put it
+in quarantine; 30 passing runs in a row take it out; 3 failed attempts in
+a row make it broken (out, blocking). A failure blocks unless the test is
+in quarantine after this run. Flags: -history, -commit (GITHUB_SHA,
+CI_COMMIT_SHA, git HEAD), -no-write, -json, -markdown, -q; `[flaky]` in
+jvq.toml; `jvq check` shows it. Code in internal/testresults,
+internal/flaky, cmd/jvq/flaky.go; the accuracy workflow ignores those
+paths. test/flaky simulates CI histories through the binary into
+test/results/flaky.*: 200 stable + 5 flaky tests over 300 commits x 10,
+red first runs 53.7% without quarantine vs 14.6% with (9.6% in the last
+100 commits), 0 stable tests quarantined; a broken quarantined test
+blocked within 3 runs without retries (50/50) and in its first run with 2
+retries (50/50, at the cost of 6 false "broken" blocks in 529 runs); a
+fixed test released after 30 passes (10/10); damaged and deleted
+histories gave no errors. No subagent could be spawned for the review, so
+it was a second pass over the diff; it fixed non-result JSON in a results
+folder failing the run (now skipped with a note), a broken event on a
+flaky row, a -no-write note, a per-test map in the replay, and Windows
+file-mode checks in the tests. Known limits: without retries, a
+quarantined test that really broke gets through up to 2 runs (listed as a
+quarantined failure); PR runs with -no-write don't add evidence; the
+history repeats test names (2000 long Go names x 200 runs = 27 MB); no
+action.yml input yet (the README shows actions/cache steps). Maven
+Central was unreachable, so testdata/surefire-reruns.xml is hand-written
+to Surefire's schema.
+
+Recording notes for 0.7.0: this VM was shared with other sessions' builds
+(load 5 to 8 on 2 cores) while recording, so timing tests flaked:
+TestCommandAfterDashes (now verdict-agnostic: it tests the command after
+--, and also flaked once on the macOS runner), TestTimeAdapterTimesTheCommand
+under -race, and TestInstructionsSteadyWithGoroutines under -race
+(inconclusive at +0.4%). test/results/race.txt is the honest record of
+the last of those; tests.txt (no race) passed. The accuracy suite and
+scenarios weren't re-recorded (no change to the benchmark gate).
+
 Not done yet: submodules in worktrees.
 
 ## Test results
@@ -254,6 +199,8 @@ inside record.sh, whose background run may hit a 2-hour limit. Every
 number in the README and on the site comes from those files; record again
 after any change that could move them. The accuracy suite takes 20 to 40
 minutes and the scenarios about as long again; `SKIP_ACCURACY=1` skips both.
+The flaky gate's simulation (test/flaky, about 10 minutes, flaky.json and
+flaky.md) runs too unless `SKIP_FLAKY=1`.
 Don't run other heavy jobs on the machine while it records, not even
 `go test ./...`: a concurrent test run once disturbed a recording, and
 another run's stale-worktree cleanup removed a test's workspace. Raise the
@@ -280,13 +227,19 @@ unchanged from taskfused.com: content and config values only. Pages: about,
 contact, quick start, download, reference. Posts: the launch, performance
 budgets in CI explained, how jvq was tested, the name, then for 0.2 the
 release post and the harder-settings post (scenarios), then a release
-post for each of 0.3, 0.4, 0.5 and 0.6. The site also hosts jvqq, the
+post for each of 0.3, 0.4, 0.5, 0.6 and 0.7 (the flaky test gate). The site also hosts jvqq, the
 query tool (repo just-very-quickly/query), with its own pages and case
 studies. Images are drawn into
 static/images. Every number comes from `test/results/`; when a recording
 changes a number, update the site too.
 
 ## Next
+
+Possible next steps for the flaky gate, for the owner to decide: an
+action.yml input (or a small companion action) that installs jvq and keeps
+the test history in the cache; a pinned list in `[flaky]` to quarantine or
+never quarantine tests by name; a more compact history for big suites.
+
 
 Approved with the plan (October 2026), in this order:
 

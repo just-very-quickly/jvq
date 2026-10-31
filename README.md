@@ -324,7 +324,7 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: stable
-      - uses: just-very-quickly/jvq@v0.6.0
+      - uses: just-very-quickly/jvq@v0.7.0
         with:
           command: go test -run=NONE -bench=. -benchmem ./...
 ```
@@ -343,7 +343,7 @@ in small steps, each inside the budget, passes every time. Keep a history
 and it shows:
 
 ```yaml
-      - uses: just-very-quickly/jvq@v0.6.0
+      - uses: just-very-quickly/jvq@v0.7.0
         with:
           history: jvq-history.jsonl
           history-fail-over: 10%     # optional: fail when something has moved more than this in all
@@ -429,12 +429,15 @@ quarantine. Everything else exits 0.
   in.
 
 ```
-jvq flaky: 412 tests from 1 go test -json and 2 JUnit XML, commit 4e1f0c2a9b; history jvq-tests.jsonl, 57 run(s) before this one
+jvq flaky: 43 tests from 1 JUnit XML and 1 go test -json, commit 4e1f0c2a9b; history jvq-tests.jsonl, 10 run(s) before this one
 
-TEST                             THIS RUN  STATUS                                                         FLAKY COMMITS  LAST RUNS
-example.com/app.TestParseDate    f         failed, blocks                                                 0              pppppppppf
-web.Checkout.pays by card        f         failed in quarantine, doesn't block; in quarantine, 0 of 30 passes to leave  3   ppxppfpppf
-example.com/app.TestUpload       fp        failed, passed on retry                                        1              pppppppppx
+TEST                           THIS RUN  STATUS                               FLAKY COMMITS  LAST RUNS
+example.com/app.TestParseDate  f         failed, blocks                       0              ppppppppppf
+web.Checkout.pays by card      f         failed in quarantine, doesn't block  2              fpppppxpppf
+example.com/app.TestUpload     fp        failed, passed on retry              1              ppppppppppx
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
 
 FAIL: 1 test(s) failed (example.com/app.TestParseDate). 1 quarantined test(s) failed and didn't block. 1 test(s) failed and passed on retry. 1 test(s) in quarantine.
 ```
@@ -480,13 +483,39 @@ the file and the rules (`window`, `quarantine_after`, `release_after`,
 `broken_after`, `history_keep`); [docs/reference.md](docs/reference.md#jvq-flaky)
 has the details.
 
-FLAKY_NUMBERS
+### How well it works
+
+[test/results/flaky.md](test/results/flaky.md) runs the real binary
+through simulated CI histories with a known answer. Every run writes real
+result files, half the tests as `go test -json` and half as JUnit XML. A
+suite of 200 stable tests and 5 flaky ones (failing 2, 5, 10, 20 and 30%
+of attempts) ran for 300 commits, 10 times over, with no retries, and a red
+run was re-run once on the same commit:
+
+| | Without quarantine | With jvq flaky |
+|---|---:|---:|
+| First runs that were red, of 3000 | 1611 (53.7%) | 437 (14.6%) |
+| Red first runs in each trial's last 100 commits, of 1000 | 556 (55.6%) | 96 (9.6%) |
+| Stable tests ever quarantined | | 0 |
+
+Most of the red runs left with jvq come from the start of each trial,
+before a flaky test has offended twice, and from the rarest flake (2%),
+which often never offends twice in 300 commits. A quarantined test that
+then broke for real (50 trials each) blocked within 3 runs every time
+without retries (35 of them in run 3), and in the run that broke it every
+time with two retries. A stable test breaking beside it blocked in its
+first run in all 100 trials. The cost of retries showed too: in 6 of 529
+runs before the break, the quarantined flaky test failed all three
+attempts and blocked as broken. A fixed test left quarantine after 30
+passing runs in all 10 trials. A history with a line of binary junk and a
+line cut short, and later a deleted one, gave no errors in 10 trials:
+each time a note, and the deleted history built its quarantine again.
 
 ## In GitLab CI
 
 ```yaml
 include:
-  - remote: https://raw.githubusercontent.com/just-very-quickly/jvq/v0.6.0/ci/gitlab/jvq.yml
+  - remote: https://raw.githubusercontent.com/just-very-quickly/jvq/v0.7.0/ci/gitlab/jvq.yml
 
 benchmarks:
   extends: .jvq
