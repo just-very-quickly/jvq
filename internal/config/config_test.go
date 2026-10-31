@@ -389,3 +389,38 @@ func TestInstructionsBudget(t *testing.T) {
 		t.Error("an amount, not a percentage, was accepted")
 	}
 }
+
+func TestParseFlaky(t *testing.T) {
+	c, err := Parse(`
+[flaky]
+history = "jvq-tests.jsonl"
+history_keep = 500
+window = 50
+quarantine_after = 3
+release_after = 20
+broken_after = 2
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := Flaky{History: "jvq-tests.jsonl", HistoryKeep: 500, Window: 50, QuarantineAfter: 3, ReleaseAfter: 20, BrokenAfter: 2}
+	if c.Flaky != want {
+		t.Errorf("got %+v, want %+v", c.Flaky, want)
+	}
+	d := Default().Flaky
+	if d.History != "" || d.HistoryKeep != 200 || d.Window != 100 || d.QuarantineAfter != 2 || d.ReleaseAfter != 30 || d.BrokenAfter != 3 {
+		t.Errorf("defaults %+v", d)
+	}
+	for src, msg := range map[string]string{
+		"[flaky]\nwindow = 0":                       "use 1 to",
+		"[flaky]\nhistory = \"\"":                   "empty",
+		"[flaky]\nretries = 2":                      "unknown setting flaky.retries",
+		"[flaky]\nwindow = \"10\"":                  "whole number",
+		"[flaky]\nwindow = 2\nquarantine_after = 3": "more than flaky.window",
+		"flaky = 3":                                 "must be a table",
+	} {
+		if _, err := Parse(src); err == nil || !strings.Contains(err.Error(), msg) {
+			t.Errorf("%q: got %v, want %q", src, err, msg)
+		}
+	}
+}

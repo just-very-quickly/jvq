@@ -7,6 +7,8 @@
 //
 //	jvq run [flags] [-- command]
 //	jvq compare [flags] OLD NEW
+//	jvq history [flags] FILE
+//	jvq flaky [flags] RESULTS...
 //	jvq check [--config jvq.toml]
 //	jvq version
 //
@@ -49,6 +51,7 @@ Usage:
   jvq run [flags] [-- command]   compare base and head; fail on a regression
   jvq compare [flags] OLD NEW    compare two saved benchmark outputs
   jvq history [flags] FILE       show how benchmarks moved across runs
+  jvq flaky [flags] RESULTS...   gate on test results; quarantine flaky tests
   jvq check [--config FILE]      read jvq.toml and show the settings
   jvq version                    print the version
 
@@ -58,9 +61,10 @@ the results with rank statistics. Without a command it uses the one in
 jvq.toml, or in a Go module: ` + config.DefaultGoCommand + `
 
 Exit codes: 0 pass (inconclusive passes unless fail_on_inconclusive),
-1 regression, 2 error.
+1 regression, 2 error. jvq flaky exits 1 when a test fails outside
+quarantine.
 
-Run "jvq run -h" or "jvq compare -h" for their flags. Docs: https://jvq.net
+Run "jvq run -h", "jvq flaky -h" and so on for each command's flags. Docs: https://jvq.net
 `
 
 func main() {
@@ -79,6 +83,8 @@ func cli(args []string, stdout, stderr io.Writer) int {
 		return cmdCompare(args[1:], stdout, stderr)
 	case "history":
 		return cmdHistory(args[1:], stdout, stderr)
+	case "flaky":
+		return cmdFlaky(args[1:], stdout, stderr)
 	case "check":
 		return cmdCheck(args[1:], stdout, stderr)
 	case "version", "--version", "-version", "-v":
@@ -583,5 +589,17 @@ func cmdCheck(args []string, stdout, stderr io.Writer) int {
 		}
 		fmt.Fprintf(stdout, "history:     %s (each run adds a line; the newest %d are kept)\n", h, cfg.HistoryKeep)
 	}
+	fl := cfg.Flaky
+	th := "none set"
+	if fl.History != "" && fl.History != "-" {
+		th = fl.History
+		if !filepath.IsAbs(th) {
+			th = filepath.Join(cwd, th)
+		}
+		th += fmt.Sprintf(" (the newest %d runs are kept)", fl.HistoryKeep)
+	}
+	fmt.Fprintf(stdout, "flaky:       test history %s\n", th)
+	fmt.Fprintf(stdout, "             quarantine after %d flaky commits in a test's last %d runs; out after %d passing runs in a row, or as broken after %d failed attempts in a row\n",
+		fl.QuarantineAfter, fl.Window, fl.ReleaseAfter, fl.BrokenAfter)
 	return exitPass
 }

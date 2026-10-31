@@ -281,7 +281,7 @@ const (
 // Result is a judged run.
 type Result struct {
 	Verdict string `json:"verdict"`
-	Tests   int    `json:"tests"` // in this run
+	Tests   int    `json:"tests"` // in this run, not counting Go packages' own entries
 	// Counts of this run's tests by status.
 	Failed      int `json:"failed"`
 	Broken      int `json:"broken"`
@@ -308,7 +308,11 @@ func Judge(entries []Entry, run *Entry, s Settings) Result {
 	states := Replay(all, s)
 	res := Result{Verdict: VerdictPass}
 	if run != nil {
-		res.Tests = len(run.Tests)
+		for id := range run.Tests {
+			if !strings.HasSuffix(id, testresults.PackageSuffix) {
+				res.Tests++
+			}
+		}
 	}
 	for _, st := range states {
 		var a string

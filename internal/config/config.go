@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/just-very-quickly/jvq/internal/adapter"
+	"github.com/just-very-quickly/jvq/internal/flaky"
 )
 
 // FileName is the config file jvq looks for.
@@ -44,7 +45,19 @@ type Config struct {
 	Budget             Budgets        // the defaults
 	Bench              []BenchBudgets // per-benchmark overrides, in file order
 	Ignore             []string       // benchmark name patterns left out
+	Flaky              Flaky          // jvq flaky's settings, from [flaky]
 	Source             string         // the file it came from, or "" for defaults
+}
+
+// Flaky holds jvq flaky's settings: its test history and the quarantine
+// rules (see internal/flaky).
+type Flaky struct {
+	History         string // the test history file, if set
+	HistoryKeep     int    // how many runs it keeps
+	Window          int    // a test's latest runs searched for flaky commits
+	QuarantineAfter int    // flaky commits in the window that put it in quarantine
+	ReleaseAfter    int    // passing runs in a row that take it out
+	BrokenAfter     int    // failed attempts in a row that make it broken
 }
 
 // Budgets holds a budget per metric.
@@ -103,6 +116,13 @@ func Default() Config {
 			Allocs:       Budget{Off: true, Raw: "off"},
 			Size:         Budget{Pct: true, Val: 0.01, Raw: "1%"},
 			Instructions: Budget{Pct: true, Val: 0.01, Raw: "1%"},
+		},
+		Flaky: Flaky{
+			HistoryKeep:     flaky.DefaultKeep,
+			Window:          flaky.DefaultWindow,
+			QuarantineAfter: flaky.DefaultQuarantineAfter,
+			ReleaseAfter:    flaky.DefaultReleaseAfter,
+			BrokenAfter:     flaky.DefaultBrokenAfter,
 		},
 	}
 }
@@ -279,6 +299,8 @@ func Parse(src string) (Config, error) {
 			err = c.readBudgets(v)
 		case "ignore":
 			err = c.readIgnore(v)
+		case "flaky":
+			err = c.readFlaky(v)
 		default:
 			err = fmt.Errorf("unknown setting %q", k)
 		}
@@ -397,6 +419,52 @@ func (c *Config) readIgnore(v any) error {
 			}
 			c.Ignore = append(c.Ignore, s)
 		}
+	}
+	return nil
+}
+
+func (c *Config) readFlaky(v any) error {
+	t, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("flaky must be a table: [flaky]")
+	}
+	f := &c.Flaky
+	for _, k := range sortedKeys(t) {
+		var err error
+		num := func(dst *int, lo, hi int64) {
+			var n int64
+			if n, err = integer("flaky."+k, t[k]); err == nil {
+				if n < lo || n > hi {
+					err = fmt.Errorf("flaky.%s = %d: use %d to %d", k, n, lo, hi)
+				}
+				*dst = int(n)
+			}
+		}
+		switch k {
+		case "history":
+			f.History, err = str("flaky.history", t[k])
+			if err == nil && strings.TrimSpace(f.History) == "" {
+				err = errors.New("flaky.history is empty; leave it out to keep no test history")
+			}
+		case "history_keep":
+			num(&f.HistoryKeep, 1, 100000)
+		case "window":
+			num(&f.Window, 1, 100000)
+		case "quarantine_after":
+			num(&f.QuarantineAfter, 1, 1000)
+		case "release_after":
+			num(&f.ReleaseAfter, 1, 100000)
+		case "broken_after":
+			num(&f.BrokenAfter, 1, 1000)
+		default:
+			err = fmt.Errorf("unknown setting flaky.%s (jvq flaky has history, history_keep, window, quarantine_after, release_after and broken_after)", k)
+		}
+		if err != nil {
+			return err
+		}
+	}
+	if f.QuarantineAfter > f.Window {
+		return fmt.Errorf("flaky.quarantine_after = %d is more than flaky.window = %d, so no test could go into quarantine", f.QuarantineAfter, f.Window)
 	}
 	return nil
 }

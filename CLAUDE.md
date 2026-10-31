@@ -81,7 +81,7 @@ Steps (mark each done as it lands, with the commit):
 3. [done] internal/flaky: history read/append, replay, scoring, gate, with
    tests (broken never hidden, flaky stops blocking, corrupted and missing
    history, mixed input, stable test leaves).
-4. [ ] config `[flaky]`, `jvq flaky` command, text/Markdown/JSON output,
+4. [done] config `[flaky]`, `jvq flaky` command, text/Markdown/JSON output,
    `jvq check` shows the settings, end-to-end tests on the binary.
 5. [ ] test/flaky simulation suite (simulated CI histories through the
    real binary), recorded by scripts/record.sh into test/results/flaky.*.
