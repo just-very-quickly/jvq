@@ -22,6 +22,10 @@ on:
       - test/accuracy/**
       - test/scenarios/**
       - .github/workflows/accuracy.yml
+      # The flaky test gate doesn't decide benchmark verdicts.
+      - "!internal/flaky/**"
+      - "!internal/testresults/**"
+      - "!cmd/jvq/flaky*.go"
 
 permissions:
   contents: read

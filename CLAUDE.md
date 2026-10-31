@@ -75,8 +75,9 @@ Design decisions:
 
 Steps (mark each done as it lands, with the commit):
 1. [done] Plan in CLAUDE.md.
-2. [ ] internal/testresults: JUnit XML and go test -json parsers, with
-   tests (real captured output in testdata).
+2. [done] internal/testresults: JUnit XML and go test -json parsers, with
+   tests (real captured go test -json and pytest output in testdata;
+   surefire-reruns.xml is hand-written, Maven Central was unreachable).
 3. [ ] internal/flaky: history read/append, replay, scoring, gate, with
    tests (broken never hidden, flaky stops blocking, corrupted and missing
    history, mixed input, stable test leaves).

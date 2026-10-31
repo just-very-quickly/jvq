@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="2" skipped="1" tests="7" time="0.036" timestamp="2026-10-31T11:07:11.688472+02:00" hostname="vm"><testcase classname="test_sample" name="test_pass" time="0.000" /><testcase classname="test_sample" name="test_fail" time="0.001"><failure message="assert 1 == 2">def test_fail():
+&gt;       assert 1 == 2
+E       assert 1 == 2
+
+test_sample.py:7: AssertionError</failure></testcase><testcase classname="test_sample" name="test_error_in_fixture" time="0.000"><error message="failed on setup with &quot;RuntimeError: fixture broke&quot;">@pytest.fixture
+    def broken():
+&gt;       raise RuntimeError("fixture broke")
+E       RuntimeError: fixture broke
+
+test_sample.py:14: RuntimeError</error></testcase><testcase classname="test_sample" name="test_skip" time="0.000"><skipped type="pytest.skip" message="not here">/tmp/claude-0/cap/py/test_sample.py:16: not here</skipped></testcase><testcase classname="test_sample.TestGroup" name="test_method" time="0.000" /><testcase classname="test_sample" name="test_param[1]" time="0.001" /><testcase classname="test_sample" name="test_param[2]" time="0.001"><failure message="assert 2 == 1">x = 2
+
+    @pytest.mark.parametrize("x", [1, 2])
+    def test_param(x):
+&gt;       assert x == 1
+E       assert 2 == 1
+
+test_sample.py:26: AssertionError</failure></testcase></testsuite></testsuites>

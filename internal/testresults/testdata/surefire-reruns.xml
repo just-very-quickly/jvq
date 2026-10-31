@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Written by hand in the layout Maven Surefire 3 uses with rerunFailingTestsCount=2
+     (its testsuite schema: flakyFailure, flakyError, rerunFailure, rerunError);
+     Maven Central couldn't be reached to capture a real one. -->
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="demo.DemoTest" time="0.051" tests="5" errors="0" skipped="1" failures="1" flakes="2">
+  <properties>
+    <property name="java.version" value="17.0.12"/>
+  </properties>
+  <testcase name="passes" classname="demo.DemoTest" time="0.002"/>
+  <testcase name="alwaysFails" classname="demo.DemoTest" time="0.004">
+    <failure message="broken for real" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: broken for real
+	at demo.DemoTest.alwaysFails(DemoTest.java:11)
+]]></failure>
+    <rerunFailure message="broken for real" type="org.opentest4j.AssertionFailedError">
+      <stackTrace><![CDATA[org.opentest4j.AssertionFailedError: broken for real
+	at demo.DemoTest.alwaysFails(DemoTest.java:11)
+]]></stackTrace>
+    </rerunFailure>
+    <rerunFailure message="broken for real" type="org.opentest4j.AssertionFailedError">
+      <stackTrace><![CDATA[org.opentest4j.AssertionFailedError: broken for real
+	at demo.DemoTest.alwaysFails(DemoTest.java:11)
+]]></stackTrace>
+    </rerunFailure>
+  </testcase>
+  <testcase name="failsOnceThenPasses" classname="demo.DemoTest" time="0.001">
+    <flakyFailure message="first try fails" type="org.opentest4j.AssertionFailedError">
+      <stackTrace><![CDATA[org.opentest4j.AssertionFailedError: first try fails
+	at demo.DemoTest.failsOnceThenPasses(DemoTest.java:13)
+]]></stackTrace>
+    </flakyFailure>
+  </testcase>
+  <testcase name="errorsTwiceThenPasses" classname="demo.DemoTest" time="0.003">
+    <flakyError message="connection reset" type="java.net.SocketException">
+      <stackTrace><![CDATA[java.net.SocketException: connection reset]]></stackTrace>
+    </flakyError>
+    <flakyError message="connection reset" type="java.net.SocketException">
+      <stackTrace><![CDATA[java.net.SocketException: connection reset]]></stackTrace>
+    </flakyError>
+  </testcase>
+  <testcase name="skipped" classname="demo.DemoTest" time="0">
+    <skipped message="not here"/>
+  </testcase>
+</testsuite>
