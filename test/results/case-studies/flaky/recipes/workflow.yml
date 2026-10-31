@@ -1,0 +1,40 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: pip install pytest
+      - name: Tests, with up to 2 retries of what failed
+        run: |
+          mkdir -p junit
+          pytest --junitxml=junit/attempt1.xml ||
+            pytest --lf --junitxml=junit/attempt2.xml ||
+            pytest --lf --junitxml=junit/attempt3.xml || true
+      - name: Install jvq
+        run: |
+          curl -sSLO https://github.com/just-very-quickly/jvq/releases/download/v0.7.0/jvq_linux_amd64.tar.gz
+          curl -sSLO https://github.com/just-very-quickly/jvq/releases/download/v0.7.0/SHA256SUMS
+          grep linux_amd64 SHA256SUMS | sha256sum -c
+          tar xzf jvq_linux_amd64.tar.gz
+      - uses: actions/cache/restore@v5
+        with:
+          path: jvq-tests.jsonl
+          key: jvq-tests-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: jvq-tests-
+      - name: Flaky test gate
+        run: ./jvq flaky -history jvq-tests.jsonl ${{ github.ref != 'refs/heads/main' && '-no-write' || '' }} junit/
+      - if: always() && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v5
+        with:
+          path: jvq-tests.jsonl
+          key: jvq-tests-${{ github.run_id }}-${{ github.run_attempt }}

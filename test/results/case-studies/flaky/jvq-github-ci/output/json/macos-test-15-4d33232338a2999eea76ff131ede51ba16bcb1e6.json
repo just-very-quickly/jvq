@@ -1,0 +1,31 @@
+{
+  "jvq": "0.7.0",
+  "mode": "flaky",
+  "commit": "4d33232338a2999eea76ff131ede51ba16bcb1e6",
+  "history": "jvq-tests.jsonl",
+  "history_runs": 13,
+  "written": true,
+  "files": [
+    {
+      "path": "/tmp/claude-0/-home-claude/de2d30a7-b1ab-5f7f-864b-744e20674a0b/scratchpad/work/jvq-push/test/results/case-studies/flaky/jvq-github-ci/junit/macos-test/15-4d33232338a2999eea76ff131ede51ba16bcb1e6.xml",
+      "format": "junit",
+      "tests": 3
+    }
+  ],
+  "settings": {
+    "window": 100,
+    "quarantine_after": 2,
+    "release_after": 30,
+    "broken_after": 3
+  },
+  "result": {
+    "verdict": "pass",
+    "tests": 3,
+    "failed": 0,
+    "broken": 0,
+    "quarantined_failures": 0,
+    "flaky": 0,
+    "in_quarantine": 0,
+    "tests_of_note": null
+  }
+}

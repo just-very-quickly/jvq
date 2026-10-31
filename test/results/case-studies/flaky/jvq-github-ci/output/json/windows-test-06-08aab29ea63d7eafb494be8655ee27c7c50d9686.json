@@ -1,0 +1,31 @@
+{
+  "jvq": "0.7.0",
+  "mode": "flaky",
+  "commit": "08aab29ea63d7eafb494be8655ee27c7c50d9686",
+  "history": "jvq-tests.jsonl",
+  "history_runs": 4,
+  "written": true,
+  "files": [
+    {
+      "path": "/tmp/claude-0/-home-claude/de2d30a7-b1ab-5f7f-864b-744e20674a0b/scratchpad/work/jvq-push/test/results/case-studies/flaky/jvq-github-ci/junit/windows-test/06-08aab29ea63d7eafb494be8655ee27c7c50d9686.xml",
+      "format": "junit",
+      "tests": 1
+    }
+  ],
+  "settings": {
+    "window": 100,
+    "quarantine_after": 2,
+    "release_after": 30,
+    "broken_after": 3
+  },
+  "result": {
+    "verdict": "pass",
+    "tests": 1,
+    "failed": 0,
+    "broken": 0,
+    "quarantined_failures": 0,
+    "flaky": 0,
+    "in_quarantine": 0,
+    "tests_of_note": null
+  }
+}

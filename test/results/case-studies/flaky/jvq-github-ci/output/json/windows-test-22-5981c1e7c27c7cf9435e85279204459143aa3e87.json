@@ -1,0 +1,56 @@
+{
+  "jvq": "0.7.0",
+  "mode": "flaky",
+  "commit": "5981c1e7c27c7cf9435e85279204459143aa3e87",
+  "history": "jvq-tests.jsonl",
+  "history_runs": 20,
+  "written": true,
+  "files": [
+    {
+      "path": "/tmp/claude-0/-home-claude/de2d30a7-b1ab-5f7f-864b-744e20674a0b/scratchpad/work/jvq-push/test/results/case-studies/flaky/jvq-github-ci/junit/windows-test/22-5981c1e7c27c7cf9435e85279204459143aa3e87.xml",
+      "format": "junit",
+      "tests": 5
+    }
+  ],
+  "settings": {
+    "window": 100,
+    "quarantine_after": 2,
+    "release_after": 30,
+    "broken_after": 3
+  },
+  "result": {
+    "verdict": "fail",
+    "tests": 5,
+    "failed": 2,
+    "broken": 0,
+    "quarantined_failures": 0,
+    "flaky": 0,
+    "in_quarantine": 0,
+    "tests_of_note": [
+      {
+        "test": "github.com/just-very-quickly/jvq/internal/flaky.TestCorruptedHistory",
+        "attempts": "f",
+        "status": "failed",
+        "blocks": true,
+        "quarantined": false,
+        "flaky_commits": 0,
+        "pass_streak": 0,
+        "fail_streak": 2,
+        "runs": 2,
+        "recent": "ff"
+      },
+      {
+        "test": "github.com/just-very-quickly/jvq/internal/flaky.TestHistoryFile",
+        "attempts": "f",
+        "status": "failed",
+        "blocks": true,
+        "quarantined": false,
+        "flaky_commits": 0,
+        "pass_streak": 0,
+        "fail_streak": 2,
+        "runs": 2,
+        "recent": "ff"
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+$ pytest --reruns 2 --junitxml=reruns.xml
+1 passed, 1 rerun in 0.03s
+--- reruns.xml
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="0.030" timestamp="2026-10-31T12:55:06.578775+02:00" hostname="vm"><testcase classname="tests.test_once" name="test_fails_first_time" time="0.001" /><testcase classname="tests.test_once" name="test_fails_first_time" time="0.001" /></testsuite></testsuites>
+$ jvq flaky -history - reruns.xml
+
+jvq flaky: 1 tests from 1 JUnit XML
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+Note: no commit known (-commit, GITHUB_SHA, CI_COMMIT_SHA or a git checkout), so only this run's own retries count as the same code.
+Note: no test history (-history or [flaky] history in jvq.toml), so nothing is quarantined; only this run's retries are judged.
+exit 0

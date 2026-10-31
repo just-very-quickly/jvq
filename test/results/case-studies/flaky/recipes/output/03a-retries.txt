@@ -1,0 +1,36 @@
+=== 0 retries, files: attempt1.xml 
+
+jvq flaky: 4 tests from 1 JUnit XML, commit f21526cad3; history /tmp/tmp.qMF2RiloTb/quarantined.jsonl, 12 run(s) before this one
+
+TEST                                     THIS RUN  STATUS                               FLAKY COMMITS  LAST RUNS
+tests.test_cart.test_checkout_times_out  f         failed in quarantine, doesn't block  2              pppppxpppfpxf
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+PASS: no test failed outside quarantine. 1 quarantined test(s) failed and didn't block. 1 test(s) in quarantine.
+exit 0
+=== 1 retries, files: attempt1.xml attempt2.xml 
+
+jvq flaky: 4 tests from 2 JUnit XML, commit f21526cad3; history /tmp/tmp.qMF2RiloTb/quarantined.jsonl, 12 run(s) before this one
+
+TEST                                     THIS RUN  STATUS                               FLAKY COMMITS  LAST RUNS
+tests.test_cart.test_checkout_times_out  ff        failed in quarantine, doesn't block  2              pppppxpppfpxf
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+PASS: no test failed outside quarantine. 1 quarantined test(s) failed and didn't block. 1 test(s) in quarantine.
+exit 0
+=== 2 retries, files: attempt1.xml attempt2.xml attempt3.xml 
+
+jvq flaky: 4 tests from 3 JUnit XML, commit f21526cad3; history /tmp/tmp.qMF2RiloTb/quarantined.jsonl, 12 run(s) before this one
+
+TEST                                     THIS RUN  STATUS                                                        FLAKY COMMITS  LAST RUNS
+tests.test_cart.test_checkout_times_out  fff       broken (3 failed attempts in a row), left quarantine, blocks  0              pppppxpppfpxf
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+FAIL: 1 test(s) failed (tests.test_cart.test_checkout_times_out). 0 test(s) in quarantine.
+exit 1

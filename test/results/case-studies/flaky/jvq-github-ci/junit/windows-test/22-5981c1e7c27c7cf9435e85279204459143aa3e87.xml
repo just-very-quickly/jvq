@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="jvq CI run 41188497166, test (windows-latest)">
+  <testcase classname="github.com/just-very-quickly/jvq/internal/history" name="TestReRunReplacesItsLine"></testcase>
+  <testcase classname="github.com/just-very-quickly/jvq/cmd/jvq" name="TestInstructionsSteadyWithGoroutines"><skipped/></testcase>
+  <testcase classname="github.com/just-very-quickly/jvq/internal/flaky" name="TestCorruptedHistory"><failure message="flaky_test.go:326: mode not kept: -rw-rw-rw-; --- FAIL: TestCorruptedHistory (0.01s); flaky_test.go:284: mode -rw-rw-rw-; --- FAIL: TestHistoryFile (0.01s)"></failure></testcase>
+  <testcase classname="github.com/just-very-quickly/jvq/internal/flaky" name="TestHistoryFile"><failure message="flaky_test.go:326: mode not kept: -rw-rw-rw-; --- FAIL: TestCorruptedHistory (0.01s); flaky_test.go:284: mode -rw-rw-rw-; --- FAIL: TestHistoryFile (0.01s)"></failure></testcase>
+  <testcase classname="github.com/just-very-quickly/jvq/cmd/jvq" name="TestCommandAfterDashes"></testcase>
+</testsuite>

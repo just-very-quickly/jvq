@@ -1,0 +1,7 @@
+$ jq -c --arg id 'tests.test_cart.test_checkout_times_out' 'if .tests then del(.tests[$id]) else . end' before.jsonl > jvq-tests.jsonl
+$ jvq flaky -history jvq-tests.jsonl
+
+jvq flaky: quarantine in jvq-tests.jsonl, 12 run(s)
+
+0 test(s) in quarantine.
+exit 0

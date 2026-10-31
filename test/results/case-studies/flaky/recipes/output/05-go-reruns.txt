@@ -1,0 +1,17 @@
+=== run 1: no failure, nothing to show
+=== run 2: no failure, nothing to show
+=== run 3: TestCheckoutTimesOut failed at least once
+$ jvq flaky -history - go-test.json
+
+jvq flaky: 2 tests from 1 go test -json
+
+TEST                                   THIS RUN  STATUS                   FLAKY COMMITS  LAST RUNS
+example.com/shop.TestCheckoutTimesOut  fp        failed, passed on retry  1              x
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+PASS: no test failed outside quarantine. 1 test(s) failed and passed on retry. 0 test(s) in quarantine.
+Note: no commit known (-commit, GITHUB_SHA, CI_COMMIT_SHA or a git checkout), so only this run's own retries count as the same code.
+Note: no test history (-history or [flaky] history in jvq.toml), so nothing is quarantined; only this run's retries are judged.
+exit 0

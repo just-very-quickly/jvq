@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="jvq CI run 39243621217, test (ubuntu-latest)">
+  <testcase classname="github.com/just-very-quickly/jvq/internal/history" name="TestReRunReplacesItsLine"></testcase>
+  <testcase classname="github.com/just-very-quickly/jvq/cmd/jvq" name="TestInstructionsSteadyWithGoroutines"><failure message="adapters_test.go:355: interval -0.005246758542419405 to 0.0074890958058975166: the count isn't steady; --- FAIL: TestInstructionsSteadyWithGoroutines (10.47s)"></failure></testcase>
+  <testcase classname="github.com/just-very-quickly/jvq/cmd/jvq" name="TestCommandAfterDashes"></testcase>
+</testsuite>

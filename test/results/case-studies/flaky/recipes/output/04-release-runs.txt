@@ -1,0 +1,23 @@
+=== run 1 after the fix
+
+jvq flaky: 4 tests from 1 JUnit XML, commit 35b3c6026a; history jvq-tests.jsonl, 12 run(s) before this one
+
+TEST                                     THIS RUN  STATUS                                          FLAKY COMMITS  LAST RUNS
+tests.test_cart.test_checkout_times_out  p         passed; in quarantine, 1 of 30 passes to leave  2              pppppxpppfpxp
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+PASS: no test failed outside quarantine. 1 test(s) in quarantine.
+=== run 30 after the fix
+
+jvq flaky: 4 tests from 1 JUnit XML, commit dfeb1888f8; history jvq-tests.jsonl, 41 run(s) before this one
+
+TEST                                     THIS RUN  STATUS                                              FLAKY COMMITS  LAST RUNS
+tests.test_cart.test_checkout_times_out  p         passed; left quarantine (30 passing runs in a row)  0              pppppppppppppppppppppppppppppp
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+released after 30 passing runs

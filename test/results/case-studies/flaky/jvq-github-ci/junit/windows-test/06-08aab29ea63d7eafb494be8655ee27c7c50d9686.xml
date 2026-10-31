@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="jvq CI run 39196713003, test (windows-latest)">
+  <testcase classname="github.com/just-very-quickly/jvq/cmd/jvq" name="TestCommandAfterDashes"></testcase>
+</testsuite>

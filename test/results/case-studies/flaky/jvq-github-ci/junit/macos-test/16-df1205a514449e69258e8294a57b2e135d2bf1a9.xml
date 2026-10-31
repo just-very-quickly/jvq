@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="jvq CI run 39243997842, test (macos-latest)">
+  <testcase classname="github.com/just-very-quickly/jvq/internal/history" name="TestReRunReplacesItsLine"></testcase>
+  <testcase classname="github.com/just-very-quickly/jvq/cmd/jvq" name="TestInstructionsSteadyWithGoroutines"><skipped/></testcase>
+  <testcase classname="github.com/just-very-quickly/jvq/cmd/jvq" name="TestCommandAfterDashes"></testcase>
+</testsuite>

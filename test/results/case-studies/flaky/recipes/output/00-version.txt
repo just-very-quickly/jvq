@@ -1,0 +1,4 @@
+jvq 0.7.0 (go1.26.10, linux/amd64)
+pytest 9.1.1
+go version go1.24.7 linux/amd64
+pytest-rerunfailures 16.7

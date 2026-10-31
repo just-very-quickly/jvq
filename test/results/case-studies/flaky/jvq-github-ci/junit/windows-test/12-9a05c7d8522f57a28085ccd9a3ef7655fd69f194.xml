@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="jvq CI run 39222251987, test (windows-latest)">
+  <testcase classname="github.com/just-very-quickly/jvq/internal/history" name="TestReRunReplacesItsLine"><failure message="history_test.go:167: mode -rw-rw-rw-; --- FAIL: TestReRunReplacesItsLine (0.01s)"></failure></testcase>
+  <testcase classname="github.com/just-very-quickly/jvq/cmd/jvq" name="TestCommandAfterDashes"></testcase>
+</testsuite>

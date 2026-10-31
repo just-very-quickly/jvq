@@ -1,0 +1,4912 @@
+[
+ {
+  "id": 39172587313,
+  "head_sha": "fce976f9e3024058c3627614ef7c58bed45cf3c3",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-18T22:31:16Z",
+  "conclusion": "failure",
+  "title": "Record test results after the review fixes, and update the numbers in\u2026",
+  "jobs": [
+   {
+    "id": 117808571345,
+    "name": "test (windows-latest)",
+    "conclusion": "failure",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -count=1 ./...",
+      "conclusion": "failure"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ],
+    "annotations": [
+     {
+      "title": "",
+      "message": "Process completed with exit code 1."
+     }
+    ]
+   },
+   {
+    "id": 117808571573,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117808571588,
+    "name": "test (macos-latest)",
+    "conclusion": "failure",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -count=1 ./...",
+      "conclusion": "failure"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ],
+    "annotations": [
+     {
+      "title": "",
+      "message": "Process completed with exit code 1."
+     },
+     {
+      "title": "",
+      "message": "Due to capacity constraints, jobs targeting macOS arm64 runners may experience longer queue times."
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39172844423,
+  "head_sha": "e4a746f08777d37e4952e2d683863798d4dd449b",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-18T22:34:46Z",
+  "conclusion": "success",
+  "title": "Fix tests on macOS and Windows: config lookup returns the caller's pa\u2026",
+  "jobs": [
+   {
+    "id": 117809331239,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117809331383,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117809331444,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39173773350,
+  "head_sha": "fdbac6d62dbfca81283f5a2de0ff09c5fba0f3f5",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-18T22:47:43Z",
+  "conclusion": "success",
+  "title": "Add the GitHub-runner accuracy recording to test/results/github and t\u2026",
+  "jobs": [
+   {
+    "id": 117812120490,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117812120627,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117812120668,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39190877045,
+  "head_sha": "04dfabfa4805c0d40ba3573e50c6be566d198b8a",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T02:37:54Z",
+  "conclusion": "success",
+  "title": "time and json adapters, an output file setting, jvq compare, and the \u2026",
+  "jobs": [
+   {
+    "id": 117863171174,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117863171335,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117863171389,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39191664465,
+  "head_sha": "b32c46d267cbf41c01f2b70013c9bab2d9a6312e",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T02:48:10Z",
+  "conclusion": "success",
+  "title": "Review fixes: the time adapter stops at exit, one value per run, stur\u2026",
+  "jobs": [
+   {
+    "id": 117865607469,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117865607735,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117865607748,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39196713003,
+  "head_sha": "08aab29ea63d7eafb494be8655ee27c7c50d9686",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T03:52:15Z",
+  "conclusion": "success",
+  "title": "jvq 0.2.0: any language",
+  "jobs": [
+   {
+    "id": 117880951428,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117880951587,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117880951593,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39197089865,
+  "head_sha": "a8df069875eb7048ce8585c7886890c8e6d7be75",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T03:57:07Z",
+  "conclusion": "success",
+  "title": "README and CLAUDE.md after the 0.2.0 release",
+  "jobs": [
+   {
+    "id": 117882081497,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117882081650,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117882081700,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39208912375,
+  "head_sha": "0fa51215c0bba9b8c835e20ee7388309d0dd04a6",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T06:15:56Z",
+  "conclusion": "success",
+  "title": "jvq 0.3.0: more harnesses and a size gate",
+  "jobs": [
+   {
+    "id": 117917700476,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117917700790,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117917700999,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39209274158,
+  "head_sha": "7f005576235b91c8eb564348d5da904625b01ca2",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T06:19:47Z",
+  "conclusion": "success",
+  "title": "README: the action at v0.3.0",
+  "jobs": [
+   {
+    "id": 117918816749,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117918816881,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117918817051,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39210257655,
+  "head_sha": "57f119ff8eae5a34e8369c5e1e3ce17b5f65fe6b",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T06:29:57Z",
+  "conclusion": "success",
+  "title": "CLAUDE.md: the approved plan after 0.3.0",
+  "jobs": [
+   {
+    "id": 117921828771,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117921829020,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117921829129,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39215605068,
+  "head_sha": "54df61fff528792709a71ce195f56e1472cd8036",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T07:22:51Z",
+  "conclusion": "success",
+  "title": "jvq 0.4.0: GitLab CI",
+  "jobs": [
+   {
+    "id": 117938613298,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117938613489,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117938613556,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39222251987,
+  "head_sha": "9a05c7d8522f57a28085ccd9a3ef7655fd69f194",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T08:22:01Z",
+  "conclusion": "failure",
+  "title": "Test results recorded with jvq 0.5.0",
+  "jobs": [
+   {
+    "id": 117960064503,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117960064687,
+    "name": "test (windows-latest)",
+    "conclusion": "failure",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "failure"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ],
+    "annotations": [
+     {
+      "title": "",
+      "message": "Process completed with exit code 1."
+     },
+     {
+      "title": "go test Windows",
+      "message": "    history_test.go:167: mode -rw-rw-rw-"
+     },
+     {
+      "title": "go test Windows",
+      "message": "--- FAIL: TestReRunReplacesItsLine (0.01s)"
+     }
+    ]
+   },
+   {
+    "id": 117960064987,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39222786186,
+  "head_sha": "635f9e7226953c7a98bbba12f2b4905640c74b64",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T08:26:31Z",
+  "conclusion": "success",
+  "title": "history test: no permission bits to check on Windows",
+  "jobs": [
+   {
+    "id": 117961791971,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117961792373,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117961792475,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39232730975,
+  "head_sha": "fd8e8fc0d723d0762971b255c1753bd1faa61e37",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T09:47:44Z",
+  "conclusion": "success",
+  "title": "jvq 0.5.1: size and bytes notes in their units",
+  "jobs": [
+   {
+    "id": 117994344571,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117994344956,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 117994344962,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39243621217,
+  "head_sha": "4d33232338a2999eea76ff131ede51ba16bcb1e6",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T11:17:53Z",
+  "conclusion": "failure",
+  "title": "jvq 0.6.0: instruction counts on Linux; README figures from the 0.6.0\u2026",
+  "jobs": [
+   {
+    "id": 118030105355,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "failure",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "failure"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ],
+    "annotations": [
+     {
+      "title": "",
+      "message": "Process completed with exit code 1."
+     },
+     {
+      "title": "go test Linux",
+      "message": "    adapters_test.go:355: interval -0.005246758542419405 to 0.0074890958058975166: the count isn't steady"
+     },
+     {
+      "title": "go test Linux",
+      "message": "--- FAIL: TestInstructionsSteadyWithGoroutines (10.47s)"
+     },
+     {
+      "title": "",
+      "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+     }
+    ]
+   },
+   {
+    "id": 118030105404,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 118030105580,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39243997842,
+  "head_sha": "df1205a514449e69258e8294a57b2e135d2bf1a9",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T11:21:02Z",
+  "conclusion": "failure",
+  "title": "Goroutine count test: allow the 1.3% interval GitHub's runner measured",
+  "jobs": [
+   {
+    "id": 118031349407,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 118031349724,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 118031349920,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "failure",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go test -race -count=1 ./...",
+      "conclusion": "failure"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ],
+    "annotations": [
+     {
+      "title": "",
+      "message": "Process completed with exit code 1."
+     },
+     {
+      "title": "",
+      "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\""
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39244420929,
+  "head_sha": "fbf85798c5fb745070970075e1bf389f0f4034c6",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T11:24:36Z",
+  "conclusion": "success",
+  "title": "CI: race-detector failures as annotations too",
+  "jobs": [
+   {
+    "id": 118032759198,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 118032759537,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 118032759600,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39251827045,
+  "head_sha": "2db2a9838edbb5e3bef9de0e8d582d9bb92f6ce6",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T12:24:36Z",
+  "conclusion": "success",
+  "title": "CLAUDE.md: the site has the 0.6 post and hosts jvqq",
+  "jobs": [
+   {
+    "id": 118057242545,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 118057242741,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 118057242801,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 39252663175,
+  "head_sha": "d37c25c761d7361a25531dde6289d591718721cd",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-19T12:31:00Z",
+  "conclusion": "success",
+  "title": "GitHub runner's 0.6.0 recording, instruction counts included",
+  "jobs": [
+   {
+    "id": 118060040944,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 118060041340,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 118060041380,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 41187599110,
+  "head_sha": "4bc64c3110fd21ffb4962deab6f59dcbc1aab7e9",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-31T09:10:33Z",
+  "conclusion": "success",
+  "title": "Flaky gate step 2: read JUnit XML and go test -json results",
+  "jobs": [
+   {
+    "id": 124497580829,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 124497581051,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 124497581067,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 41187816644,
+  "head_sha": "e7d1a962e4da784d45fa70c7bf0a746539098d01",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-31T09:13:36Z",
+  "conclusion": "failure",
+  "title": "Flaky gate step 3: history, replay and the quarantine rules",
+  "jobs": [
+   {
+    "id": 124498207695,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 124498207865,
+    "name": "test (windows-latest)",
+    "conclusion": "failure",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "failure"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ],
+    "annotations": [
+     {
+      "title": "",
+      "message": "Process completed with exit code 1."
+     },
+     {
+      "title": "go test Windows",
+      "message": "    flaky_test.go:326: mode not kept: -rw-rw-rw-"
+     },
+     {
+      "title": "go test Windows",
+      "message": "--- FAIL: TestCorruptedHistory (0.01s)"
+     },
+     {
+      "title": "go test Windows",
+      "message": "    flaky_test.go:284: mode -rw-rw-rw-"
+     },
+     {
+      "title": "go test Windows",
+      "message": "--- FAIL: TestHistoryFile (0.04s)"
+     }
+    ]
+   },
+   {
+    "id": 124498207907,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 41188497166,
+  "head_sha": "5981c1e7c27c7cf9435e85279204459143aa3e87",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-31T09:23:20Z",
+  "conclusion": "failure",
+  "title": "Flaky gate step 4: jvq flaky, [flaky] in jvq.toml, jvq check",
+  "jobs": [
+   {
+    "id": 124500206243,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 124500206423,
+    "name": "test (windows-latest)",
+    "conclusion": "failure",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "failure"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ],
+    "annotations": [
+     {
+      "title": "",
+      "message": "Process completed with exit code 1."
+     },
+     {
+      "title": "go test Windows",
+      "message": "    flaky_test.go:326: mode not kept: -rw-rw-rw-"
+     },
+     {
+      "title": "go test Windows",
+      "message": "--- FAIL: TestCorruptedHistory (0.01s)"
+     },
+     {
+      "title": "go test Windows",
+      "message": "    flaky_test.go:284: mode -rw-rw-rw-"
+     },
+     {
+      "title": "go test Windows",
+      "message": "--- FAIL: TestHistoryFile (0.01s)"
+     }
+    ]
+   },
+   {
+    "id": 124500206431,
+    "name": "test (macos-latest)",
+    "conclusion": "failure",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "failure"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ],
+    "annotations": [
+     {
+      "title": "",
+      "message": "Process completed with exit code 1."
+     },
+     {
+      "title": "go test macOS",
+      "message": "    main_test.go:282: exit 1, want 0"
+     },
+     {
+      "title": "go test macOS",
+      "message": "--- FAIL: TestCommandAfterDashes (1.36s)"
+     },
+     {
+      "title": "",
+      "message": "Due to capacity constraints, jobs targeting macOS arm64 runners may experience longer queue times."
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 41188655521,
+  "head_sha": "370cc44e93e9f91aa7187e42114922785f746dec",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-31T09:25:43Z",
+  "conclusion": "failure",
+  "title": "Flaky gate step 5: a simulation suite, recorded by record.sh",
+  "jobs": [
+   {
+    "id": 124500680458,
+    "name": "test (windows-latest)",
+    "conclusion": "failure",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "failure"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ],
+    "annotations": [
+     {
+      "title": "",
+      "message": "Process completed with exit code 1."
+     },
+     {
+      "title": "go test Windows",
+      "message": "    flaky_test.go:326: mode not kept: -rw-rw-rw-"
+     },
+     {
+      "title": "go test Windows",
+      "message": "--- FAIL: TestCorruptedHistory (0.00s)"
+     },
+     {
+      "title": "go test Windows",
+      "message": "    flaky_test.go:284: mode -rw-rw-rw-"
+     },
+     {
+      "title": "go test Windows",
+      "message": "--- FAIL: TestHistoryFile (0.02s)"
+     }
+    ]
+   },
+   {
+    "id": 124500680580,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 124500680593,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 41189332691,
+  "head_sha": "9cfc77c7e576dbf6caefd1c72804b336b404cf59",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-31T09:35:40Z",
+  "conclusion": "failure",
+  "title": "Flaky gate step 6: README and reference, review fixes",
+  "jobs": [
+   {
+    "id": 124502668416,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 124502668547,
+    "name": "test (windows-latest)",
+    "conclusion": "failure",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "failure"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ],
+    "annotations": [
+     {
+      "title": "",
+      "message": "Process completed with exit code 1."
+     },
+     {
+      "title": "go test Windows",
+      "message": "    flaky_test.go:326: mode not kept: -rw-rw-rw-"
+     },
+     {
+      "title": "go test Windows",
+      "message": "--- FAIL: TestCorruptedHistory (0.01s)"
+     },
+     {
+      "title": "go test Windows",
+      "message": "    flaky_test.go:284: mode -rw-rw-rw-"
+     },
+     {
+      "title": "go test Windows",
+      "message": "--- FAIL: TestHistoryFile (0.01s)"
+     }
+    ]
+   },
+   {
+    "id": 124502668668,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 41189532682,
+  "head_sha": "a8f1d947a23c2d00ad7cecc73937f838dbbbbf65",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-31T09:38:43Z",
+  "conclusion": "success",
+  "title": "Flaky gate: skip the file mode checks on Windows",
+  "jobs": [
+   {
+    "id": 124503259052,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 124503259185,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 124503259192,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": 41192104957,
+  "head_sha": "9e5bfe9dbde83abe34e420afbab0010c3d27b0a1",
+  "event": "push",
+  "branch": "main",
+  "run_attempt": 1,
+  "created_at": "2026-10-31T10:16:56Z",
+  "conclusion": "success",
+  "title": "jvq 0.7.0: a flaky test gate",
+  "jobs": [
+   {
+    "id": 124510815033,
+    "name": "test (windows-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 124510815227,
+    "name": "test (ubuntu-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   },
+   {
+    "id": 124510815232,
+    "name": "test (macos-latest)",
+    "conclusion": "success",
+    "steps": [
+     {
+      "name": "Set up job",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Install valgrind, for the instructions adapter's tests",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run test -z \"$(gofmt -l .)\"",
+      "conclusion": "success"
+     },
+     {
+      "name": "Run go vet ./...",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests",
+      "conclusion": "success"
+     },
+     {
+      "name": "Tests with the race detector",
+      "conclusion": "skipped"
+     },
+     {
+      "name": "Run python3 -B -m unittest discover -s scripts -p '*_test.py'",
+      "conclusion": "success"
+     },
+     {
+      "name": "Smoke check on a release-style build",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/setup-go@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Post Run actions/checkout@v7",
+      "conclusion": "success"
+     },
+     {
+      "name": "Complete job",
+      "conclusion": "success"
+     }
+    ]
+   }
+  ]
+ }
+]

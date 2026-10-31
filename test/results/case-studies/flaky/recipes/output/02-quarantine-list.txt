@@ -1,0 +1,12 @@
+$ jvq flaky -history jvq-tests.jsonl
+
+jvq flaky: quarantine in jvq-tests.jsonl, 12 run(s)
+
+TEST                                     THIS RUN  STATUS                                FLAKY COMMITS  LAST RUNS
+tests.test_cart.test_checkout_times_out  -         quarantined, 0 of 30 passes to leave  2              pppppxpppfpx
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+1 test(s) in quarantine.
+exit 0

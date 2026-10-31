@@ -1,0 +1,92 @@
+=== CI run 1, commit 9244315, files: attempt1.xml 
+
+jvq flaky: 4 tests from 1 JUnit XML, commit 9244315bcc; history jvq-tests.jsonl, 0 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+Note: jvq-tests.jsonl doesn't exist yet, so this run starts the history.
+exit 0
+=== CI run 2, commit 06c4332, files: attempt1.xml 
+
+jvq flaky: 4 tests from 1 JUnit XML, commit 06c4332d4b; history jvq-tests.jsonl, 1 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== CI run 3, commit 25f1253, files: attempt1.xml 
+
+jvq flaky: 4 tests from 1 JUnit XML, commit 25f1253b9d; history jvq-tests.jsonl, 2 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== CI run 4, commit d31618a, files: attempt1.xml 
+
+jvq flaky: 4 tests from 1 JUnit XML, commit d31618a7f1; history jvq-tests.jsonl, 3 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== CI run 5, commit 6a6146d, files: attempt1.xml 
+
+jvq flaky: 4 tests from 1 JUnit XML, commit 6a6146dfd1; history jvq-tests.jsonl, 4 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== CI run 6, commit 08ce669, files: attempt1.xml attempt2.xml 
+
+jvq flaky: 4 tests from 2 JUnit XML, commit 08ce669d88; history jvq-tests.jsonl, 5 run(s) before this one
+
+TEST                                     THIS RUN  STATUS                   FLAKY COMMITS  LAST RUNS
+tests.test_cart.test_checkout_times_out  fp        failed, passed on retry  1              pppppx
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+PASS: no test failed outside quarantine. 1 test(s) failed and passed on retry. 0 test(s) in quarantine.
+exit 0
+=== CI run 7, commit 8d1b293, files: attempt1.xml 
+
+jvq flaky: 4 tests from 1 JUnit XML, commit 8d1b2936e9; history jvq-tests.jsonl, 6 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== CI run 8, commit 89878be, files: attempt1.xml 
+
+jvq flaky: 4 tests from 1 JUnit XML, commit 89878bea75; history jvq-tests.jsonl, 7 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== CI run 9, commit 5389cd3, files: attempt1.xml 
+
+jvq flaky: 4 tests from 1 JUnit XML, commit 5389cd3358; history jvq-tests.jsonl, 8 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== CI run 10, commit ff138eb, files: attempt1.xml attempt2.xml attempt3.xml 
+
+jvq flaky: 4 tests from 3 JUnit XML, commit ff138ebf23; history jvq-tests.jsonl, 9 run(s) before this one
+
+TEST                                     THIS RUN  STATUS          FLAKY COMMITS  LAST RUNS
+tests.test_cart.test_checkout_times_out  fff       failed, blocks  1              pppppxpppf
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+FAIL: 1 test(s) failed (tests.test_cart.test_checkout_times_out). 0 test(s) in quarantine.
+exit 1
+=== CI run 11, commit b0372fa, files: attempt1.xml 
+
+jvq flaky: 4 tests from 1 JUnit XML, commit b0372fac29; history jvq-tests.jsonl, 10 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== CI run 12, commit a38c014, files: attempt1.xml attempt2.xml 
+
+jvq flaky: 4 tests from 2 JUnit XML, commit a38c014f24; history jvq-tests.jsonl, 11 run(s) before this one
+
+TEST                                     THIS RUN  STATUS                                    FLAKY COMMITS  LAST RUNS
+tests.test_cart.test_checkout_times_out  fp        failed, passed on retry; into quarantine  2              pppppxpppfpx
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+PASS: no test failed outside quarantine. 1 test(s) failed and passed on retry. 1 test(s) in quarantine.
+exit 0
+12 CI runs

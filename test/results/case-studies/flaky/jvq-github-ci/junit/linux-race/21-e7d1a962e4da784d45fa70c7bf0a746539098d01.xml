@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="jvq CI run 41187816644, test (ubuntu-latest)">
+  <testcase classname="github.com/just-very-quickly/jvq/internal/history" name="TestReRunReplacesItsLine"></testcase>
+  <testcase classname="github.com/just-very-quickly/jvq/cmd/jvq" name="TestInstructionsSteadyWithGoroutines"></testcase>
+  <testcase classname="github.com/just-very-quickly/jvq/internal/flaky" name="TestCorruptedHistory"></testcase>
+  <testcase classname="github.com/just-very-quickly/jvq/internal/flaky" name="TestHistoryFile"></testcase>
+  <testcase classname="github.com/just-very-quickly/jvq/cmd/jvq" name="TestCommandAfterDashes"></testcase>
+</testsuite>

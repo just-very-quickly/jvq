@@ -1,0 +1,185 @@
+=== run 02, commit e4a746f
+
+jvq flaky: 1 tests from 1 JUnit XML, commit e4a746f087; history jvq-tests.jsonl, 0 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+Note: jvq-tests.jsonl doesn't exist yet, so this run starts the history.
+exit 0
+=== run 03, commit fdbac6d
+
+jvq flaky: 1 tests from 1 JUnit XML, commit fdbac6d62d; history jvq-tests.jsonl, 1 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 04, commit 04dfabf
+
+jvq flaky: 1 tests from 1 JUnit XML, commit 04dfabfa48; history jvq-tests.jsonl, 2 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 05, commit b32c46d
+
+jvq flaky: 1 tests from 1 JUnit XML, commit b32c46d267; history jvq-tests.jsonl, 3 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 06, commit 08aab29
+
+jvq flaky: 1 tests from 1 JUnit XML, commit 08aab29ea6; history jvq-tests.jsonl, 4 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 07, commit a8df069
+
+jvq flaky: 1 tests from 1 JUnit XML, commit a8df069875; history jvq-tests.jsonl, 5 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 08, commit 0fa5121
+
+jvq flaky: 1 tests from 1 JUnit XML, commit 0fa51215c0; history jvq-tests.jsonl, 6 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 09, commit 7f00557
+
+jvq flaky: 1 tests from 1 JUnit XML, commit 7f00557623; history jvq-tests.jsonl, 7 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 10, commit 57f119f
+
+jvq flaky: 1 tests from 1 JUnit XML, commit 57f119ff8e; history jvq-tests.jsonl, 8 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 11, commit 54df61f
+
+jvq flaky: 1 tests from 1 JUnit XML, commit 54df61fff5; history jvq-tests.jsonl, 9 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 12, commit 9a05c7d
+
+jvq flaky: 2 tests from 1 JUnit XML, commit 9a05c7d852; history jvq-tests.jsonl, 10 run(s) before this one
+
+TEST                                                                        THIS RUN  STATUS          FLAKY COMMITS  LAST RUNS
+github.com/just-very-quickly/jvq/internal/history.TestReRunReplacesItsLine  f         failed, blocks  0              f
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+FAIL: 1 test(s) failed (github.com/just-very-quickly/jvq/internal/history.TestReRunReplacesItsLine). 0 test(s) in quarantine.
+exit 1
+=== run 13, commit 635f9e7
+
+jvq flaky: 2 tests from 1 JUnit XML, commit 635f9e7226; history jvq-tests.jsonl, 11 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 14, commit fd8e8fc
+
+jvq flaky: 2 tests from 1 JUnit XML, commit fd8e8fc0d7; history jvq-tests.jsonl, 12 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 15, commit 4d33232
+
+jvq flaky: 3 tests from 1 JUnit XML, commit 4d33232338; history jvq-tests.jsonl, 13 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 16, commit df1205a
+
+jvq flaky: 3 tests from 1 JUnit XML, commit df1205a514; history jvq-tests.jsonl, 14 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 17, commit fbf8579
+
+jvq flaky: 3 tests from 1 JUnit XML, commit fbf85798c5; history jvq-tests.jsonl, 15 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 18, commit 2db2a98
+
+jvq flaky: 3 tests from 1 JUnit XML, commit 2db2a9838e; history jvq-tests.jsonl, 16 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 19, commit d37c25c
+
+jvq flaky: 3 tests from 1 JUnit XML, commit d37c25c761; history jvq-tests.jsonl, 17 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 20, commit 4bc64c3
+
+jvq flaky: 3 tests from 1 JUnit XML, commit 4bc64c3110; history jvq-tests.jsonl, 18 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 21, commit e7d1a96
+
+jvq flaky: 5 tests from 1 JUnit XML, commit e7d1a962e4; history jvq-tests.jsonl, 19 run(s) before this one
+
+TEST                                                                  THIS RUN  STATUS          FLAKY COMMITS  LAST RUNS
+github.com/just-very-quickly/jvq/internal/flaky.TestCorruptedHistory  f         failed, blocks  0              f
+github.com/just-very-quickly/jvq/internal/flaky.TestHistoryFile       f         failed, blocks  0              f
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+FAIL: 2 test(s) failed (github.com/just-very-quickly/jvq/internal/flaky.TestCorruptedHistory, github.com/just-very-quickly/jvq/internal/flaky.TestHistoryFile). 0 test(s) in quarantine.
+exit 1
+=== run 22, commit 5981c1e
+
+jvq flaky: 5 tests from 1 JUnit XML, commit 5981c1e7c2; history jvq-tests.jsonl, 20 run(s) before this one
+
+TEST                                                                  THIS RUN  STATUS          FLAKY COMMITS  LAST RUNS
+github.com/just-very-quickly/jvq/internal/flaky.TestCorruptedHistory  f         failed, blocks  0              ff
+github.com/just-very-quickly/jvq/internal/flaky.TestHistoryFile       f         failed, blocks  0              ff
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+FAIL: 2 test(s) failed (github.com/just-very-quickly/jvq/internal/flaky.TestCorruptedHistory, github.com/just-very-quickly/jvq/internal/flaky.TestHistoryFile). 0 test(s) in quarantine.
+exit 1
+=== run 23, commit 370cc44
+
+jvq flaky: 5 tests from 1 JUnit XML, commit 370cc44e93; history jvq-tests.jsonl, 21 run(s) before this one
+
+TEST                                                                  THIS RUN  STATUS          FLAKY COMMITS  LAST RUNS
+github.com/just-very-quickly/jvq/internal/flaky.TestCorruptedHistory  f         failed, blocks  0              fff
+github.com/just-very-quickly/jvq/internal/flaky.TestHistoryFile       f         failed, blocks  0              fff
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+FAIL: 2 test(s) failed (github.com/just-very-quickly/jvq/internal/flaky.TestCorruptedHistory, github.com/just-very-quickly/jvq/internal/flaky.TestHistoryFile). 0 test(s) in quarantine.
+exit 1
+=== run 24, commit 9cfc77c
+
+jvq flaky: 5 tests from 1 JUnit XML, commit 9cfc77c7e5; history jvq-tests.jsonl, 22 run(s) before this one
+
+TEST                                                                  THIS RUN  STATUS          FLAKY COMMITS  LAST RUNS
+github.com/just-very-quickly/jvq/internal/flaky.TestCorruptedHistory  f         failed, blocks  0              ffff
+github.com/just-very-quickly/jvq/internal/flaky.TestHistoryFile       f         failed, blocks  0              ffff
+
+LAST RUNS: p pass, f fail, x failed then passed on retry, s skipped; latest on the right.
+Quarantine: 2 flaky commits (passed and failed on one commit) in a test's last 100 runs; out after 30 passing runs in a row, or as broken after 3 failed attempts in a row.
+
+FAIL: 2 test(s) failed (github.com/just-very-quickly/jvq/internal/flaky.TestCorruptedHistory, github.com/just-very-quickly/jvq/internal/flaky.TestHistoryFile). 0 test(s) in quarantine.
+exit 1
+=== run 25, commit a8f1d94
+
+jvq flaky: 5 tests from 1 JUnit XML, commit a8f1d947a2; history jvq-tests.jsonl, 23 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
+=== run 26, commit 9e5bfe9
+
+jvq flaky: 5 tests from 1 JUnit XML, commit 9e5bfe9dbd; history jvq-tests.jsonl, 24 run(s) before this one
+
+PASS: no test failed outside quarantine. 0 test(s) in quarantine.
+exit 0
