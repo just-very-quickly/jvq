@@ -78,7 +78,7 @@ Steps (mark each done as it lands, with the commit):
 2. [done] internal/testresults: JUnit XML and go test -json parsers, with
    tests (real captured go test -json and pytest output in testdata;
    surefire-reruns.xml is hand-written, Maven Central was unreachable).
-3. [ ] internal/flaky: history read/append, replay, scoring, gate, with
+3. [done] internal/flaky: history read/append, replay, scoring, gate, with
    tests (broken never hidden, flaky stops blocking, corrupted and missing
    history, mixed input, stable test leaves).
 4. [ ] config `[flaky]`, `jvq flaky` command, text/Markdown/JSON output,
