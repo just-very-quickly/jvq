@@ -35,7 +35,7 @@ blocking merges while every failure is still reported:
 jvq flaky -history jvq-tests.jsonl go-test.json junit/
 ```
 
-**Status: v0.7.1.** Go benchmark output, Rust's criterion, Google
+**Status: v0.8.0.** Go benchmark output, Rust's criterion, Google
 Benchmark, pytest-benchmark and vitest as they are, whole-command timing, a
 small JSON format, instruction counts on Linux, `jvq compare` for two saved
 outputs, time, bytes, allocation, instruction and file-size budgets,
@@ -330,7 +330,7 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: stable
-      - uses: just-very-quickly/jvq@v0.7.1
+      - uses: just-very-quickly/jvq@v0.8.0
         with:
           command: go test -run=NONE -bench=. -benchmem ./...
 ```
@@ -349,7 +349,7 @@ in small steps, each inside the budget, passes every time. Keep a history
 and it shows:
 
 ```yaml
-      - uses: just-very-quickly/jvq@v0.7.1
+      - uses: just-very-quickly/jvq@v0.8.0
         with:
           history: jvq-history.jsonl
           history-fail-over: 10%     # optional: fail when something has moved more than this in all
@@ -472,7 +472,7 @@ against it without writing:
 
 ```yaml
       - run: go test -json ./... > go-test.json || true
-      - uses: just-very-quickly/jvq@v0.7.1
+      - uses: just-very-quickly/jvq@v0.8.0
         with:
           flaky: go-test.json
 ```
@@ -535,7 +535,7 @@ each time a note, and the deleted history built its quarantine again.
 
 ```yaml
 include:
-  - remote: https://raw.githubusercontent.com/just-very-quickly/jvq/v0.7.1/ci/gitlab/jvq.yml
+  - remote: https://raw.githubusercontent.com/just-very-quickly/jvq/v0.8.0/ci/gitlab/jvq.yml
 
 benchmarks:
   extends: .jvq
