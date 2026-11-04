@@ -445,3 +445,19 @@ func TestWorkspaceSubmodules(t *testing.T) {
 		t.Errorf("missing submodule: %v", err)
 	}
 }
+
+// Second review of 0.9: a core.sshCommand in git config (a deploy key in
+// CI) is left alone, since GIT_SSH_COMMAND would override it.
+func TestKeepsConfiguredSSHCommand(t *testing.T) {
+	dir := newRepo(t)
+	cfg := filepath.Join(t.TempDir(), "gitconfig")
+	os.WriteFile(cfg, []byte("[core]\n\tsshCommand = ssh -i deploy_key\n"), 0o644)
+	t.Setenv("GIT_CONFIG_GLOBAL", cfg)
+	if !hasSSHCommand(context.Background(), dir) {
+		t.Error("core.sshCommand not seen")
+	}
+	t.Setenv("GIT_CONFIG_GLOBAL", os.DevNull)
+	if hasSSHCommand(context.Background(), dir) {
+		t.Error("core.sshCommand seen where none is set")
+	}
+}

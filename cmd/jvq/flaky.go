@@ -123,11 +123,14 @@ func cmdFlaky(args []string, stdout, stderr io.Writer) int {
 
 	var entries []flaky.Entry
 	if histPath != "" {
-		var bad int
-		var missing bool
-		entries, bad, missing, err = flaky.Load(histPath)
+		h, err := flaky.LoadHistory(histPath)
 		if err != nil {
 			return fail(err)
+		}
+		entries = h.Entries
+		bad, missing := h.Bad, h.Missing
+		if h.Over > 0 {
+			rep.Notes = append(rep.Notes, fmt.Sprintf("left out the oldest %d run(s) of %s: the history holds more than %d test results, which is all jvq reads; lower [flaky] history_keep (not below window) to keep it whole", h.Over, histPath, flaky.MaxResults))
 		}
 		if missing && len(paths) > 0 && !*noWrite {
 			rep.Notes = append(rep.Notes, fmt.Sprintf("%s doesn't exist yet, so this run starts the history", histPath))

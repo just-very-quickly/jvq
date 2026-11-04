@@ -833,9 +833,11 @@ twice, a names list that doesn't match its id, a `kind` other than
 `tests`) is skipped with a note, and left in the file until it's trimmed.
 A compact line whose names list is gone from the file can never be read
 again, so the next write drops it. A history is read into at most 5
-million test results, newest runs first; older runs past that are skipped
-as damaged, so a small crafted file can't fill the memory (2000 tests
-over 200 runs are 400,000; lower `history_keep` for suites far bigger).
+million test results, newest runs first, so a small crafted file can't
+fill the memory. Older runs past that are left out with a note (not as
+damage), and dropped on the next write. 2000 tests over 200 runs are
+400,000 results; with 25,000 tests or more, lower `history_keep` (not
+below `window`) so every run kept is read.
 A missing file is an empty history. A file holding `jvq run`'s benchmark
 history is refused, not written. Two runs writing at once can lose one of
 their lines.
@@ -907,7 +909,7 @@ is cleaned up by the next run on that machine.
 its URL into each worktree (git keeps a worktree's submodules apart from
 the main checkout's), with the credentials git has for that URL. jvq turns
 off git's password prompt for this, and runs ssh in batch mode unless
-`GIT_SSH_COMMAND` or `GIT_SSH` is set, so a submodule it can't reach is an
+`GIT_SSH_COMMAND`, `GIT_SSH` or `core.sshCommand` is set, so a submodule it can't reach is an
 error that names it rather than a run that waits for an answer. In GitHub Actions,
 `actions/checkout` with `submodules: true` sets up access for submodules
 in the same organization; private ones elsewhere need a token, as they

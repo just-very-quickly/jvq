@@ -135,3 +135,43 @@ func TestReviewBadNamesLineKept(t *testing.T) {
 		t.Errorf("damaged names line dropped:\n%s", raw)
 	}
 }
+
+// Second review of 0.9: an honest history past MaxResults isn't damage.
+// Its oldest runs are left out, counted apart, and dropped on the next
+// write, so later runs don't keep reporting them.
+func TestReviewLargeHonestSuite(t *testing.T) {
+	if testing.Short() {
+		t.Skip("6 million results")
+	}
+	p := filepath.Join(t.TempDir(), "h.jsonl")
+	tests := map[string]string{}
+	for i := 0; i < 30000; i++ {
+		tests[fmt.Sprintf("pkg.Test%05d", i)] = "p"
+	}
+	var entries []Entry
+	for i := 0; i < 199; i++ {
+		entries = append(entries, NewEntry("x", time.Now(), fmt.Sprintf("c%d", i), tests))
+	}
+	lines, nl, _ := compact(entries)
+	var b bytes.Buffer
+	b.Write(nl)
+	b.WriteByte('\n')
+	for _, l := range lines {
+		b.Write(l)
+		b.WriteByte('\n')
+	}
+	b.Write(nl)
+	b.WriteByte('\n')
+	os.WriteFile(p, b.Bytes(), 0o644)
+	h, err := LoadHistory(p)
+	if err != nil || h.Bad != 0 || h.Over != 33 || len(h.Entries) != 166 || h.Entries[len(h.Entries)-1].Commit != "c198" {
+		t.Fatalf("read %d, bad %d, over %d, err %v", len(h.Entries), h.Bad, h.Over, err)
+	}
+	if err := Append(p, NewEntry("x", time.Now(), "c199", tests), 200); err != nil {
+		t.Fatal(err)
+	}
+	h, _ = LoadHistory(p)
+	if h.Bad != 0 || h.Over != 1 || len(h.Entries) != 166 {
+		t.Errorf("after a write: read %d, bad %d, over %d", len(h.Entries), h.Bad, h.Over)
+	}
+}

@@ -77,13 +77,20 @@ func isRunHistory(l []byte) bool {
 // every test's name (jvq 0.7 and 0.8) and compact lines that refer to a
 // names line (0.9 on).
 func Read(r io.Reader) (entries []Entry, bad int, err error) {
+	entries, bad, _, err = read(r)
+	return entries, bad, err
+}
+
+// read is Read that also says how many runs were left out, intact, for
+// being past MaxResults.
+func read(r io.Reader) (entries []Entry, bad, over int, err error) {
 	ls, err := readLines(r)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, 0, err
 	}
 	for _, l := range ls {
 		if isRunHistory(l.raw) {
-			return nil, 0, ErrRunHistory
+			return nil, 0, 0, ErrRunHistory
 		}
 	}
 	dicts := dictionaries(ls)
@@ -95,9 +102,13 @@ func Read(r io.Reader) (entries []Entry, bad int, err error) {
 		if l.names {
 			continue
 		}
-		e, ok := decode(l, dicts, budget)
+		e, ok, isOver := decode(l, dicts, budget)
 		if !ok {
-			bad++
+			if isOver {
+				over++
+			} else {
+				bad++
+			}
 			continue
 		}
 		budget -= len(e.Tests)
@@ -106,7 +117,7 @@ func Read(r io.Reader) (entries []Entry, bad int, err error) {
 	for i := len(rev) - 1; i >= 0; i-- {
 		entries = append(entries, rev[i])
 	}
-	return entries, bad, nil
+	return entries, bad, over, nil
 }
 
 // MaxResults bounds the test results a history is read into, all runs
@@ -174,7 +185,15 @@ func dictionaries(ls []line) map[string][]string {
 }
 
 // decode reads one entry; a compact one may hold at most budget results.
-func decode(l line, dicts map[string][]string, budget int) (Entry, bool) {
+//
+// A compact line that is well formed but would take it past budget is
+// reported as over, not decoded: it's checked without being expanded.
+func decode(l line, dicts map[string][]string, budget int) (e Entry, ok, over bool) {
+	e, ok = decode1(l, dicts, budget, &over)
+	return e, ok, over
+}
+
+func decode1(l line, dicts map[string][]string, budget int, over *bool) (Entry, bool) {
 	h := l.head
 	e := Entry{Kind: h.Kind, JVQ: h.JVQ, Date: h.Date, Commit: h.Commit, Tests: h.Tests}
 	if h.Names != "" || h.Results != nil {
@@ -193,7 +212,16 @@ func decode(l line, dicts map[string][]string, budget int) (Entry, bool) {
 			}
 			n += c
 		}
-		if n > len(names) || n > budget {
+		if h.Kind != Kind || n > len(names) {
+			return Entry{}, false
+		}
+		if n > budget {
+			for a := range h.Results {
+				if !valid(Entry{Kind: Kind, Tests: map[string]string{"": a}}) {
+					return Entry{}, false
+				}
+			}
+			*over = true
 			return Entry{}, false
 		}
 		e.Tests = map[string]string{}
@@ -375,22 +403,36 @@ func compact(entries []Entry) (lines [][]byte, namesLine []byte, err error) {
 // Load reads the history file at path. A missing file is an empty history,
 // with missing set.
 func Load(path string) (entries []Entry, bad int, missing bool, err error) {
+	h, err := LoadHistory(path)
+	return h.Entries, h.Bad, h.Missing, err
+}
+
+// History is a test history file as read.
+type History struct {
+	Entries []Entry
+	Bad     int  // damaged lines skipped
+	Over    int  // intact runs left out, oldest first, past MaxResults
+	Missing bool // no file yet
+}
+
+// LoadHistory reads the history file at path.
+func LoadHistory(path string) (History, error) {
 	fh, err := os.Open(path)
 	if errors.Is(err, os.ErrNotExist) {
-		return nil, 0, true, nil
+		return History{Missing: true}, nil
 	}
 	if err != nil {
-		return nil, 0, false, err
+		return History{}, err
 	}
 	defer fh.Close()
 	if st, err := fh.Stat(); err == nil && st.IsDir() {
-		return nil, 0, false, fmt.Errorf("%s is a folder; give a file name", path)
+		return History{}, fmt.Errorf("%s is a folder; give a file name", path)
 	}
-	entries, bad, err = Read(fh)
+	entries, bad, over, err := read(fh)
 	if err != nil {
-		return nil, 0, false, fmt.Errorf("%s: %w", path, err)
+		return History{}, fmt.Errorf("%s: %w", path, err)
 	}
-	return entries, bad, false, nil
+	return History{Entries: entries, Bad: bad, Over: over}, nil
 }
 
 // Append adds e to the file at path, creating it if needed, and keeps the
@@ -439,12 +481,15 @@ func Append(path string, e Entry, keep int) error {
 		if l.names {
 			continue
 		}
-		if d, ok := decode(l, dicts, budget); ok {
+		if d, ok, isOver := decode(l, dicts, budget); ok {
 			budget -= len(d.Tests)
 			items = append(items, item{e: &d})
 		} else if l.head.Kind == Kind && l.head.Names != "" && dicts[l.head.Names] == nil {
 			// A compact line whose names are gone can never be read
 			// again: dropped rather than kept to fill the history.
+		} else if isOver {
+			// Intact, but past MaxResults: older runs than these aren't
+			// read, so they aren't kept either.
 		} else {
 			items = append(items, item{raw: l.raw})
 		}

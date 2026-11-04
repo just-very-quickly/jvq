@@ -263,7 +263,7 @@ func (w *Workspace) Submodules(ctx context.Context, dir string) error {
 	cmd := exec.CommandContext(ctx, "git", args...)
 	cmd.Dir = dir
 	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
-	if os.Getenv("GIT_SSH_COMMAND") == "" && os.Getenv("GIT_SSH") == "" {
+	if os.Getenv("GIT_SSH_COMMAND") == "" && os.Getenv("GIT_SSH") == "" && !hasSSHCommand(ctx, dir) {
 		// ssh asks on the terminal itself (a new host key, a passphrase).
 		cmd.Env = append(cmd.Env, "GIT_SSH_COMMAND=ssh -o BatchMode=yes")
 	}
@@ -273,6 +273,13 @@ func (w *Workspace) Submodules(ctx context.Context, dir string) error {
 		return &Error{Args: args, Output: out.String(), Err: err}
 	}
 	return nil
+}
+
+// hasSSHCommand reports whether git config sets core.sshCommand, which
+// GIT_SSH_COMMAND would override.
+func hasSSHCommand(ctx context.Context, dir string) bool {
+	out, err := run(ctx, dir, "config", "--get", "core.sshCommand")
+	return err == nil && out != ""
 }
 
 // HasSubmodules reports whether the commit records submodules (a
