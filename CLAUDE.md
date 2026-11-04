@@ -19,7 +19,7 @@ public: read runs and releases from `https://api.github.com/repos/just-very-quic
 
 ## Start here
 
-- Latest release: v0.7.1 (October 31 2026). In progress: item 10 of
+- Latest release: v0.8.0 (November 4 2026). In progress: item 10 of
   softdev-plan.md (photozeitgeist/jollyroger.biz), approved by YK on
   2026-11-04 ("Go"): Phase A as 0.8.0, Phase B as 0.9.0; the plan and
   its steps are under "Now" below.
@@ -52,12 +52,14 @@ init in worktrees, `always`/`never` lists in `[flaky]`.
 
 Steps:
 1. [x] Phase A code, tests, action, action-test workflow, docs
-2. [ ] CI and action-test green; independent review (two rounds), fixes;
-       record (SKIP_ACCURACY=1 is fine: the benchmark gate is unchanged;
-       the flaky simulation runs)
-3. [ ] release 0.8.0 (README and action.yml examples say v0.7.1 until the
-       release commit: docs_test.go wants the released version); jvq.net post and pages; softdevstudio note;
-       softdev-plan.md
+2. [x] CI and action-test green; independent review (two rounds: 6, then
+       4 defects), fixes with failing-first tests; recorded with
+       SKIP_ACCURACY=1 (flaky simulation numbers unchanged)
+3. [x] release 0.8.0 (tag on 73c81d1, run 41775129115; the first release
+       commit f5c100c failed CI on gofmt and was skipped); Linux binary
+       checked and run; jvq.net e43dcf7; softdevstudio note 78bd728;
+       softdev-plan.md e395ff7. README and action.yml examples name the
+       released version only in the release commit (docs_test.go)
 4. [ ] Phase B, the same way
 
 ## Releases so far
