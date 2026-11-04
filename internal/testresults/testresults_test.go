@@ -278,3 +278,33 @@ func TestGoJSONPausedParallelNotFailed(t *testing.T) {
 		t.Errorf("the crash: %q", run.Attempts["example.com/par.TestCrash"])
 	}
 }
+
+// Second review of 0.8 (real go test -json, Go 1.26): when one parallel
+// test panics, the siblings still running are interrupted, not failed; when
+// the package times out, only the tests Go names as running are blamed.
+func TestGoJSONInterruptedSiblings(t *testing.T) {
+	run, err := Collect([]string{filepath.Join("testdata", "go-parallel-panic-running.json")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a := run.Attempts["example.com/a.TestFlake"]; a != "f" {
+		t.Errorf("the panicking test: %q", a)
+	}
+	for _, id := range []string{"example.com/a.TestQ1", "example.com/a.TestQ2", "example.com/a.TestQ3"} {
+		if a, ok := run.Attempts[id]; ok {
+			t.Errorf("%s was interrupted by a sibling's panic, yet has attempts %q", id, a)
+		}
+	}
+	run, err = Collect([]string{filepath.Join("testdata", "go-parallel-timeout.json")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a := run.Attempts["example.com/a.TestFlake"]; a != "f" {
+		t.Errorf("the hanging test: %q", a)
+	}
+	for id, a := range run.Attempts {
+		if strings.Contains(a, "f") && id != "example.com/a.TestFlake" && IsTest(id) {
+			t.Errorf("%s blamed for a timeout Go put on TestFlake: %q", id, a)
+		}
+	}
+}

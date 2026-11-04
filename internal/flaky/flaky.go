@@ -390,7 +390,8 @@ func Judge(entries []Entry, run *Entry, s Settings) Result {
 		res.Rows = append(res.Rows, r)
 	}
 	if run != nil {
-		for _, id := range notRun(entries, *run) {
+		quarantined := func(id string) bool { st := states[id]; return st != nil && st.Quarantined }
+		for _, id := range notRun(entries, *run, quarantined) {
 			st := states[id]
 			r := Row{ID: id, Status: StatusNotRun}
 			if st != nil {
@@ -442,6 +443,11 @@ func rank(r Row) int {
 	return 6
 }
 
+// allPass reports attempts that are all passes.
+func allPass(a string) bool {
+	return a != "" && strings.Trim(a, string(testresults.Pass)) == ""
+}
+
 // notRun lists the tests of the run's failed Go packages that ran in the
 // package's last passing run and are missing now: a crash (a panic, a
 // timeout) or -failfast stopped the package before them. The last passing
@@ -451,7 +457,7 @@ func rank(r Row) int {
 // a dot. A package that failed to build is left out (its build failure
 // blocks on its own), and so are subtests of a test that failed in this
 // run (it stopped before them, which its failure already says).
-func notRun(entries []Entry, run Entry) []string {
+func notRun(entries []Entry, run Entry, quarantined func(string) bool) []string {
 	pkgs := map[string]bool{}
 	note := func(tests map[string]string) {
 		for id := range tests {
@@ -485,19 +491,22 @@ func notRun(entries []Entry, run Entry) []string {
 		owners[id] = best
 		return best
 	}
-	// The packages of this run that failed: a test of theirs ran, and
-	// their own entry didn't pass. A build failure isn't one of them.
+	// The packages of this run that failed: a test of theirs ran, or
+	// their own entry is there, and that entry isn't all passes (a rerun
+	// that passed after a crash is "sp": the first run still stopped). A
+	// build failure isn't one of them.
 	failed := map[string]bool{}
 	for id := range run.Tests {
-		if !testresults.IsTest(id) {
-			continue
-		}
-		if p := owner(id); p != "" {
+		if p, ok := strings.CutSuffix(id, testresults.PackageSuffix); ok {
 			failed[p] = true
+		} else if testresults.IsTest(id) {
+			if p := owner(id); p != "" {
+				failed[p] = true
+			}
 		}
 	}
 	for p := range failed {
-		if a, ok := run.Tests[p+testresults.PackageSuffix]; ok && Outcome(a) == OutPass {
+		if a, ok := run.Tests[p+testresults.PackageSuffix]; ok && allPass(a) {
 			delete(failed, p)
 		}
 		if _, ok := run.Tests[p+testresults.BuildSuffix]; ok {
@@ -514,14 +523,16 @@ func notRun(entries []Entry, run Entry) []string {
 			if _, done := base[p]; done {
 				continue
 			}
-			if a, ok := entries[i].Tests[p+testresults.PackageSuffix]; ok && Outcome(a) == OutPass {
+			if a, ok := entries[i].Tests[p+testresults.PackageSuffix]; ok && allPass(a) {
 				base[p] = i
 			}
 		}
 	}
+	// A test that failed here and blocks says it stopped; one in
+	// quarantine doesn't block, so what it stopped is listed.
 	failedHere := func(id string) bool {
 		a, ok := run.Tests[id]
-		return ok && strings.IndexByte(a, testresults.Fail) >= 0
+		return ok && strings.IndexByte(a, testresults.Fail) >= 0 && (quarantined == nil || !quarantined(id))
 	}
 	var out []string
 	for p, i := range base {

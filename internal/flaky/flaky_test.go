@@ -489,8 +489,43 @@ func TestNotRunReview(t *testing.T) {
 		run[fmt.Sprintf("github.com/org/repo/new/pkg%d.TestA", p)] = "f"
 	}
 	start := time.Now()
-	notRun(big, Entry{Tests: run})
+	notRun(big, Entry{Tests: run}, nil)
 	if d := time.Since(start); d > 2*time.Second {
 		t.Errorf("notRun took %v", d)
+	}
+}
+
+// Second review of 0.8: a package that failed and passed on a rerun
+// ("sp") failed in this run and isn't a baseline; a package that failed
+// before any test ran is checked; subtests a crash stopped inside a
+// quarantined test are listed.
+func TestNotRunReview2(t *testing.T) {
+	ent := func(c string, m map[string]string) Entry { return Entry{Kind: Kind, Commit: c, Tests: m} }
+	full := map[string]string{"b (package)": "p", "b.TestTable": "p", "b.TestTable/c1": "p", "b.TestTable/c2": "p", "b.TestTable/c3": "p", "b.TestZ1": "p"}
+	rerun := map[string]string{"b (package)": "sp", "b.TestTable": "fp", "b.TestTable/c1": "pp", "b.TestTable/c2": "fp", "b.TestTable/c3": "p"}
+	r := Judge([]Entry{ent("c0", full)}, &Entry{Commit: "c1", Tests: rerun}, DefaultSettings())
+	if _, ok := row(r, "b.TestZ1"); !ok {
+		t.Errorf("a rerun hid TestZ1: %+v", r.Rows)
+	}
+	if got := notRun([]Entry{ent("c0", full), ent("c1", rerun)}, Entry{Tests: map[string]string{"b (package)": "s", "b.TestA": "f"}}, nil); len(got) == 0 || got[len(got)-1] != "b.TestZ1" {
+		t.Errorf("the rerun run became the baseline: %v", got)
+	}
+	// TestMain crashed: no test ran, only the package's own failure.
+	a := map[string]string{"a (package)": "p", "a.TestA1": "p", "a.TestA2": "p"}
+	got := notRun([]Entry{ent("c0", a)}, Entry{Tests: map[string]string{"a (package)": "f"}}, nil)
+	if len(got) != 2 {
+		t.Errorf("TestMain crash: %v", got)
+	}
+	// A table case panics inside a quarantined test: the later cases are
+	// listed, since the parent's failure doesn't block.
+	crash := map[string]string{"b (package)": "s", "b.TestTable": "f", "b.TestTable/c1": "p", "b.TestTable/c2": "f"}
+	quarantined := func(id string) bool { return id == "b.TestTable" }
+	got = notRun([]Entry{ent("c0", full)}, Entry{Tests: crash}, quarantined)
+	if strings.Join(got, ",") != "b.TestTable/c3,b.TestZ1" {
+		t.Errorf("subtests of a quarantined crash: %v", got)
+	}
+	got = notRun([]Entry{ent("c0", full)}, Entry{Tests: crash}, nil)
+	if strings.Join(got, ",") != "b.TestZ1" {
+		t.Errorf("subtests of a blocking failure: %v", got)
 	}
 }

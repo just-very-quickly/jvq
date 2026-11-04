@@ -223,7 +223,11 @@ rerun elements (`flakyFailure` and `flakyError` are failed attempts before
 the pass, `rerunFailure` and `rerunError` failed attempts after the first
 failure). A JUnit testcase with `<failure>` or `<error>` failed, with
 `<skipped>` was skipped, and otherwise passed. In `go test -json`, a test
-still running when its package failed (a panic, a `-timeout`) failed; a
+still running when its package failed is blamed only when it caused the
+stop: under a `-timeout`, the tests Go names as running; otherwise, when
+no test of the package has a fail event of its own (a panic gets one), the
+tests still running. A test running beside one that panicked was
+interrupted and gets no attempt (0.8.0); a
 package that failed with no failing test (a build error, a crash before
 any test) is the entry `package (package)`, which fails like a test, and a
 package that passed adds a passing `package (package)` attempt, so that
@@ -274,9 +278,14 @@ window is no longer listed (most likely renamed or deleted).
 **Not run.** When a Go package failed in this run, the tests that ran in
 that package's last passing run and are missing now are listed as **not
 run**: a crash (a panic, a `-timeout`) or `-failfast` stopped the package
-before them. The last passing run, so a crash two runs in a row still
-shows them. Subtests of a test that failed in this run aren't listed (the
-failure stopped them, and says so). A test renamed or deleted in a pull
+before them. The last passing run (one whose `(package)` attempts all passed), so a
+crash two runs in a row still shows them, and so does a crash that a
+rerun (gotestsum `--rerun-fails`) passed: the package's `sp` counts as
+failed. A package that failed before any test ran (a crash in `TestMain`)
+is checked too. Subtests of a test that failed in this run and blocks
+aren't listed (its failure stopped them, and says so); subtests a crash
+stopped inside a quarantined test are listed, since that failure doesn't
+block. A test renamed or deleted in a pull
 request that also fails in that package, or left out by `-run`, is listed
 too: the list says what wasn't checked, whatever the reason. A
 `t.Parallel` test still paused when its package stopped never ran, so it
@@ -860,7 +869,7 @@ With `flaky` set (0.8.0), the action runs `jvq flaky` instead of `jvq run`:
 | `flaky` | the results: files or folders, separated by spaces or new lines, after `--` |
 | `flaky-history` | `-history`, relative to `working-directory` (default `jvq-tests.jsonl`), kept in the Actions cache |
 | `flaky-write` | `auto` (default): push and `workflow_dispatch` runs on the default branch, and `schedule` runs (always on the default branch), add to the history; others get `-no-write`; `true` every run; `false` none |
-| `flaky-key` | the cache key prefix; empty is `jvq-tests-<workflow>-<job>-<matrix job index>-<runner OS>`, so each matrix leg keeps its own history |
+| `flaky-key` | the cache key prefix; empty is `jvq-tests-<workflow>-<job>-<matrix job index>-<runner OS>`, so each matrix leg keeps its own history. The index is the leg's position: adding or reordering matrix entries hands legs each other's histories, so set `flaky-key` from the matrix values when the matrix changes often |
 | `flaky-args` | more flags, split on spaces, such as `-json flaky.json` |
 | `config` | `-config` |
 

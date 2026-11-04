@@ -352,6 +352,10 @@ func parseGoJSON(b []byte) ([]Result, error) {
 	type pkgState struct {
 		pending     map[string]int
 		paused      map[string]bool // t.Parallel tests waiting their turn
+		// Go's "panic: test timed out" names the tests still running
+		// under "running tests:"; those are the ones to blame.
+		timedOut   map[string]bool
+		inTimedOut bool
 		order       []string
 		testFail    bool
 		buildFailed bool
@@ -385,6 +389,22 @@ func parseGoJSON(b []byte) ([]Result, error) {
 		id := ev.Package + "." + ev.Test
 		switch ev.Action {
 		case "output":
+			if s := pkgs[ev.Package]; s != nil || strings.Contains(ev.Output, "running tests:") {
+				s := get(ev.Package)
+				switch out := strings.TrimRight(ev.Output, "\r\n"); {
+				case strings.TrimSpace(out) == "running tests:":
+					s.inTimedOut = true
+				case s.inTimedOut && strings.HasPrefix(out, "\t"):
+					if f := strings.Fields(out); len(f) > 0 {
+						if s.timedOut == nil {
+							s.timedOut = map[string]bool{}
+						}
+						s.timedOut[f[0]] = true
+					}
+				default:
+					s.inTimedOut = false
+				}
+			}
 			if ev.Test == "" && strings.HasPrefix(ev.Output, "FAIL") &&
 				(strings.Contains(ev.Output, " [build failed]") || strings.Contains(ev.Output, " [setup failed]")) {
 				get(ev.Package).buildFailed = true
@@ -436,6 +456,17 @@ func parseGoJSON(b []byte) ([]Result, error) {
 					if s.paused[t] {
 						// A t.Parallel test still waiting for its turn when
 						// the package stopped: it never ran, so no attempt.
+						continue
+					}
+					switch {
+					case len(s.timedOut) > 0 && !s.timedOut[t]:
+						// A timeout: Go named the tests still running, and
+						// this isn't one of them.
+						continue
+					case len(s.timedOut) == 0 && s.testFail:
+						// Another test failed (a panic gets its own fail
+						// event) and stopped the package: this one was
+						// running beside it, interrupted, not failed.
 						continue
 					}
 					for i := 0; i < s.pending[t]; i++ {
