@@ -503,6 +503,17 @@ the file and the rules (`window`, `quarantine_after`, `release_after`,
 `broken_after`, `history_keep`); [docs/reference.md](docs/reference.md#jvq-flaky)
 has the details.
 
+Some tests are already decided. `always = [...]` puts tests in quarantine
+from their first run, without waiting for evidence; they still block
+once they fail every attempt three times in a row. `never = [...]` keeps
+tests out of quarantine however flaky they get, for the ones you won't
+let through on a coin flip. Names take `*`.
+
+The history stays small: each test's name is written once, and each run
+is a list of numbers. 2000 tests over 200 runs take 193 KB, where 0.8's
+format took 26.8 MB. Older files are read and converted on the next
+write.
+
 ### How well it works
 
 [test/results/flaky.md](test/results/flaky.md) runs the real binary
@@ -614,6 +625,7 @@ warmup     = true
 confidence = 0.95
 timeout    = "10m"      # per command run
 fail_on_inconclusive = false
+submodules = false      # true checks out submodules in both worktrees
 
 [budget]
 time   = "5%"           # how much slower is allowed; always a percentage
@@ -635,6 +647,8 @@ window = 100                       # a test's latest runs searched for flaky com
 quarantine_after = 2               # flaky commits that put a test in quarantine
 release_after = 30                 # passing runs in a row that take it out
 broken_after = 3                   # failed attempts in a row: broken, blocks
+always = ["web.Checkout.uploads*"] # in quarantine from the start, unless broken
+never = ["example.com/shop.TestPay*"]  # never quarantined: failures always block
 ```
 
 `*` in a name matches anything, slashes included, so `BenchmarkParse*`
@@ -665,6 +679,7 @@ jvq run [flags] [-- command]
   -fail-on-inconclusive  exit 1 when the result is inconclusive
   -no-warmup             skip the warm-up runs
   -keep                  keep the worktrees, for debugging
+  -submodules            check out submodules in the worktrees
   -q                     no progress lines
 jvq compare [flags] OLD NEW
   -adapter NAME          any adapter but time (default: jvq.toml's adapter,
@@ -702,7 +717,6 @@ report's fields.
   `json` adapters cover the rest.
 - Benchmarks that take minutes per run: jvq runs the command 20 to 60
   times. Narrow the command to the benchmarks that matter.
-- Submodules aren't initialised in the worktrees.
 
 ## Tests
 

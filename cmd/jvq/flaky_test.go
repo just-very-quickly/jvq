@@ -166,8 +166,9 @@ func TestFlakyGateLifecycle(t *testing.T) {
 	res, _ = c.run("after", map[string]string{"TestParse": "p"}, map[string]string{"pays by card": "f"})
 	expect(t, res, 1)
 	b, _ := os.ReadFile(c.hist)
-	if n := strings.Count(string(b), "\n"); n != 36 {
-		t.Errorf("history has %d lines, want 36", n)
+	// 36 runs, then the names line.
+	if n := strings.Count(string(b), "\n"); n != 37 {
+		t.Errorf("history has %d lines, want 37", n)
 	}
 }
 
@@ -524,5 +525,41 @@ func TestFlakyGateCrashReportsNotRun(t *testing.T) {
 	goTest("", results)
 	if res, rep := runGate("c4"); res.code != 0 || status(t, rep, "example.com/flakydemo.TestB") != nil {
 		t.Fatalf("after recovery: exit %d %v", res.code, status(t, rep, "example.com/flakydemo.TestB"))
+	}
+}
+
+// Tests pinned in jvq.toml: always in quarantine from the first failure,
+// never quarantined however flaky; the report and jvq check say so.
+func TestFlakyPins(t *testing.T) {
+	c := newCI(t)
+	cfg := filepath.Join(c.dir, "jvq.toml")
+	os.WriteFile(cfg, []byte("[flaky]\nalways = [\"web.Checkout.*\", \"TestTypo\"]\nnever = [\"example.com/app.TestPay*\"]\n"), 0o644)
+	for _, commit := range []string{"a", "b"} {
+		res, _ := c.run(commit, map[string]string{"TestPayRefund": "fp", "TestParse": "p"}, nil, "-config", cfg)
+		expect(t, res, 0)
+	}
+	res, rep := c.run("c", map[string]string{"TestPayRefund": "f", "TestParse": "p"}, map[string]string{"pays by card": "f"}, "-config", cfg)
+	expect(t, res, 1)
+	pay := status(t, rep, "example.com/app.TestPayRefund")
+	if pay["status"] != "failed" || pay["blocks"] != true || pay["pinned"] != "never" {
+		t.Errorf("never-pinned test: %v", pay)
+	}
+	card := status(t, rep, "web.Checkout.pays by card")
+	if card["status"] != "quarantined" || card["blocks"] != false || card["pinned"] != "always" {
+		t.Errorf("always-pinned test: %v", card)
+	}
+	if !strings.Contains(res.stdout, "failed in quarantine (pinned), doesn't block") || !strings.Contains(res.stdout, "failed, blocks (pinned: never quarantined)") {
+		t.Errorf("report:\n%s", res.stdout)
+	}
+	if !strings.Contains(res.stdout, `flaky.always "TestTypo" matches no test`) || strings.Contains(res.stdout, `"web.Checkout.*" matches no test`) {
+		t.Errorf("notes on unmatched patterns:\n%s", res.stdout)
+	}
+	s, _ := rep["settings"].(map[string]any)
+	if fmt.Sprint(s["always"]) != "[web.Checkout.* TestTypo]" || fmt.Sprint(s["never"]) != "[example.com/app.TestPay*]" {
+		t.Errorf("settings %v", s)
+	}
+	chk := jvq(t, c.dir, nil, "check", "-config", cfg)
+	if !strings.Contains(chk.stdout, "always in quarantine (unless broken): web.Checkout.*, TestTypo") || !strings.Contains(chk.stdout, "never quarantined: example.com/app.TestPay*") {
+		t.Errorf("jvq check:\n%s", chk.stdout)
 	}
 }

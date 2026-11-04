@@ -368,3 +368,80 @@ func TestGitLabRebasedMergeTrain(t *testing.T) {
 		t.Errorf("rebased train: %+v %v, want the target %s, not head^1", p, err, target)
 	}
 }
+
+// fileSubmodules lets git clone a submodule from a local path, which it
+// refuses by default.
+var fileSubmodules = []string{"GIT_CONFIG_COUNT=1", "GIT_CONFIG_KEY_0=protocol.file.allow", "GIT_CONFIG_VALUE_0=always"}
+
+// A worktree's submodules are empty until Submodules checks them out,
+// nested ones included, and Remove still cleans up afterwards (git won't
+// remove a worktree with submodules itself).
+func TestWorkspaceSubmodules(t *testing.T) {
+	for _, kv := range fileSubmodules {
+		k, v, _ := strings.Cut(kv, "=")
+		t.Setenv(k, v)
+	}
+	ctx := context.Background()
+	inner := newRepo(t)
+	commit(t, inner, "deep", "nested")
+	lib := newRepo(t)
+	commit(t, lib, "data", "from the submodule")
+	git(t, lib, "-c", "protocol.file.allow=always", "submodule", "add", "-q", inner, "inner")
+	git(t, lib, "commit", "-q", "-m", "inner")
+	dir := newRepo(t)
+	commit(t, dir, "a", "main")
+	git(t, dir, "-c", "protocol.file.allow=always", "submodule", "add", "-q", lib, "lib")
+	git(t, dir, "commit", "-q", "-m", "lib")
+	head := git(t, dir, "rev-parse", "HEAD")
+	r, _ := Open(ctx, dir)
+	if !r.HasSubmodules(ctx, head) || r.HasSubmodules(ctx, head+"~1") {
+		t.Error("HasSubmodules wrong")
+	}
+	w, err := r.NewWorkspace()
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := w.Add(ctx, "head", head)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(p, "lib", "data")); err == nil {
+		t.Fatal("worktree add checked out the submodule already; the test proves nothing")
+	}
+	if err := w.Submodules(ctx, p); err != nil {
+		t.Fatal(err)
+	}
+	if b, _ := os.ReadFile(filepath.Join(p, "lib", "data")); string(b) != "from the submodule" {
+		t.Errorf("submodule file: %q", b)
+	}
+	if b, _ := os.ReadFile(filepath.Join(p, "lib", "inner", "deep")); string(b) != "nested" {
+		t.Errorf("nested submodule file: %q", b)
+	}
+	if err := w.Remove(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(w.Dir); !os.IsNotExist(err) {
+		t.Errorf("workspace still there: %v", err)
+	}
+	if trees, _ := r.Worktrees(ctx); len(trees) != 1 {
+		t.Errorf("worktrees after remove %v", trees)
+	}
+	// A submodule that can't be fetched is an error that names it, not a
+	// hang waiting for a password.
+	bad := newRepo(t)
+	commit(t, bad, "a", "x")
+	os.WriteFile(filepath.Join(bad, ".gitmodules"), []byte("[submodule \"gone\"]\n\tpath = gone\n\turl = "+filepath.Join(t.TempDir(), "missing")+"\n"), 0o644)
+	git(t, bad, "add", ".gitmodules")
+	git(t, bad, "update-index", "--add", "--cacheinfo", "160000,"+head+",gone")
+	git(t, bad, "commit", "-q", "-m", "gone")
+	rb, _ := Open(ctx, bad)
+	wb, _ := rb.NewWorkspace()
+	defer wb.Remove()
+	pb, err := wb.Add(ctx, "head", git(t, bad, "rev-parse", "HEAD"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := wb.Submodules(ctx, pb); err == nil || !strings.Contains(err.Error(), "gone") {
+		t.Errorf("missing submodule: %v", err)
+	}
+}

@@ -49,6 +49,10 @@ What happens, in order:
 4. Base and head are checked out, detached, into `base/` and `head/` in a
    new temp folder named `jvq-run-*`. The command runs in the same
    subfolder of each worktree as the current folder is in the repository.
+   Submodules stay empty unless `submodules = true` (or `-submodules`)
+   is set; then `git submodule update --init --recursive` checks them out
+   in both worktrees, at the commits each side records. Without it, a
+   repository with a `.gitmodules` file gets a note.
 5. If `build` is set, it runs once in each worktree, base first.
 6. If `warmup` is on, the command runs once on each side and the results
    are thrown away (but must parse).
@@ -93,6 +97,7 @@ that doesn't write it is an error.
 | `-fail-on-inconclusive` | off | exit 1 when the overall verdict is inconclusive |
 | `-no-warmup` | off | skip the warm-up runs |
 | `-keep` | off | leave the worktrees in place and print where |
+| `-submodules` | `submodules` in jvq.toml | check out submodules in both worktrees |
 | `-q` | off | no progress lines on stderr |
 
 ### jvq compare
@@ -268,6 +273,30 @@ with this run last:
    failed, counting this run's retries and earlier runs. Its flaky commits
    are forgotten too.
 
+**Pinned tests.** `[flaky]` `always` and `never` in jvq.toml take test
+names (`*` matches anything, `?` one character), for tests the team has
+already decided about:
+
+- **always**: the test is in quarantine from its first run, with no
+  evidence needed, and passing runs never take it out, so its failures
+  don't block. It still breaks: when its last `broken_after` attempts all
+  failed it leaves quarantine and blocks, and it goes back in once an
+  attempt passes. Use it for a test known to be flaky that you'd rather
+  not wait two flaky commits for.
+- **never**: the test is never quarantined, however flaky; every failure
+  blocks (a pass on retry still doesn't). Its flaky commits are still
+  counted and shown. Use it for tests that guard something you won't let
+  through on a coin flip, such as payments.
+
+A test matching both lists is never quarantined. The same name in both is
+an error. The pins apply to the whole history, since it's replayed each
+time: pinning or unpinning a test changes its state at once. A pattern
+that matches no test in the run or the history gets a note, since it's
+most likely a typo. Rows of pinned tests carry `"pinned": "always"` or
+`"never"`, and the table says so. Test names are as the table prints
+them: `example.com/pkg.TestName` for Go, the JUnit class and name joined
+with a dot.
+
 **The gate:** a test that failed in this run blocks (exit 1) unless it is
 in quarantine after this run. A broken test is never in quarantine, so it
 blocks. A test that was flaky in this run doesn't block: it passed on
@@ -322,7 +351,8 @@ The JSON report (`-json`):
 {"jvq": "0.8.0", "mode": "flaky", "commit": "4e1f0c2a…",
  "history": "jvq-tests.jsonl", "history_runs": 57, "written": true,
  "files": [{"path": "go-test.json", "format": "go-json", "tests": 412}],
- "settings": {"window": 100, "quarantine_after": 2, "release_after": 30, "broken_after": 3},
+ "settings": {"window": 100, "quarantine_after": 2, "release_after": 30, "broken_after": 3,
+              "never": ["example.com/app.TestPay*"]},
  "result": {"verdict": "fail", "tests": 412, "failed": 1, "broken": 0,
             "quarantined_failures": 1, "flaky": 1, "not_run": 0, "in_quarantine": 1,
             "tests_of_note": [{"test": "web.Checkout.pays by card", "attempts": "f",
@@ -333,7 +363,9 @@ The JSON report (`-json`):
 
 `status` is `failed`, `broken`, `quarantined` (failed in quarantine),
 `flaky`, `passed`, `skipped`, `absent` or `not_run`; `event` is `entered`,
-`released` or `broken` when this run moved the test in or out.
+`released` or `broken` when this run moved the test in or out;
+`pinned` is `always` or `never` for a pinned test. `settings` lists
+`always` and `never` when they're set.
 
 ### jvq check
 
@@ -380,6 +412,7 @@ back to a default quietly.
 | `confidence` | number, 0.5 to below 1 | 0.95 | the intervals' confidence level |
 | `timeout` | duration string | `"10m"` | limit per command run |
 | `fail_on_inconclusive` | boolean | false | inconclusive exits 1 |
+| `submodules` | boolean | false | check out submodules in both worktrees (`-submodules`) |
 | `[budget]` `time` | percentage | `"5%"` | how much slower is allowed |
 | `[budget]` `bytes` | percentage, amount or `"off"` | `"off"` | B/op allowance |
 | `[budget]` `allocs` | percentage, amount or `"off"` | `"off"` | allocs/op allowance |
@@ -393,6 +426,8 @@ back to a default quietly.
 | `[flaky]` `quarantine_after` | integer, 1 to 1000, at most `window` | 2 | flaky commits that put a test in quarantine |
 | `[flaky]` `release_after` | integer, 1 to 100000 | 30 | passing runs in a row that take it out |
 | `[flaky]` `broken_after` | integer, 1 to 1000 | 3 | failed attempts in a row that make it broken: out of quarantine, blocking |
+| `[flaky]` `always` | list of test names | none | tests in quarantine from their first run until they break (see Pinned tests) |
+| `[flaky]` `never` | list of test names | none | tests never quarantined; their failures always block |
 
 Budgets: `"5%"` allows 5% more than base; an amount such as `"0"` or `"64"`
 allows that much more in the metric's unit (bytes or allocations per op);
@@ -769,7 +804,34 @@ shares caches between protected and unprotected branches.
 `[flaky] history`), after judging, creating the file if needed and keeping
 the newest `history_keep` lines. Like the run history, it's rewritten
 through a temporary file beside it, a symlink is followed, and the file
-keeps its mode. A line:
+keeps its mode. Since 0.9 the file is compact: each run's line gives its
+tests as numbers in one list of names, written once, as the file's last
+line:
+
+```json
+{"kind": "tests", "jvq": "0.9.0", "date": "2026-11-04T08:00:00Z",
+ "commit": "4e1f0c2a…", "names_id": "9c1d2e3f4a5b6c7d",
+ "results": {"p": "0-41,43-1999", "fp": "42", "f": "2000"}}
+{"kind": "test-names", "id": "9c1d2e3f4a5b6c7d",
+ "names": ["example.com/app.TestParse", "example.com/app.TestUpload", …]}
+```
+
+`results` maps each test's attempts to the numbers of the tests that had
+them, in the sorted `names` list, as rising numbers and ranges (`0-41`).
+Attempts are letters in order: `p` pass, `f` fail, `s` skip. A test with
+no letters is no evidence either way, like a skip. `id` is a hash of the
+names, so a line can only be read with the list it was written with.
+Nothing else is stored; quarantine is replayed from these lines every
+time. A re-run of the same commit adds a line of its own, since it's more
+evidence. A line that isn't a valid entry (cut short, binary junk, letters
+other than p, f and s, numbers past the list or out of order, a test
+twice, a names list that doesn't match its id, a `kind` other than
+`tests`) is skipped with a note, and left in the file until it's trimmed.
+A missing file is an empty history. A file holding `jvq run`'s benchmark
+history is refused, not written. Two runs writing at once can lose one of
+their lines.
+
+jvq 0.7 and 0.8 wrote each test's name on every line:
 
 ```json
 {"kind": "tests", "jvq": "0.7.0", "date": "2026-10-31T08:00:00Z",
@@ -777,21 +839,15 @@ keeps its mode. A line:
  "example.com/app.TestUpload": "fp", "web.Checkout.pays by card": "f"}}
 ```
 
-Each test's attempts are letters in order: `p` pass, `f` fail, `s` skip.
-A test with no letters is no evidence either way, like a skip.
-Nothing else is stored; quarantine is replayed from these lines every
-time. A re-run of the same commit adds a line of its own, since it's more
-evidence. A line that isn't a valid entry (cut short, binary junk, letters
-other than p, f and s, a `kind` other than `tests`) is skipped with a
-note, and left in the file until it's trimmed. A missing file is an empty
-history. A file holding `jvq run`'s benchmark history is refused, not
-written. Two runs writing at once can lose one of their lines.
-
-Each line repeats every test's name, so the file grows with the suite:
-measured with 2000 Go tests named like
-`github.com/acme/shop/internal/pkg07.TestSomething0123/case_4`, 200 runs
-came to 27 MB, and one `jvq flaky` run on it took about 1.5 seconds of
-CPU. Lower `history_keep` (not below `window`) for a big suite.
+Those lines are still read, and the next run that writes converts the
+file. For 2000 Go tests named like
+`github.com/acme/shop/internal/pkg07.TestSomething0123/case_4` over 200
+runs, the old format came to 26.8 MB and the compact one to 193 KB
+(`TestCompactHistorySize`). jvq 0.8 and earlier can't read compact lines:
+they see an empty history, so nothing is in quarantine and every failure
+blocks, which is the safe side. They keep the lines they can't read, and
+since the names line is last, it's trimmed only after every line that
+needs it, so going back to 0.9 later loses nothing.
 
 ## JUnit report
 
@@ -837,6 +893,15 @@ The temp folder is `jvq-run-*` in the system temp directory, with a
 folder whose process is gone and runs `git worktree prune`. So an interrupt
 cleans up at once, and a run killed outright (SIGKILL, a cancelled CI job)
 is cleaned up by the next run on that machine.
+
+**Submodules.** With `submodules = true`, each submodule is fetched from
+its URL into each worktree (git keeps a worktree's submodules apart from
+the main checkout's), with the credentials git has for that URL. jvq turns
+off git's password prompt for this, so a submodule it can't reach is an
+error that names it rather than a run that hangs. In GitHub Actions,
+`actions/checkout` with `submodules: true` sets up access for submodules
+in the same organization; private ones elsewhere need a token, as they
+would for the checkout. Fetching takes time on every run, once per side.
 
 ## The GitHub Action
 

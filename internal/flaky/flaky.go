@@ -37,7 +37,17 @@ type Settings struct {
 	// BrokenAfter is how many failed attempts in a row make a test broken:
 	// out of quarantine, and its failures block.
 	BrokenAfter int
+	// Pin, if set, says which tests are pinned: PinAlways for a test that
+	// is in quarantine from its first run and stays there (unless it
+	// breaks), PinNever for one that is never quarantined, or "".
+	Pin func(id string) string
 }
+
+// Pins.
+const (
+	PinAlways = "always"
+	PinNever  = "never"
+)
 
 // Default settings.
 const (
@@ -106,6 +116,8 @@ type State struct {
 	// anything, and LastRun is that run's index.
 	Event   string
 	LastRun int
+	// Pinned is PinAlways or PinNever for a test the settings pin.
+	Pinned string
 
 	records  []record // runs in the window since the last clear
 	byCommit map[string]*commitCount
@@ -193,6 +205,9 @@ func step(states map[string]*State, i int, e Entry, s Settings) {
 		st := states[id]
 		if st == nil {
 			st = &State{ID: id}
+			if s.Pin != nil {
+				st.Pinned = s.Pin(id)
+			}
 			states[id] = st
 		}
 		st.Event = ""
@@ -246,6 +261,18 @@ func step(states map[string]*State, i int, e Entry, s Settings) {
 		case st.Quarantined && st.FailStreak >= s.BrokenAfter:
 			st.Quarantined, st.Event = false, EventBroken
 			st.clear()
+		case st.Pinned == PinNever:
+			// Never quarantined; its flaky commits are still counted.
+		case st.Pinned == PinAlways:
+			// In quarantine whenever it isn't broken: from its first run,
+			// and again once an attempt passes after it broke.
+			if !st.Quarantined && st.FailStreak < s.BrokenAfter {
+				st.Quarantined = true
+				if st.Runs > 1 {
+					st.Event = EventEntered
+				}
+				st.Since, st.SinceCommit = e.Date, e.Commit
+			}
 		case st.Quarantined && st.PassStreak >= s.ReleaseAfter:
 			st.Quarantined, st.Event = false, EventReleased
 			st.clear()
@@ -287,6 +314,9 @@ type Row struct {
 	FailStreak   int    `json:"fail_streak"`
 	Runs         int    `json:"runs"`
 	Recent       string `json:"recent"`
+	// Pinned is "always" or "never" for a test pinned by [flaky] always or
+	// never in jvq.toml.
+	Pinned string `json:"pinned,omitempty"`
 }
 
 // Verdicts.
@@ -341,7 +371,7 @@ func Judge(entries []Entry, run *Entry, s Settings) Result {
 		}
 		inRun := run != nil && st.LastRun == cur
 		r := Row{ID: st.ID, Attempts: a, Quarantined: st.Quarantined, Since: st.Since,
-			FlakyCommits: st.FlakyCommits, PassStreak: st.PassStreak, FailStreak: st.FailStreak, Runs: st.Runs, Recent: st.Recent}
+			FlakyCommits: st.FlakyCommits, PassStreak: st.PassStreak, FailStreak: st.FailStreak, Runs: st.Runs, Recent: st.Recent, Pinned: st.Pinned}
 		if inRun {
 			r.Event = st.Event
 		}
@@ -395,7 +425,7 @@ func Judge(entries []Entry, run *Entry, s Settings) Result {
 			st := states[id]
 			r := Row{ID: id, Status: StatusNotRun}
 			if st != nil {
-				r.Quarantined, r.FlakyCommits, r.PassStreak, r.FailStreak, r.Runs, r.Recent = st.Quarantined, st.FlakyCommits, st.PassStreak, st.FailStreak, st.Runs, st.Recent
+				r.Quarantined, r.FlakyCommits, r.PassStreak, r.FailStreak, r.Runs, r.Recent, r.Pinned = st.Quarantined, st.FlakyCommits, st.PassStreak, st.FailStreak, st.Runs, st.Recent, st.Pinned
 				if st.Quarantined {
 					// Listed as absent already; this says why.
 					for i := range res.Rows {

@@ -101,7 +101,7 @@ func cli(args []string, stdout, stderr io.Writer) int {
 type runFlags struct {
 	base, head, configPath, build, adapter, output, jsonPath, mdPath, junitPath, historyPath, timeout string
 	rounds, maxRounds                                                                                 int
-	baseMayFail, failOnInconclusive, keep, quiet, noWarmup                                            bool
+	baseMayFail, failOnInconclusive, keep, quiet, noWarmup, submodules                                bool
 }
 
 func cmdRun(args []string, stdout, stderr io.Writer) int {
@@ -125,6 +125,7 @@ func cmdRun(args []string, stdout, stderr io.Writer) int {
 	fs.BoolVar(&f.failOnInconclusive, "fail-on-inconclusive", false, "exit 1 when the result is inconclusive")
 	fs.BoolVar(&f.noWarmup, "no-warmup", false, "skip the warm-up run on each side")
 	fs.BoolVar(&f.keep, "keep", false, "keep the worktrees afterwards, for debugging")
+	fs.BoolVar(&f.submodules, "submodules", false, "check out submodules in the worktrees (submodules = true in jvq.toml)")
 	fs.BoolVar(&f.quiet, "q", false, "no progress lines")
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "Usage: jvq run [flags] [-- command]")
@@ -233,6 +234,9 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 	if f.failOnInconclusive {
 		cfg.FailOnInconclusive = true
 	}
+	if f.submodules {
+		cfg.Submodules = true
+	}
 	if cfg.Command == "" {
 		if _, err := os.Stat(filepath.Join(cwd, "go.mod")); err == nil {
 			cfg.Command = config.DefaultGoCommand
@@ -321,6 +325,18 @@ func run(ctx context.Context, f runFlags, cmdArgs []string, stdout, stderr io.Wr
 	headDir, err := ws.Add(ctx, "head", headSHA)
 	if err != nil {
 		return exitError, err
+	}
+	if cfg.Submodules {
+		for _, side := range []struct{ name, dir string }{{"base", baseDir}, {"head", headDir}} {
+			if progress != nil {
+				fmt.Fprintf(progress, "jvq: checking out submodules for %s\n", side.name)
+			}
+			if err := ws.Submodules(ctx, side.dir); err != nil {
+				return exitError, fmt.Errorf("checking out submodules for %s: %w", side.name, err)
+			}
+		}
+	} else if progress != nil && (repo.HasSubmodules(ctx, headSHA) || repo.HasSubmodules(ctx, pick.SHA)) {
+		fmt.Fprintln(progress, "jvq: note: this repository has submodules, and the worktrees leave them empty; set submodules = true in jvq.toml (or -submodules) if the build needs them")
 	}
 
 	res, err := runner.Run(ctx, runner.Options{
@@ -582,6 +598,9 @@ func cmdCheck(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stdout, "ignored:     %s\n", strings.Join(cfg.Ignore, ", "))
 	}
 	fmt.Fprintf(stdout, "inconclusive: %s\n", map[bool]string{true: "fails the run", false: "passes"}[cfg.FailOnInconclusive])
+	if cfg.Submodules {
+		fmt.Fprintln(stdout, "submodules:  checked out in the worktrees")
+	}
 	if cfg.History != "" && cfg.History != "-" {
 		h := cfg.History
 		if !filepath.IsAbs(h) {
@@ -601,5 +620,11 @@ func cmdCheck(args []string, stdout, stderr io.Writer) int {
 	fmt.Fprintf(stdout, "flaky:       test history %s\n", th)
 	fmt.Fprintf(stdout, "             quarantine after %d flaky commits in a test's last %d runs; out after %d passing runs in a row, or as broken after %d failed attempts in a row\n",
 		fl.QuarantineAfter, fl.Window, fl.ReleaseAfter, fl.BrokenAfter)
+	if len(fl.Always) > 0 {
+		fmt.Fprintf(stdout, "             always in quarantine (unless broken): %s\n", strings.Join(fl.Always, ", "))
+	}
+	if len(fl.Never) > 0 {
+		fmt.Fprintf(stdout, "             never quarantined: %s\n", strings.Join(fl.Never, ", "))
+	}
 	return exitPass
 }

@@ -6,12 +6,17 @@ package flaky
 import (
 	"bufio"
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -68,29 +73,228 @@ func isRunHistory(l []byte) bool {
 
 // Read reads a test history. Lines that aren't valid entries (damaged,
 // cut short, or from something else) are skipped and counted, so one bad
-// line doesn't lose the rest.
+// line doesn't lose the rest. Both formats are read: lines that spell out
+// every test's name (jvq 0.7 and 0.8) and compact lines that refer to a
+// names line (0.9 on).
 func Read(r io.Reader) (entries []Entry, bad int, err error) {
-	sc := bufio.NewScanner(r)
-	sc.Buffer(make([]byte, 64*1024), 256*1024*1024)
-	for sc.Scan() {
-		l := bytes.TrimSpace(sc.Bytes())
-		if len(l) == 0 {
+	ls, err := readLines(r)
+	if err != nil {
+		return nil, 0, err
+	}
+	for _, l := range ls {
+		if isRunHistory(l.raw) {
+			return nil, 0, ErrRunHistory
+		}
+	}
+	dicts := dictionaries(ls)
+	for _, l := range ls {
+		if l.names {
 			continue
 		}
-		var e Entry
-		if json.Unmarshal(l, &e) != nil || !valid(e) {
-			if isRunHistory(l) {
-				return nil, 0, ErrRunHistory
-			}
+		e, ok := decode(l, dicts)
+		if !ok {
 			bad++
 			continue
 		}
 		entries = append(entries, e)
 	}
-	if err := sc.Err(); err != nil {
-		return entries, bad, err
-	}
 	return entries, bad, nil
+}
+
+// line is one line of a history file, with what's needed to decode it.
+type line struct {
+	raw   []byte
+	names bool // a names line
+	head  lineHead
+}
+
+// lineHead holds every field a history line may have.
+type lineHead struct {
+	Kind    string            `json:"kind"`
+	JVQ     string            `json:"jvq"`
+	Date    string            `json:"date"`
+	Commit  string            `json:"commit,omitempty"`
+	Tests   map[string]string `json:"tests,omitempty"`
+	Names   string            `json:"names_id,omitempty"` // a compact entry's names line
+	Results map[string]string `json:"results,omitempty"`  // a compact entry's attempts -> name numbers
+	ID      string            `json:"id,omitempty"`       // a names line's
+	List    []string          `json:"names,omitempty"`    // a names line's
+}
+
+func readLines(r io.Reader) ([]line, error) {
+	sc := bufio.NewScanner(r)
+	sc.Buffer(make([]byte, 64*1024), 256*1024*1024)
+	var ls []line
+	for sc.Scan() {
+		l := bytes.TrimSpace(sc.Bytes())
+		if len(l) == 0 {
+			continue
+		}
+		raw := append([]byte(nil), l...)
+		var h lineHead
+		if json.Unmarshal(raw, &h) != nil {
+			h = lineHead{}
+		}
+		ls = append(ls, line{raw: raw, names: h.Kind == NamesKind, head: h})
+	}
+	return ls, sc.Err()
+}
+
+// dictionaries returns the file's valid names lines by id.
+func dictionaries(ls []line) map[string][]string {
+	d := map[string][]string{}
+	for _, l := range ls {
+		if l.names && l.head.ID != "" && l.head.ID == namesID(l.head.List) {
+			d[l.head.ID] = l.head.List
+		}
+	}
+	return d
+}
+
+func decode(l line, dicts map[string][]string) (Entry, bool) {
+	h := l.head
+	e := Entry{Kind: h.Kind, JVQ: h.JVQ, Date: h.Date, Commit: h.Commit, Tests: h.Tests}
+	if h.Names != "" || h.Results != nil {
+		if h.Tests != nil {
+			return Entry{}, false
+		}
+		names, ok := dicts[h.Names]
+		if !ok || h.Results == nil {
+			return Entry{}, false
+		}
+		e.Tests = map[string]string{}
+		for attempts, nums := range h.Results {
+			ok := true
+			eachNumber(nums, len(names), func(i int) {
+				if _, dup := e.Tests[names[i]]; dup {
+					ok = false
+				}
+				e.Tests[names[i]] = attempts
+			}, &ok)
+			if !ok {
+				return Entry{}, false
+			}
+		}
+	}
+	return e, valid(e)
+}
+
+// NamesKind marks a names line: the test names compact entries refer to
+// by number.
+const NamesKind = "test-names"
+
+// namesID names a list of test names by its hash, so an entry can only be
+// read with the very list it was written with.
+func namesID(names []string) string {
+	h := sha256.New()
+	for _, n := range names {
+		io.WriteString(h, n)
+		h.Write([]byte{0})
+	}
+	return hex.EncodeToString(h.Sum(nil))[:16]
+}
+
+// eachNumber calls f for each number in a list such as "0-41,43,45-60",
+// in order. Numbers must rise, and stay below n; ok is cleared otherwise.
+func eachNumber(s string, n int, f func(int), ok *bool) {
+	if s == "" {
+		*ok = false
+		return
+	}
+	next := 0
+	for _, part := range strings.Split(s, ",") {
+		lo, hi, isRange := strings.Cut(part, "-")
+		a, err1 := number(lo)
+		b := a
+		var err2 error
+		if isRange {
+			b, err2 = number(hi)
+		}
+		if err1 != nil || err2 != nil || a < next || b < a || (isRange && b == a) || b >= n {
+			*ok = false
+			return
+		}
+		for i := a; i <= b; i++ {
+			f(i)
+		}
+		next = b + 1
+	}
+}
+
+func number(s string) (int, error) {
+	if s == "" || len(s) > 9 || (len(s) > 1 && s[0] == '0') {
+		return 0, errors.New("bad number")
+	}
+	n := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return 0, errors.New("bad number")
+		}
+		n = n*10 + int(s[i]-'0')
+	}
+	return n, nil
+}
+
+// numbers writes sorted numbers as a list such as "0-41,43".
+func numbers(ns []int) string {
+	var b strings.Builder
+	for i := 0; i < len(ns); {
+		j := i
+		for j+1 < len(ns) && ns[j+1] == ns[j]+1 {
+			j++
+		}
+		if b.Len() > 0 {
+			b.WriteByte(',')
+		}
+		b.WriteString(strconv.Itoa(ns[i]))
+		if j > i {
+			b.WriteByte('-')
+			b.WriteString(strconv.Itoa(ns[j]))
+		}
+		i = j + 1
+	}
+	return b.String()
+}
+
+// compact writes entries in the compact format: each entry gives its
+// tests as numbers in one names list, written after them. The names list
+// goes last so that an older jvq, which keeps lines it can't read and
+// trims the oldest, drops it only after every entry that needs it.
+func compact(entries []Entry) (lines [][]byte, namesLine []byte, err error) {
+	seen := map[string]bool{}
+	var names []string
+	for _, e := range entries {
+		for id := range e.Tests {
+			if !seen[id] {
+				seen[id] = true
+				names = append(names, id)
+			}
+		}
+	}
+	sort.Strings(names)
+	num := make(map[string]int, len(names))
+	for i, n := range names {
+		num[n] = i
+	}
+	id := namesID(names)
+	for _, e := range entries {
+		by := map[string][]int{}
+		for t, a := range e.Tests {
+			by[a] = append(by[a], num[t])
+		}
+		results := make(map[string]string, len(by))
+		for a, ns := range by {
+			sort.Ints(ns)
+			results[a] = numbers(ns)
+		}
+		l, err := json.Marshal(lineHead{Kind: Kind, JVQ: e.JVQ, Date: e.Date, Commit: e.Commit, Names: id, Results: results})
+		if err != nil {
+			return nil, nil, err
+		}
+		lines = append(lines, l)
+	}
+	namesLine, err = json.Marshal(lineHead{Kind: NamesKind, ID: id, List: names})
+	return lines, namesLine, err
 }
 
 // Load reads the history file at path. A missing file is an empty history,
@@ -115,10 +319,11 @@ func Load(path string) (entries []Entry, bad int, missing bool, err error) {
 }
 
 // Append adds e to the file at path, creating it if needed, and keeps the
-// newest keep lines. Damaged lines stay where they are until they're
-// trimmed, in case a newer jvq wrote them. The file is rewritten through a
-// temporary file beside it, so a crash can't leave it half written; a
-// symlink is followed, and the file keeps its mode.
+// newest keep entries. It writes the compact format, converting older
+// lines. Damaged lines stay where they are until they're trimmed, in case
+// a newer jvq wrote them. The file is rewritten through a temporary file
+// beside it, so a crash can't leave it half written; a symlink is
+// followed, and the file keeps its mode.
 func Append(path string, e Entry, keep int) error {
 	if keep < 1 {
 		keep = DefaultKeep
@@ -127,31 +332,55 @@ func Append(path string, e Entry, keep int) error {
 		path = real
 	}
 	mode := os.FileMode(0o644)
-	var lines [][]byte
-	if b, err := os.ReadFile(path); err == nil {
-		if fi, err := os.Stat(path); err == nil {
+	var ls []line
+	if fh, err := os.Open(path); err == nil {
+		if fi, err := fh.Stat(); err == nil {
 			mode = fi.Mode().Perm()
 		}
-		for _, l := range bytes.Split(b, []byte("\n")) {
-			l = bytes.TrimSpace(l)
-			if len(l) == 0 {
-				continue
-			}
-			if isRunHistory(l) {
+		ls, err = readLines(fh)
+		fh.Close()
+		if err != nil {
+			return fmt.Errorf("%s: %w", path, err)
+		}
+		for _, l := range ls {
+			if isRunHistory(l.raw) {
 				return fmt.Errorf("%s: %w", path, ErrRunHistory)
 			}
-			lines = append(lines, l)
 		}
 	} else if !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
-	line, err := json.Marshal(e)
+	// The file's lines in order, names lines left out: they're written
+	// again from the entries kept.
+	type item struct {
+		e   *Entry
+		raw []byte
+	}
+	dicts := dictionaries(ls)
+	var items []item
+	for _, l := range ls {
+		if l.names {
+			continue
+		}
+		if d, ok := decode(l, dicts); ok {
+			items = append(items, item{e: &d})
+		} else {
+			items = append(items, item{raw: l.raw})
+		}
+	}
+	items = append(items, item{e: &e})
+	if len(items) > keep {
+		items = items[len(items)-keep:]
+	}
+	var entries []Entry
+	for _, it := range items {
+		if it.e != nil {
+			entries = append(entries, *it.e)
+		}
+	}
+	encoded, namesLine, err := compact(entries)
 	if err != nil {
 		return err
-	}
-	lines = append(lines, line)
-	if len(lines) > keep {
-		lines = lines[len(lines)-keep:]
 	}
 	dir := filepath.Dir(path)
 	if _, err := os.Stat(dir); err != nil {
@@ -162,10 +391,18 @@ func Append(path string, e Entry, keep int) error {
 		return fmt.Errorf("%s: %w", path, err)
 	}
 	w := bufio.NewWriter(tmp)
-	for _, l := range lines {
-		w.Write(l)
+	k := 0
+	for _, it := range items {
+		if it.e != nil {
+			w.Write(encoded[k])
+			k++
+		} else {
+			w.Write(it.raw)
+		}
 		w.WriteByte('\n')
 	}
+	w.Write(namesLine)
+	w.WriteByte('\n')
 	err = w.Flush()
 	if err == nil {
 		err = tmp.Chmod(mode)

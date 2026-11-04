@@ -252,17 +252,48 @@ func (w *Workspace) Add(ctx context.Context, name, sha string) (string, error) {
 	return path, nil
 }
 
+// Submodules checks out the submodules of the worktree at dir, nested
+// ones included, at the commits it records. git worktree add leaves them
+// empty. Each is fetched from its URL, with this repository's credentials
+// and settings.
+// Git never asks for a password here: with nobody to answer, the run
+// would hang.
+func (w *Workspace) Submodules(ctx context.Context, dir string) error {
+	args := []string{"submodule", "update", "--init", "--recursive"}
+	cmd := exec.CommandContext(ctx, "git", args...)
+	cmd.Dir = dir
+	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
+	var out bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &out, &out
+	if err := cmd.Run(); err != nil {
+		return &Error{Args: args, Output: out.String(), Err: err}
+	}
+	return nil
+}
+
+// HasSubmodules reports whether the commit records submodules (a
+// .gitmodules file).
+func (r *Repo) HasSubmodules(ctx context.Context, sha string) bool {
+	_, err := r.Git(ctx, "cat-file", "-e", sha+":.gitmodules")
+	return err == nil
+}
+
 // Remove deletes the worktrees and the workspace. It uses a fresh context so
 // it still runs after the run's context was cancelled.
 func (w *Workspace) Remove() error {
 	var errs []error
 	for _, t := range w.trees {
-		if _, err := w.repo.Git(context.Background(), "worktree", "remove", "--force", t); err != nil {
-			errs = append(errs, err)
-		}
+		// git refuses to remove a worktree with submodules checked out;
+		// deleting the folder and pruning does the same.
+		w.repo.Git(context.Background(), "worktree", "remove", "--force", t)
 	}
 	if err := os.RemoveAll(w.Dir); err != nil {
 		errs = append(errs, err)
+	}
+	for _, t := range w.trees {
+		if _, err := os.Stat(t); err == nil {
+			errs = append(errs, fmt.Errorf("%s: couldn't remove the worktree", t))
+		}
 	}
 	if _, err := w.repo.Git(context.Background(), "worktree", "prune"); err != nil {
 		errs = append(errs, err)

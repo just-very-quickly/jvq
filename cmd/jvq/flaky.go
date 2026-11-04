@@ -17,6 +17,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/just-very-quickly/jvq/internal/config"
 	"github.com/just-very-quickly/jvq/internal/flaky"
 	"github.com/just-very-quickly/jvq/internal/gitx"
 	"github.com/just-very-quickly/jvq/internal/testresults"
@@ -47,6 +48,9 @@ type flakyRules struct {
 	QuarantineAfter int `json:"quarantine_after"`
 	ReleaseAfter    int `json:"release_after"`
 	BrokenAfter     int `json:"broken_after"`
+	// Always and Never are the pinned test name patterns.
+	Always []string `json:"always,omitempty"`
+	Never  []string `json:"never,omitempty"`
 }
 
 // cmdFlaky reads one CI run's test results, judges them against the test
@@ -104,6 +108,9 @@ func cmdFlaky(args []string, stdout, stderr io.Writer) int {
 		return fail(err)
 	}
 	rules := flaky.Settings{Window: cfg.Flaky.Window, QuarantineAfter: cfg.Flaky.QuarantineAfter, ReleaseAfter: cfg.Flaky.ReleaseAfter, BrokenAfter: cfg.Flaky.BrokenAfter}
+	if len(cfg.Flaky.Always)+len(cfg.Flaky.Never) > 0 {
+		rules.Pin = cfg.Flaky.Pin
+	}
 	histPath := *historyFlag
 	if histPath == "" {
 		histPath = cfg.Flaky.History
@@ -112,7 +119,7 @@ func cmdFlaky(args []string, stdout, stderr io.Writer) int {
 		histPath = ""
 	}
 	rep := flakyReport{JVQ: Version, Mode: "flaky", History: histPath,
-		Settings: flakyRules{rules.Window, rules.QuarantineAfter, rules.ReleaseAfter, rules.BrokenAfter}}
+		Settings: flakyRules{rules.Window, rules.QuarantineAfter, rules.ReleaseAfter, rules.BrokenAfter, cfg.Flaky.Always, cfg.Flaky.Never}}
 
 	var entries []flaky.Entry
 	if histPath != "" {
@@ -200,6 +207,7 @@ func cmdFlaky(args []string, stdout, stderr io.Writer) int {
 
 	entry := flaky.NewEntry(Version, time.Now(), commit, run.Attempts)
 	rep.Result = flaky.Judge(entries, &entry, rules)
+	rep.Notes = append(rep.Notes, unmatchedPins(cfg.Flaky, entries, entry)...)
 	if histPath != "" && !*noWrite {
 		if err := flaky.Append(histPath, entry, cfg.Flaky.HistoryKeep); err != nil {
 			// The verdict stands; a history that couldn't be written
@@ -267,6 +275,34 @@ func writeFlakyFiles(rep flakyReport, jsonPath, mdPath string) error {
 	return nil
 }
 
+// unmatchedPins notes [flaky] always and never patterns that match no
+// test in the history or this run: most likely a typo.
+func unmatchedPins(f config.Flaky, entries []flaky.Entry, run flaky.Entry) []string {
+	var notes []string
+	check := func(key string, pats []string) {
+		for _, p := range pats {
+			found := false
+			for _, e := range append([]flaky.Entry{run}, entries...) {
+				for id := range e.Tests {
+					if config.Match(p, id) {
+						found = true
+						break
+					}
+				}
+				if found {
+					break
+				}
+			}
+			if !found {
+				notes = append(notes, fmt.Sprintf("flaky.%s %q matches no test in this run or the history; test names look like example.com/pkg.TestName or the JUnit class and name joined with a dot", key, p))
+			}
+		}
+	}
+	check("always", f.Always)
+	check("never", f.Never)
+	return notes
+}
+
 // statusText says what a row's status means for the gate.
 func statusText(r flaky.Row, s flakyRules, inRun bool) string {
 	var t string
@@ -277,6 +313,9 @@ func statusText(r flaky.Row, s flakyRules, inRun bool) string {
 		t = fmt.Sprintf("broken (%d failed attempts in a row), left quarantine, blocks", r.FailStreak)
 	case flaky.StatusQuarantined:
 		t = "failed in quarantine, doesn't block"
+		if r.Pinned == flaky.PinAlways {
+			t = "failed in quarantine (pinned), doesn't block"
+		}
 	case flaky.StatusFlaky:
 		t = "failed, passed on retry"
 	case flaky.StatusSkipped:
@@ -302,7 +341,16 @@ func statusText(r flaky.Row, s flakyRules, inRun bool) string {
 			t += fmt.Sprintf("; left quarantine as broken (%d failed attempts in a row)", r.FailStreak)
 		}
 	}
-	if r.Quarantined && r.Event != flaky.EventEntered {
+	if r.Pinned == flaky.PinNever && (r.Status == flaky.StatusFailed || r.Status == flaky.StatusFlaky) {
+		t += " (pinned: never quarantined)"
+	}
+	if r.Quarantined && r.Pinned == flaky.PinAlways {
+		if r.Status != flaky.StatusQuarantined && t != "quarantined" {
+			t += "; pinned in quarantine"
+		} else if t == "quarantined" {
+			t = "pinned in quarantine"
+		}
+	} else if r.Quarantined && r.Event != flaky.EventEntered {
 		switch r.Status {
 		case flaky.StatusQuarantined:
 			// says so already, and its pass streak is 0

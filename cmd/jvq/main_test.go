@@ -544,3 +544,59 @@ func TestKilledRunIsCleanedUpByTheNext(t *testing.T) {
 	}
 	assertNoWorktrees(t, r.Dir)
 }
+
+// gitIn runs git for a test repository.
+func gitIn(t *testing.T, dir string, args ...string) string {
+	t.Helper()
+	cmd := exec.Command("git", args...)
+	cmd.Dir = dir
+	cmd.Env = append(os.Environ(), "GIT_AUTHOR_NAME=t", "GIT_AUTHOR_EMAIL=t@example.com",
+		"GIT_COMMITTER_NAME=t", "GIT_COMMITTER_EMAIL=t@example.com", "GIT_CONFIG_GLOBAL="+os.DevNull, "GIT_CONFIG_NOSYSTEM=1")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("git %v: %v\n%s", args, err, out)
+	}
+	return strings.TrimSpace(string(out))
+}
+
+// With submodules = true the worktrees have their submodules, so a
+// command that reads one works; without it jvq says why it might not.
+func TestRunWithSubmodules(t *testing.T) {
+	lib := t.TempDir()
+	gitIn(t, lib, "init", "-q", "-b", "main")
+	os.WriteFile(filepath.Join(lib, "bench.jsonl"), []byte(`{"name": "parse", "unit": "ns", "value": 900}`+"\n"), 0o644)
+	gitIn(t, lib, "add", ".")
+	gitIn(t, lib, "commit", "-q", "-m", "results")
+	dir := t.TempDir()
+	gitIn(t, dir, "init", "-q", "-b", "main")
+	gitIn(t, dir, "-c", "protocol.file.allow=always", "submodule", "add", "-q", lib, "lib")
+	cat := "cat lib/bench.jsonl"
+	if runtime.GOOS == "windows" {
+		cat = `type lib\bench.jsonl` // cmd.exe
+	}
+	toml := "adapter = \"json\"\ncommand = '" + cat + "'\nwarmup = false\nmax_rounds = 3\n"
+	os.WriteFile(filepath.Join(dir, "jvq.toml"), []byte(toml), 0o644)
+	gitIn(t, dir, "add", ".")
+	gitIn(t, dir, "commit", "-q", "-m", "base")
+	os.WriteFile(filepath.Join(dir, "README"), []byte("x"), 0o644)
+	gitIn(t, dir, "add", ".")
+	gitIn(t, dir, "commit", "-q", "-m", "head")
+	env := []string{"GIT_CONFIG_COUNT=1", "GIT_CONFIG_KEY_0=protocol.file.allow", "GIT_CONFIG_VALUE_0=always"}
+
+	res := jvq(t, dir, env, "run", "-rounds", "3")
+	expect(t, res, 2)
+	if !strings.Contains(res.stderr, "submodules = true") {
+		t.Errorf("no note on submodules:\n%s", res.stderr)
+	}
+	res = jvq(t, dir, env, "run", "-rounds", "3", "-submodules")
+	expect(t, res, 0)
+	if !strings.Contains(res.stderr, "checking out submodules for base") {
+		t.Errorf("stderr:\n%s", res.stderr)
+	}
+	assertNoWorktrees(t, dir)
+	os.WriteFile(filepath.Join(dir, "jvq.toml"), []byte(toml+"submodules = true\n"), 0o644)
+	res = jvq(t, dir, env, "check")
+	if !strings.Contains(res.stdout, "submodules:  checked out") {
+		t.Errorf("jvq check:\n%s", res.stdout)
+	}
+}

@@ -39,6 +39,7 @@ type Config struct {
 	Rounds             int      // rounds per side to start with
 	MaxRounds          int      // the most rounds per side while results are undecided
 	Warmup             bool
+	Submodules         bool // check out submodules in the worktrees
 	Confidence         float64
 	Timeout            time.Duration // per command run
 	FailOnInconclusive bool
@@ -58,6 +59,26 @@ type Flaky struct {
 	QuarantineAfter int    // flaky commits in the window that put it in quarantine
 	ReleaseAfter    int    // passing runs in a row that take it out
 	BrokenAfter     int    // failed attempts in a row that make it broken
+	// Always and Never are test name patterns pinned in or out of
+	// quarantine; a test matching both is never quarantined.
+	Always, Never []string
+}
+
+// Pin says whether a test is pinned by Always or Never (flaky.PinAlways,
+// flaky.PinNever) or not (""). Never wins: a pin can't hide a failure the
+// other list wants to see.
+func (f Flaky) Pin(id string) string {
+	for _, p := range f.Never {
+		if Match(p, id) {
+			return flaky.PinNever
+		}
+	}
+	for _, p := range f.Always {
+		if Match(p, id) {
+			return flaky.PinAlways
+		}
+	}
+	return ""
 }
 
 // Budgets holds a budget per metric.
@@ -262,6 +283,8 @@ func Parse(src string) (Config, error) {
 			c.Warmup, err = boolean(k, v)
 		case "fail_on_inconclusive":
 			c.FailOnInconclusive, err = boolean(k, v)
+		case "submodules":
+			c.Submodules, err = boolean(k, v)
 		case "confidence":
 			var f float64
 			f, err = number(k, v)
@@ -423,6 +446,26 @@ func (c *Config) readIgnore(v any) error {
 	return nil
 }
 
+// patterns reads a list of test name patterns.
+func patterns(key string, v any) ([]string, error) {
+	arr, ok := v.([]any)
+	if !ok {
+		return nil, fmt.Errorf("%s must be a list of test names, such as [\"example.com/shop.TestUpload\", \"web.Checkout.*\"]", key)
+	}
+	var out []string
+	for _, x := range arr {
+		s, ok := x.(string)
+		if !ok {
+			return nil, fmt.Errorf("%s entries must be strings", key)
+		}
+		if strings.TrimSpace(s) == "" {
+			return nil, fmt.Errorf("%s has an empty name", key)
+		}
+		out = append(out, s)
+	}
+	return out, nil
+}
+
 func (c *Config) readFlaky(v any) error {
 	t, ok := v.(map[string]any)
 	if !ok {
@@ -456,11 +499,26 @@ func (c *Config) readFlaky(v any) error {
 			num(&f.ReleaseAfter, 1, 100000)
 		case "broken_after":
 			num(&f.BrokenAfter, 1, 1000)
+		case "always", "never":
+			var list []string
+			list, err = patterns("flaky."+k, t[k])
+			if k == "always" {
+				f.Always = list
+			} else {
+				f.Never = list
+			}
 		default:
-			err = fmt.Errorf("unknown setting flaky.%s (jvq flaky has history, history_keep, window, quarantine_after, release_after and broken_after)", k)
+			err = fmt.Errorf("unknown setting flaky.%s (jvq flaky has history, history_keep, window, quarantine_after, release_after, broken_after, always and never)", k)
 		}
 		if err != nil {
 			return err
+		}
+	}
+	for _, a := range f.Always {
+		for _, n := range f.Never {
+			if a == n {
+				return fmt.Errorf("flaky: %q is in both always and never", a)
+			}
 		}
 	}
 	if f.QuarantineAfter > f.Window {

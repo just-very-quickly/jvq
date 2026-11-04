@@ -399,12 +399,15 @@ window = 50
 quarantine_after = 3
 release_after = 20
 broken_after = 2
+always = ["example.com/shop.TestUpload", "web.Checkout.*"]
+never = ["example.com/shop.TestPay*"]
 `)
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := Flaky{History: "jvq-tests.jsonl", HistoryKeep: 500, Window: 50, QuarantineAfter: 3, ReleaseAfter: 20, BrokenAfter: 2}
-	if c.Flaky != want {
+	want := Flaky{History: "jvq-tests.jsonl", HistoryKeep: 500, Window: 50, QuarantineAfter: 3, ReleaseAfter: 20, BrokenAfter: 2,
+		Always: []string{"example.com/shop.TestUpload", "web.Checkout.*"}, Never: []string{"example.com/shop.TestPay*"}}
+	if !reflect.DeepEqual(c.Flaky, want) {
 		t.Errorf("got %+v, want %+v", c.Flaky, want)
 	}
 	d := Default().Flaky
@@ -412,15 +415,34 @@ broken_after = 2
 		t.Errorf("defaults %+v", d)
 	}
 	for src, msg := range map[string]string{
-		"[flaky]\nwindow = 0":                       "use 1 to",
-		"[flaky]\nhistory = \"\"":                   "empty",
-		"[flaky]\nretries = 2":                      "unknown setting flaky.retries",
-		"[flaky]\nwindow = \"10\"":                  "whole number",
-		"[flaky]\nwindow = 2\nquarantine_after = 3": "more than flaky.window",
-		"flaky = 3":                                 "must be a table",
+		"[flaky]\nwindow = 0":                        "use 1 to",
+		"[flaky]\nhistory = \"\"":                    "empty",
+		"[flaky]\nretries = 2":                       "unknown setting flaky.retries",
+		"[flaky]\nwindow = \"10\"":                   "whole number",
+		"[flaky]\nwindow = 2\nquarantine_after = 3":  "more than flaky.window",
+		"flaky = 3":                                  "must be a table",
+		"[flaky]\nalways = \"T\"":                    "must be a list",
+		"[flaky]\nnever = [1]":                       "must be strings",
+		"[flaky]\nnever = [\" \"]":                   "empty name",
+		"[flaky]\nalways = [\"T\"]\nnever = [\"T\"]": "in both always and never",
 	} {
 		if _, err := Parse(src); err == nil || !strings.Contains(err.Error(), msg) {
 			t.Errorf("%q: got %v, want %q", src, err, msg)
 		}
+	}
+	for id, pin := range map[string]string{
+		"example.com/shop.TestUpload":    "always",
+		"example.com/shop.TestUpload/a":  "",
+		"web.Checkout.pays by card":      "always",
+		"example.com/shop.TestPayRefund": "never",
+		"example.com/shop.TestSomething": "",
+	} {
+		if got := c.Flaky.Pin(id); got != pin {
+			t.Errorf("Pin(%q) = %q, want %q", id, got, pin)
+		}
+	}
+	both := Flaky{Always: []string{"a.*"}, Never: []string{"a.TestX"}}
+	if both.Pin("a.TestX") != "never" || both.Pin("a.TestY") != "always" {
+		t.Error("never doesn't win over always")
 	}
 }
