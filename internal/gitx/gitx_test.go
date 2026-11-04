@@ -430,7 +430,7 @@ func TestWorkspaceSubmodules(t *testing.T) {
 	// hang waiting for a password.
 	bad := newRepo(t)
 	commit(t, bad, "a", "x")
-	os.WriteFile(filepath.Join(bad, ".gitmodules"), []byte("[submodule \"gone\"]\n\tpath = gone\n\turl = "+filepath.Join(t.TempDir(), "missing")+"\n"), 0o644)
+	os.WriteFile(filepath.Join(bad, ".gitmodules"), []byte("[submodule \"gone\"]\n\tpath = gone\n\turl = "+filepath.ToSlash(filepath.Join(t.TempDir(), "missing"))+"\n"), 0o644)
 	git(t, bad, "add", ".gitmodules")
 	git(t, bad, "update-index", "--add", "--cacheinfo", "160000,"+head+",gone")
 	git(t, bad, "commit", "-q", "-m", "gone")
