@@ -350,12 +350,12 @@ func IsTest(id string) bool {
 // are skipped.
 func parseGoJSON(b []byte) ([]Result, error) {
 	type pkgState struct {
-		pending     map[string]int
-		paused      map[string]bool // t.Parallel tests waiting their turn
+		pending map[string]int
+		paused  map[string]bool // t.Parallel tests waiting their turn
 		// Go's "panic: test timed out" names the tests still running
 		// under "running tests:"; those are the ones to blame.
-		timedOut   map[string]bool
-		inTimedOut bool
+		timedOut    map[string]bool
+		inTimedOut  bool
 		order       []string
 		testFail    bool
 		buildFailed bool
