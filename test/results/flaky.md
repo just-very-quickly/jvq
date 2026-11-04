@@ -1,6 +1,6 @@
 # jvq flaky test gate
 
-Recorded 2026-11-04 with jvq 0.8.0 (go1.26.8, linux/amd64) on Intel(R) Xeon(R) Processor @ 2.10GHz, 2 CPUs. Total time 4m59s.
+Recorded 2026-11-04 with jvq 0.9.0 (go1.26.8, linux/amd64) on Intel(R) Xeon(R) Processor @ 2.10GHz, 2 CPUs. Total time 3m44s.
 
 Simulated CI histories with a known truth. Every run writes real result files, half the tests as go test -json and half as JUnit XML, and runs `jvq flaky` with the default settings and a history file kept between runs.
 
@@ -71,7 +71,7 @@ The rule is 30 passing runs in a row, and a pass just before the fix (the green 
 |---|---:|
 | Runs that ended in an error (exit 2) | 0 |
 | Trials with a note about damaged lines | 10 of 10 |
-| Trials whose quarantine was the same after the damage | 8 of 10 |
+| Trials whose quarantine was the same after the damage | 10 of 10 |
 | Tests in quarantine before the damage, all trials | 36 |
 | Trials with a note that the history starts again | 10 of 10 |
-| Tests back in quarantine 50 commits after the deletion, all trials | 34 |
+| Tests back in quarantine 50 commits after the deletion, all trials | 35 |

@@ -351,7 +351,7 @@ history that can't be written is a warning, and the verdict stands.
 The JSON report (`-json`):
 
 ```json
-{"jvq": "0.8.0", "mode": "flaky", "commit": "4e1f0c2a…",
+{"jvq": "0.9.0", "mode": "flaky", "commit": "4e1f0c2a…",
  "history": "jvq-tests.jsonl", "history_runs": 57, "written": true,
  "files": [{"path": "go-test.json", "format": "go-json", "tests": 412}],
  "settings": {"window": 100, "quarantine_after": 2, "release_after": 30, "broken_after": 3,

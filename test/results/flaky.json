@@ -1,6 +1,6 @@
 {
   "date": "2026-11-04",
-  "jvq": "0.8.0",
+  "jvq": "0.9.0",
   "machine": {
     "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
     "cpus": 2,
@@ -56,7 +56,7 @@
     ],
     "first_runs_red_in_last_100_commits_with_jvq": 96,
     "first_runs_red_in_last_100_commits_without": 556,
-    "seconds": 208.148568215
+    "seconds": 151.314695174
   },
   "breaks_no_retries": {
     "trials": 50,
@@ -71,7 +71,7 @@
     "stable_test_blocked_in_first_run": 50,
     "runs_before_break_flaky_called_broken": 1,
     "runs_before_break": 705,
-    "seconds": 5.585995742
+    "seconds": 5.530090955
   },
   "breaks_with_retries": {
     "trials": 50,
@@ -84,7 +84,7 @@
     "stable_test_blocked_in_first_run": 50,
     "runs_before_break_flaky_called_broken": 6,
     "runs_before_break": 529,
-    "seconds": 3.315843079
+    "seconds": 3.449956962
   },
   "fixed": {
     "trials": 10,
@@ -92,17 +92,17 @@
     "runs_until_released": {
       "29": 10
     },
-    "seconds": 2.929257083
+    "seconds": 3.073341981
   },
   "damaged_history": {
     "trials": 10,
     "exit_2": 0,
     "trials_with_a_note_after_damage": 10,
-    "trials_quarantine_unchanged_by_damage": 8,
+    "trials_quarantine_unchanged_by_damage": 10,
     "quarantined_before_damage": 36,
     "trials_with_a_note_after_deletion": 10,
-    "flaky_tests_back_in_quarantine_50_commits_after_deletion": 34,
-    "seconds": 78.878702558
+    "flaky_tests_back_in_quarantine_50_commits_after_deletion": 35,
+    "seconds": 61.040151809
   },
-  "total_seconds": 299.1518703
+  "total_seconds": 224.678870306
 }
