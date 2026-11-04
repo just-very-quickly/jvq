@@ -497,6 +497,12 @@ func TestFlakyGateCrashReportsNotRun(t *testing.T) {
 		json.Unmarshal(b, &rep)
 		return res, rep
 	}
+	// A passing run first: not run is judged against the package's last
+	// passing run.
+	goTest("", results)
+	if res, _ := runGate("c0"); res.code != 0 {
+		t.Fatalf("passing run: exit %d\n%s%s", res.code, res.stdout, res.stderr)
+	}
 	for _, commit := range []string{"c1", "c2"} {
 		goTest("flaky", results)
 		if res, _ := runGate(commit); res.code != 0 {
@@ -511,7 +517,7 @@ func TestFlakyGateCrashReportsNotRun(t *testing.T) {
 	if s := status(t, rep, "example.com/flakydemo.TestB"); s == nil || s["status"] != "not_run" {
 		t.Fatalf("TestB not reported as not run: %v\n%s", s, res.stdout)
 	}
-	if !strings.Contains(res.stdout, "didn't run because their package stopped") {
+	if !strings.Contains(res.stdout, "didn't run in a package that failed") {
 		t.Errorf("no not-run line in:\n%s", res.stdout)
 	}
 	// The package passing again: nothing is not run.

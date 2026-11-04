@@ -1,0 +1,30 @@
+{"Time":"2026-11-04T06:15:14.163698376+02:00","Action":"start","Package":"example.com/par"}
+{"Time":"2026-11-04T06:15:14.165808082+02:00","Action":"run","Package":"example.com/par","Test":"TestP1"}
+{"Time":"2026-11-04T06:15:14.165824667+02:00","Action":"output","Package":"example.com/par","Test":"TestP1","Output":"=== RUN   TestP1\n"}
+{"Time":"2026-11-04T06:15:14.165846884+02:00","Action":"output","Package":"example.com/par","Test":"TestP1","Output":"=== PAUSE TestP1\n"}
+{"Time":"2026-11-04T06:15:14.165848978+02:00","Action":"pause","Package":"example.com/par","Test":"TestP1"}
+{"Time":"2026-11-04T06:15:14.165852001+02:00","Action":"run","Package":"example.com/par","Test":"TestP2"}
+{"Time":"2026-11-04T06:15:14.165853891+02:00","Action":"output","Package":"example.com/par","Test":"TestP2","Output":"=== RUN   TestP2\n"}
+{"Time":"2026-11-04T06:15:14.165856665+02:00","Action":"output","Package":"example.com/par","Test":"TestP2","Output":"=== PAUSE TestP2\n"}
+{"Time":"2026-11-04T06:15:14.165858528+02:00","Action":"pause","Package":"example.com/par","Test":"TestP2"}
+{"Time":"2026-11-04T06:15:14.165861155+02:00","Action":"run","Package":"example.com/par","Test":"TestCrash"}
+{"Time":"2026-11-04T06:15:14.165863091+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"=== RUN   TestCrash\n"}
+{"Time":"2026-11-04T06:15:14.165870426+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"--- FAIL: TestCrash (0.00s)\n"}
+{"Time":"2026-11-04T06:15:14.168084816+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"panic: boom [recovered, repanicked]\n"}
+{"Time":"2026-11-04T06:15:14.168089697+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"\n"}
+{"Time":"2026-11-04T06:15:14.168091868+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"goroutine 8 [running]:\n"}
+{"Time":"2026-11-04T06:15:14.168094494+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"testing.tRunner.func1.2({0x550fc0, 0x594690})\n"}
+{"Time":"2026-11-04T06:15:14.168156494+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"\t/usr/lib/go-1.26/src/testing/testing.go:1974 +0x232\n"}
+{"Time":"2026-11-04T06:15:14.168160259+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"testing.tRunner.func1()\n"}
+{"Time":"2026-11-04T06:15:14.168162646+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"\t/usr/lib/go-1.26/src/testing/testing.go:1977 +0x349\n"}
+{"Time":"2026-11-04T06:15:14.16816493+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"panic({0x550fc0?, 0x594690?})\n"}
+{"Time":"2026-11-04T06:15:14.168167536+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"\t/usr/lib/go-1.26/src/runtime/panic.go:860 +0x13a\n"}
+{"Time":"2026-11-04T06:15:14.168169718+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"example.com/par.TestCrash(0x21358901a6c8?)\n"}
+{"Time":"2026-11-04T06:15:14.168171873+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"\t/tmp/claude-0/review-jvq08/par/p_test.go:5 +0x3e\n"}
+{"Time":"2026-11-04T06:15:14.168176511+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"testing.tRunner(0x21358901a6c8, 0x592f08)\n"}
+{"Time":"2026-11-04T06:15:14.168178447+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"\t/usr/lib/go-1.26/src/testing/testing.go:2036 +0xea\n"}
+{"Time":"2026-11-04T06:15:14.168180474+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"created by testing.(*T).Run in goroutine 1\n"}
+{"Time":"2026-11-04T06:15:14.168182425+02:00","Action":"output","Package":"example.com/par","Test":"TestCrash","Output":"\t/usr/lib/go-1.26/src/testing/testing.go:2101 +0x4c5\n"}
+{"Time":"2026-11-04T06:15:14.168346223+02:00","Action":"fail","Package":"example.com/par","Test":"TestCrash","Elapsed":0}
+{"Time":"2026-11-04T06:15:14.168350037+02:00","Action":"output","Package":"example.com/par","Output":"FAIL\texample.com/par\t0.004s\n"}
+{"Time":"2026-11-04T06:15:14.168363603+02:00","Action":"fail","Package":"example.com/par","Elapsed":0.005}

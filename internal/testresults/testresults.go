@@ -351,6 +351,7 @@ func IsTest(id string) bool {
 func parseGoJSON(b []byte) ([]Result, error) {
 	type pkgState struct {
 		pending     map[string]int
+		paused      map[string]bool // t.Parallel tests waiting their turn
 		order       []string
 		testFail    bool
 		buildFailed bool
@@ -359,7 +360,7 @@ func parseGoJSON(b []byte) ([]Result, error) {
 	get := func(p string) *pkgState {
 		s := pkgs[p]
 		if s == nil {
-			s = &pkgState{pending: map[string]int{}}
+			s = &pkgState{pending: map[string]int{}, paused: map[string]bool{}}
 			pkgs[p] = s
 		}
 		return s
@@ -390,6 +391,14 @@ func parseGoJSON(b []byte) ([]Result, error) {
 			}
 		case "start":
 			delete(pkgs, ev.Package) // a new go test of this package
+		case "pause":
+			if ev.Test != "" {
+				get(ev.Package).paused[ev.Test] = true
+			}
+		case "cont":
+			if ev.Test != "" {
+				delete(get(ev.Package).paused, ev.Test)
+			}
 		case "run":
 			if ev.Test != "" {
 				s := get(ev.Package)
@@ -424,6 +433,11 @@ func parseGoJSON(b []byte) ([]Result, error) {
 				}
 				hung := false
 				for _, t := range s.order {
+					if s.paused[t] {
+						// A t.Parallel test still waiting for its turn when
+						// the package stopped: it never ran, so no attempt.
+						continue
+					}
 					for i := 0; i < s.pending[t]; i++ {
 						out = append(out, Result{ID: ev.Package + "." + t, Outcome: Fail})
 						hung = true

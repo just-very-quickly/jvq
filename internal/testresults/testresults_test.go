@@ -261,3 +261,20 @@ func TestGoJSONBuildFailure(t *testing.T) {
 		t.Errorf("got %v, want %v", got, want)
 	}
 }
+
+// Parallel tests paused when a sibling panicked never ran: they aren't
+// failures (real go test -json output, testdata/go-parallel-crash.json).
+func TestGoJSONPausedParallelNotFailed(t *testing.T) {
+	run, err := Collect([]string{filepath.Join("testdata", "go-parallel-crash.json")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []string{"example.com/par.TestP1", "example.com/par.TestP2"} {
+		if a, ok := run.Attempts[id]; ok {
+			t.Errorf("%s paused and never continued, yet has attempts %q", id, a)
+		}
+	}
+	if run.Attempts["example.com/par.TestCrash"] != "f" {
+		t.Errorf("the crash: %q", run.Attempts["example.com/par.TestCrash"])
+	}
+}

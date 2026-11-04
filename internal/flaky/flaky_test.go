@@ -456,3 +456,41 @@ func TestCrashLeavesTestsNotRun(t *testing.T) {
 		t.Fatalf("not run in a passing package: %+v", r.Rows)
 	}
 }
+
+// Review of 0.8: a second crash in a row still reports the hidden tests
+// (the baseline is the package's last passing run); subtests of a test
+// that failed in this run aren't "not run"; many new failing packages
+// stay fast.
+func TestNotRunReview(t *testing.T) {
+	full := map[string]string{"p (package)": "p", "p.TestA": "p", "p.TestB": "p", "p.TestC": "p", "p.TestD": "p", "p.TestD/x": "p"}
+	crash := map[string]string{"p (package)": "s", "p.TestA": "f", "p.TestD": "f"}
+	ent := func(c string, m map[string]string) Entry { return Entry{Kind: Kind, Commit: c, Tests: m} }
+	h := []Entry{ent("c1", full), ent("c2", crash)}
+	r := Judge(h, &Entry{Commit: "c3", Tests: crash}, DefaultSettings())
+	if r.NotRun != 2 {
+		t.Errorf("second crash: not_run %d, want 2 (TestB, TestC); rows %+v", r.NotRun, r.Rows)
+	}
+	if _, ok := row(r, "p.TestD/x"); ok {
+		t.Error("a subtest of a test that failed now reported as not run")
+	}
+	var big []Entry
+	for e := 0; e < 200; e++ {
+		m := map[string]string{}
+		for p := 0; p < 100; p++ {
+			for k := 0; k < 20; k++ {
+				m[fmt.Sprintf("github.com/org/repo/internal/pkg%d.TestSomething%d/sub.case.%d", p, k, k)] = "p"
+			}
+		}
+		big = append(big, ent(fmt.Sprint(e), m))
+	}
+	run := map[string]string{}
+	for p := 0; p < 100; p++ {
+		run[fmt.Sprintf("github.com/org/repo/new/pkg%d (package)", p)] = "s"
+		run[fmt.Sprintf("github.com/org/repo/new/pkg%d.TestA", p)] = "f"
+	}
+	start := time.Now()
+	notRun(big, Entry{Tests: run})
+	if d := time.Since(start); d > 2*time.Second {
+		t.Errorf("notRun took %v", d)
+	}
+}

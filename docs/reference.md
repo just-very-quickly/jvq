@@ -272,9 +272,15 @@ that didn't run is listed as not in this run; one missing for a whole
 window is no longer listed (most likely renamed or deleted).
 
 **Not run.** When a Go package failed in this run, the tests that ran in
-that package's last run and are missing now are listed as **not run**: a
-crash (a panic, a `-timeout`) or `-failfast` stopped the package before
-them. A test belongs to the longest package name it starts with, followed
+that package's last passing run and are missing now are listed as **not
+run**: a crash (a panic, a `-timeout`) or `-failfast` stopped the package
+before them. The last passing run, so a crash two runs in a row still
+shows them. Subtests of a test that failed in this run aren't listed (the
+failure stopped them, and says so). A test renamed or deleted in a pull
+request that also fails in that package, or left out by `-run`, is listed
+too: the list says what wasn't checked, whatever the reason. A
+`t.Parallel` test still paused when its package stopped never ran, so it
+gets no attempt (it isn't a failure) and is listed as not run. A test belongs to the longest package name it starts with, followed
 by a dot, among the packages the history knows (from their `(package)` or
 `(build)` entries). Not-run tests don't block, since the crash itself
 blocks unless it's in quarantine; the summary counts them and, in GitHub
@@ -853,8 +859,8 @@ With `flaky` set (0.8.0), the action runs `jvq flaky` instead of `jvq run`:
 |---|---|
 | `flaky` | the results: files or folders, separated by spaces or new lines, after `--` |
 | `flaky-history` | `-history`, relative to `working-directory` (default `jvq-tests.jsonl`), kept in the Actions cache |
-| `flaky-write` | `auto` (default): push, `workflow_dispatch` and `schedule` runs on the default branch add to the history, others get `-no-write`; `true` every run; `false` none |
-| `flaky-key` | the cache key prefix; empty is `jvq-tests-<workflow>-<job>-<runner OS>` |
+| `flaky-write` | `auto` (default): push and `workflow_dispatch` runs on the default branch, and `schedule` runs (always on the default branch), add to the history; others get `-no-write`; `true` every run; `false` none |
+| `flaky-key` | the cache key prefix; empty is `jvq-tests-<workflow>-<job>-<matrix job index>-<runner OS>`, so each matrix leg keeps its own history |
 | `flaky-args` | more flags, split on spaces, such as `-json flaky.json` |
 | `config` | `-config` |
 
@@ -863,5 +869,8 @@ request sees its base branch's), and saved under a new key after a run
 that writes, unless the run was cancelled or left no file. The step fails
 with `jvq flaky`'s exit code, so a failure outside quarantine fails the
 job; the tests' own step must not stop the job first (`|| true`, or
-`continue-on-error`). The other inputs are for the benchmark gate and are
+`continue-on-error`; for a pipeline such as `go test -json ./... | tee
+go-test.json`, put `|| true` after the whole pipeline, since GitHub's bash
+runs with `pipefail`). The history file must be inside the workspace, where
+the cache can save it. The other inputs are for the benchmark gate and are
 ignored.

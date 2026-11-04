@@ -38,9 +38,11 @@ jobs:
           go build -o "$RUNNER_TEMP/jvq/jvq$( [ "$RUNNER_OS" = Windows ] && echo .exe )" ./cmd/jvq
           echo "JVQ=$RUNNER_TEMP/jvq/jvq" >> "$GITHUB_ENV"
           echo "JVQ_PATH=$RUNNER_TEMP/jvq" >> "$GITHUB_ENV"
-      - name: Two flaky commits put TestFlaky in quarantine
+      - name: A passing run, then two flaky commits put TestFlaky in quarantine
         working-directory: test/flakyrepo
         run: |
+          go test -json ./... > go-test.json
+          "$JVQ" flaky -history jvq-tests.jsonl -commit c0 go-test.json
           for c in c1 c2; do
             JVQ_DEMO=flaky go test -json -count=2 ./... > go-test.json || true
             "$JVQ" flaky -history jvq-tests.jsonl -commit "$c" go-test.json
@@ -105,7 +107,7 @@ jobs:
         working-directory: test/flakyrepo
         run: |
           set -eu
-          [ "$(jq -r .history_runs flaky.json)" = 3 ] || { echo "::error::history_runs is $(jq -r .history_runs flaky.json), want 3 from the cache"; exit 1; }
+          [ "$(jq -r .history_runs flaky.json)" = 4 ] || { echo "::error::history_runs is $(jq -r .history_runs flaky.json), want 4 from the cache"; exit 1; }
           [ "$(jq -r .written flaky.json)" = false ] || { echo "::error::a flaky-write false run wrote"; exit 1; }
           [ "$(jq -r .result.in_quarantine flaky.json)" = 1 ] || { echo "::error::TestFlaky isn't in quarantine"; exit 1; }
       - name: A failure outside quarantine fails the step

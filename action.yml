@@ -47,7 +47,7 @@ inputs:
     required: false
     default: ""
   flaky-history:
-    description: With flaky, the test history file, relative to working-directory.
+    description: With flaky, the test history file, relative to working-directory (and inside the workspace, where the cache can save it).
     required: false
     default: jvq-tests.jsonl
   flaky-write:
@@ -55,7 +55,7 @@ inputs:
     required: false
     default: auto
   flaky-key:
-    description: With flaky, the Actions cache key prefix for the test history. Empty uses one per workflow, job and runner OS.
+    description: With flaky, the Actions cache key prefix for the test history. Empty uses one per workflow, job, matrix job and runner OS, so each matrix leg keeps its own history (a test failing on one Go version and passing on another would otherwise look flaky).
     required: false
     default: ""
   flaky-args:
@@ -217,9 +217,11 @@ runs:
       shell: bash
       env:
         WRITE: ${{ inputs.flaky-write }}
-        AUTO: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule') && github.ref_name == github.event.repository.default_branch }}
+        # A scheduled run is always on the default branch, and its event
+        # has no repository to compare the branch with.
+        AUTO: ${{ github.event_name == 'schedule' || ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_name == github.event.repository.default_branch) }}
         KEY: ${{ inputs.flaky-key }}
-        DEFAULT_KEY: jvq-tests-${{ github.workflow }}-${{ github.job }}-${{ runner.os }}
+        DEFAULT_KEY: jvq-tests-${{ github.workflow }}-${{ github.job }}-${{ strategy.job-index }}-${{ runner.os }}
         HIST: ${{ inputs.flaky-history }}
       run: |
         case "$(printf '%s' "$WRITE" | tr '[:upper:]' '[:lower:]')" in

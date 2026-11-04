@@ -443,10 +443,14 @@ func rank(r Row) int {
 }
 
 // notRun lists the tests of the run's failed Go packages that ran in the
-// package's last run and are missing now. A Go package is known by its
-// "pkg (package)" or "pkg (build)" entry; a test belongs to the longest
-// known package its name starts with, followed by a dot. A package that
-// failed to build is left out: its build failure blocks on its own.
+// package's last passing run and are missing now: a crash (a panic, a
+// timeout) or -failfast stopped the package before them. The last passing
+// run, not the last run, so a second crash in a row still shows them. A
+// Go package is known by its "pkg (package)" or "pkg (build)" entry; a test
+// belongs to the longest known package its name starts with, followed by
+// a dot. A package that failed to build is left out (its build failure
+// blocks on its own), and so are subtests of a test that failed in this
+// run (it stopped before them, which its failure already says).
 func notRun(entries []Entry, run Entry) []string {
 	pkgs := map[string]bool{}
 	note := func(tests map[string]string) {
@@ -462,7 +466,11 @@ func notRun(entries []Entry, run Entry) []string {
 	for _, e := range entries {
 		note(e.Tests)
 	}
+	owners := map[string]string{}
 	owner := func(id string) string {
+		if o, ok := owners[id]; ok {
+			return o
+		}
 		best := ""
 		for i := strings.IndexByte(id, '.'); i >= 0; {
 			if p := id[:i]; pkgs[p] {
@@ -474,6 +482,7 @@ func notRun(entries []Entry, run Entry) []string {
 			}
 			i += 1 + j
 		}
+		owners[id] = best
 		return best
 	}
 	// The packages of this run that failed: a test of theirs ran, and
@@ -498,30 +507,47 @@ func notRun(entries []Entry, run Entry) []string {
 	if len(failed) == 0 {
 		return nil
 	}
-	var out []string
-	for p := range failed {
-		// The package's last run before this one.
-		for i := len(entries) - 1; i >= 0; i-- {
-			e := entries[i]
-			ran := false
-			for id := range e.Tests {
-				if testresults.IsTest(id) && owner(id) == p {
-					ran = true
-					break
-				}
-			}
-			if !ran {
+	// Each failed package's last passing run, newest first.
+	base := map[string]int{}
+	for i := len(entries) - 1; i >= 0 && len(base) < len(failed); i-- {
+		for p := range failed {
+			if _, done := base[p]; done {
 				continue
 			}
-			for id, a := range e.Tests {
-				if !testresults.IsTest(id) || owner(id) != p || Outcome(a) == OutSkip || Outcome(a) == "" {
-					continue
-				}
-				if _, ok := run.Tests[id]; !ok {
-					out = append(out, id)
-				}
+			if a, ok := entries[i].Tests[p+testresults.PackageSuffix]; ok && Outcome(a) == OutPass {
+				base[p] = i
 			}
-			break
+		}
+	}
+	failedHere := func(id string) bool {
+		a, ok := run.Tests[id]
+		return ok && strings.IndexByte(a, testresults.Fail) >= 0
+	}
+	var out []string
+	for p, i := range base {
+		for id, a := range entries[i].Tests {
+			if !strings.HasPrefix(id, p+".") || !testresults.IsTest(id) || Outcome(a) == OutSkip || Outcome(a) == "" || owner(id) != p {
+				continue
+			}
+			if _, ok := run.Tests[id]; ok {
+				continue
+			}
+			parentFailed := false
+			name := id[len(p)+1:]
+			for j := strings.IndexByte(name, '/'); j >= 0; {
+				if failedHere(p + "." + name[:j]) {
+					parentFailed = true
+					break
+				}
+				k := strings.IndexByte(name[j+1:], '/')
+				if k < 0 {
+					break
+				}
+				j += 1 + k
+			}
+			if !parentFailed {
+				out = append(out, id)
+			}
 		}
 	}
 	sort.Strings(out)

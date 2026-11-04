@@ -236,7 +236,7 @@ func cmdFlaky(args []string, stdout, stderr io.Writer) int {
 		if len(names) > 5 {
 			names = append(names[:5], "...")
 		}
-		annotate(stderr, "warning", fmt.Sprintf("%d test(s) didn't run because their package stopped (a crash or a timeout), so they weren't checked: %s", n, strings.Join(names, ", ")))
+		annotate(stderr, "warning", fmt.Sprintf("%d test(s) that ran in their package's last passing run are missing now that it failed (a crash, a timeout or -failfast stops a package), so they weren't checked: %s", n, strings.Join(names, ", ")))
 	}
 	if rep.Result.Verdict == flaky.VerdictFail {
 		return exitRegression
@@ -282,7 +282,7 @@ func statusText(r flaky.Row, s flakyRules, inRun bool) string {
 	case flaky.StatusSkipped:
 		t = "skipped"
 	case flaky.StatusNotRun:
-		t = "not run: its package stopped before it (a crash or a timeout)"
+		t = "not run: missing now that its package failed (a crash, a timeout or -failfast stops a package)"
 	case flaky.StatusAbsent:
 		if !inRun {
 			t = "quarantined"
@@ -366,7 +366,7 @@ func verdictLine(rep flakyReport) string {
 		parts = append(parts, fmt.Sprintf("%d test(s) failed and passed on retry.", res.Flaky))
 	}
 	if res.NotRun > 0 {
-		parts = append(parts, fmt.Sprintf("%d test(s) didn't run because their package stopped.", res.NotRun))
+		parts = append(parts, fmt.Sprintf("%d test(s) didn't run in a package that failed.", res.NotRun))
 	}
 	parts = append(parts, fmt.Sprintf("%d test(s) in quarantine.", res.InQuarantine))
 	return strings.Join(parts, " ")
