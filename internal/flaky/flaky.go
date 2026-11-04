@@ -265,6 +265,11 @@ const (
 	StatusPassed      = "passed"
 	StatusSkipped     = "skipped"
 	StatusAbsent      = "absent" // quarantined, but not in this run
+	// StatusNotRun is a test that ran in its Go package's last run and is
+	// missing now that the package failed: a crash (a panic, a timeout)
+	// stopped the package before it. It doesn't block; it is a hole the
+	// report shows.
+	StatusNotRun = "not_run"
 )
 
 // Row is one test worth showing: anything but a plain pass outside
@@ -299,6 +304,9 @@ type Result struct {
 	Broken      int `json:"broken"`
 	Quarantined int `json:"quarantined_failures"`
 	Flaky       int `json:"flaky"`
+	// NotRun counts tests that didn't run because their Go package
+	// stopped (StatusNotRun).
+	NotRun int `json:"not_run"`
 	// InQuarantine counts the tests in quarantine after this run.
 	InQuarantine int   `json:"in_quarantine"`
 	Rows         []Row `json:"tests_of_note"`
@@ -381,6 +389,27 @@ func Judge(entries []Entry, run *Entry, s Settings) Result {
 		}
 		res.Rows = append(res.Rows, r)
 	}
+	if run != nil {
+		for _, id := range notRun(entries, *run) {
+			st := states[id]
+			r := Row{ID: id, Status: StatusNotRun}
+			if st != nil {
+				r.Quarantined, r.FlakyCommits, r.PassStreak, r.FailStreak, r.Runs, r.Recent = st.Quarantined, st.FlakyCommits, st.PassStreak, st.FailStreak, st.Runs, st.Recent
+				if st.Quarantined {
+					// Listed as absent already; this says why.
+					for i := range res.Rows {
+						if res.Rows[i].ID == id {
+							res.Rows[i].Status = StatusNotRun
+							res.NotRun++
+						}
+					}
+					continue
+				}
+			}
+			res.NotRun++
+			res.Rows = append(res.Rows, r)
+		}
+	}
 	if res.Failed+res.Broken > 0 {
 		res.Verdict = VerdictFail
 	}
@@ -402,11 +431,99 @@ func rank(r Row) int {
 		return 1
 	case StatusQuarantined:
 		return 2
-	case StatusFlaky:
+	case StatusNotRun:
 		return 3
-	}
-	if r.Event != "" {
+	case StatusFlaky:
 		return 4
 	}
-	return 5
+	if r.Event != "" {
+		return 5
+	}
+	return 6
+}
+
+// notRun lists the tests of the run's failed Go packages that ran in the
+// package's last run and are missing now. A Go package is known by its
+// "pkg (package)" or "pkg (build)" entry; a test belongs to the longest
+// known package its name starts with, followed by a dot. A package that
+// failed to build is left out: its build failure blocks on its own.
+func notRun(entries []Entry, run Entry) []string {
+	pkgs := map[string]bool{}
+	note := func(tests map[string]string) {
+		for id := range tests {
+			if p, ok := strings.CutSuffix(id, testresults.PackageSuffix); ok {
+				pkgs[p] = true
+			} else if p, ok := strings.CutSuffix(id, testresults.BuildSuffix); ok {
+				pkgs[p] = true
+			}
+		}
+	}
+	note(run.Tests)
+	for _, e := range entries {
+		note(e.Tests)
+	}
+	owner := func(id string) string {
+		best := ""
+		for i := strings.IndexByte(id, '.'); i >= 0; {
+			if p := id[:i]; pkgs[p] {
+				best = p
+			}
+			j := strings.IndexByte(id[i+1:], '.')
+			if j < 0 {
+				break
+			}
+			i += 1 + j
+		}
+		return best
+	}
+	// The packages of this run that failed: a test of theirs ran, and
+	// their own entry didn't pass. A build failure isn't one of them.
+	failed := map[string]bool{}
+	for id := range run.Tests {
+		if !testresults.IsTest(id) {
+			continue
+		}
+		if p := owner(id); p != "" {
+			failed[p] = true
+		}
+	}
+	for p := range failed {
+		if a, ok := run.Tests[p+testresults.PackageSuffix]; ok && Outcome(a) == OutPass {
+			delete(failed, p)
+		}
+		if _, ok := run.Tests[p+testresults.BuildSuffix]; ok {
+			delete(failed, p)
+		}
+	}
+	if len(failed) == 0 {
+		return nil
+	}
+	var out []string
+	for p := range failed {
+		// The package's last run before this one.
+		for i := len(entries) - 1; i >= 0; i-- {
+			e := entries[i]
+			ran := false
+			for id := range e.Tests {
+				if testresults.IsTest(id) && owner(id) == p {
+					ran = true
+					break
+				}
+			}
+			if !ran {
+				continue
+			}
+			for id, a := range e.Tests {
+				if !testresults.IsTest(id) || owner(id) != p || Outcome(a) == OutSkip || Outcome(a) == "" {
+					continue
+				}
+				if _, ok := run.Tests[id]; !ok {
+					out = append(out, id)
+				}
+			}
+			break
+		}
+	}
+	sort.Strings(out)
+	return out
 }

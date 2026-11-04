@@ -1,0 +1,124 @@
+name: action-test
+
+# Tests the action's flaky gate (action.yml with `flaky`) on Linux, macOS
+# and Windows with a jvq built from this commit, on real go test -json
+# output from test/flakyrepo: a flaky test goes into quarantine, a planted
+# crash of it doesn't block and its package's other test is reported as
+# not run, and a second job gets the test history back from the cache.
+
+on:
+  push:
+    branches: [main]
+    paths: [action.yml, .github/workflows/action-test.yml, test/flakyrepo/**, cmd/jvq/flaky.go, internal/flaky/**, internal/testresults/**]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  crash:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.26.x"
+          cache: false
+      - name: Build jvq
+        run: |
+          mkdir -p "$RUNNER_TEMP/jvq"
+          go build -o "$RUNNER_TEMP/jvq/jvq$( [ "$RUNNER_OS" = Windows ] && echo .exe )" ./cmd/jvq
+          echo "JVQ=$RUNNER_TEMP/jvq/jvq" >> "$GITHUB_ENV"
+          echo "JVQ_PATH=$RUNNER_TEMP/jvq" >> "$GITHUB_ENV"
+      - name: Two flaky commits put TestFlaky in quarantine
+        working-directory: test/flakyrepo
+        run: |
+          for c in c1 c2; do
+            JVQ_DEMO=flaky go test -json -count=2 ./... > go-test.json || true
+            "$JVQ" flaky -history jvq-tests.jsonl -commit "$c" go-test.json
+          done
+      - name: A planted crash
+        working-directory: test/flakyrepo
+        run: JVQ_DEMO=crash go test -json ./... > go-test.json || true
+      - name: The gate, through the action
+        uses: ./
+        with:
+          flaky: go-test.json
+          working-directory: test/flakyrepo
+          flaky-write: "true"
+          flaky-key: jvq-action-test-${{ github.run_id }}-${{ runner.os }}
+          flaky-args: -commit c3 -json flaky.json
+          jvq-path: ${{ env.JVQ_PATH }}
+      - name: Check the crash run
+        working-directory: test/flakyrepo
+        run: |
+          set -eu
+          cat flaky.json
+          [ "$(jq -r .result.verdict flaky.json)" = pass ] || { echo "::error::the quarantined crash blocked"; exit 1; }
+          [ "$(jq -r .result.not_run flaky.json)" = 1 ] || { echo "::error::not_run is $(jq -r .result.not_run flaky.json), want 1"; exit 1; }
+          [ "$(jq -r '.result.tests_of_note[] | select(.test == "example.com/flakydemo.TestB") | .status' flaky.json)" = not_run ] || { echo "::error::TestB isn't reported as not run"; exit 1; }
+          [ "$(jq -r .written flaky.json)" = true ] || { echo "::error::the run wasn't written"; exit 1; }
+
+  restore:
+    needs: crash
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.26.x"
+          cache: false
+      - name: Build jvq
+        run: |
+          mkdir -p "$RUNNER_TEMP/jvq"
+          go build -o "$RUNNER_TEMP/jvq/jvq$( [ "$RUNNER_OS" = Windows ] && echo .exe )" ./cmd/jvq
+          echo "JVQ_PATH=$RUNNER_TEMP/jvq" >> "$GITHUB_ENV"
+      - name: A passing run
+        working-directory: test/flakyrepo
+        run: go test -json ./... > go-test.json || true
+      - name: The gate reads the history from the cache, without writing
+        uses: ./
+        with:
+          flaky: go-test.json
+          working-directory: test/flakyrepo
+          flaky-write: "false"
+          flaky-key: jvq-action-test-${{ github.run_id }}-${{ runner.os }}
+          flaky-args: -commit c4 -json flaky.json
+          jvq-path: ${{ env.JVQ_PATH }}
+      - name: Check the history came back
+        working-directory: test/flakyrepo
+        run: |
+          set -eu
+          [ "$(jq -r .history_runs flaky.json)" = 3 ] || { echo "::error::history_runs is $(jq -r .history_runs flaky.json), want 3 from the cache"; exit 1; }
+          [ "$(jq -r .written flaky.json)" = false ] || { echo "::error::a flaky-write false run wrote"; exit 1; }
+          [ "$(jq -r .result.in_quarantine flaky.json)" = 1 ] || { echo "::error::TestFlaky isn't in quarantine"; exit 1; }
+      - name: A failure outside quarantine fails the step
+        id: fails
+        continue-on-error: true
+        uses: ./
+        with:
+          flaky: ${{ github.workspace }}/test/flakyrepo/testdata-fail.json
+          flaky-write: "false"
+          flaky-key: jvq-action-test-none-${{ github.run_id }}
+          jvq-path: ${{ env.JVQ_PATH }}
+      - name: Check it failed
+        env:
+          OUTCOME: ${{ steps.fails.outcome }}
+        run: |
+          [ "$OUTCOME" = failure ] || { echo "::error::a blocking failure gave outcome $OUTCOME"; exit 1; }

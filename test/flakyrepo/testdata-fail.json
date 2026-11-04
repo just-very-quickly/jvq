@@ -1,0 +1,5 @@
+{"Action":"start","Package":"example.com/flakydemo"}
+{"Action":"run","Package":"example.com/flakydemo","Test":"TestA"}
+{"Action":"output","Package":"example.com/flakydemo","Test":"TestA","Output":"    shop_test.go:10: Total(1, 2) != 3\n"}
+{"Action":"fail","Package":"example.com/flakydemo","Test":"TestA","Elapsed":0}
+{"Action":"fail","Package":"example.com/flakydemo","Elapsed":0.01}

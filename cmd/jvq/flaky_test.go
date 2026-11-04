@@ -465,3 +465,58 @@ func TestFlakyGateNoTestRan(t *testing.T) {
 	os.WriteFile(p, []byte(`{"Action":"fail","Package":"example.com/app","Elapsed":0,"FailedBuild":"example.com/app"}`+"\n"), 0o644)
 	expect(t, jvq(t, dir, nil, "flaky", "-commit", "a", p), 1)
 }
+
+// A quarantined Go test that crashes stops its package, so the tests after
+// it don't run. The gate passes (the crash is in quarantine) and reports
+// those tests as not run, on real go test -json output from
+// test/flakyrepo.
+func TestFlakyGateCrashReportsNotRun(t *testing.T) {
+	if _, err := exec.LookPath("go"); err != nil {
+		t.Skip("needs go")
+	}
+	c := newCI(t)
+	src, _ := filepath.Abs(filepath.Join("..", "..", "test", "flakyrepo"))
+	goTest := func(mode, out string) {
+		t.Helper()
+		cmd := exec.Command("go", "test", "-json", "-count=2", "./...")
+		cmd.Dir = src
+		cmd.Env = append(os.Environ(), "JVQ_DEMO="+mode, "GOFLAGS=-mod=mod")
+		b, _ := cmd.Output() // fails when a test fails; the JSON is what counts
+		if !strings.Contains(string(b), `"Action"`) {
+			t.Fatalf("go test -json printed no events:\n%s", b)
+		}
+		os.WriteFile(out, b, 0o644)
+	}
+	results := filepath.Join(c.dir, "go-test.json")
+	jsonPath := filepath.Join(c.dir, "flaky.json")
+	runGate := func(commit string) (result, map[string]any) {
+		os.Remove(jsonPath)
+		res := jvq(t, c.dir, nil, "flaky", "-history", c.hist, "-json", jsonPath, "-commit", commit, results)
+		var rep map[string]any
+		b, _ := os.ReadFile(jsonPath)
+		json.Unmarshal(b, &rep)
+		return res, rep
+	}
+	for _, commit := range []string{"c1", "c2"} {
+		goTest("flaky", results)
+		if res, _ := runGate(commit); res.code != 0 {
+			t.Fatalf("flaky run on %s: exit %d\n%s%s", commit, res.code, res.stdout, res.stderr)
+		}
+	}
+	goTest("crash", results)
+	res, rep := runGate("c3")
+	if res.code != 0 {
+		t.Fatalf("crash in quarantine blocked: exit %d\n%s%s", res.code, res.stdout, res.stderr)
+	}
+	if s := status(t, rep, "example.com/flakydemo.TestB"); s == nil || s["status"] != "not_run" {
+		t.Fatalf("TestB not reported as not run: %v\n%s", s, res.stdout)
+	}
+	if !strings.Contains(res.stdout, "didn't run because their package stopped") {
+		t.Errorf("no not-run line in:\n%s", res.stdout)
+	}
+	// The package passing again: nothing is not run.
+	goTest("", results)
+	if res, rep := runGate("c4"); res.code != 0 || status(t, rep, "example.com/flakydemo.TestB") != nil {
+		t.Fatalf("after recovery: exit %d %v", res.code, status(t, rep, "example.com/flakydemo.TestB"))
+	}
+}

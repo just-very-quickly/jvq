@@ -1,5 +1,5 @@
 name: jvq performance budget
-description: Fail a pull request when it makes your benchmarks slower than their budget allows. Measures base and head on the same runner, interleaved.
+description: Fail a pull request when it makes your benchmarks slower than their budget allows, or quarantine flaky tests so they stop blocking merges.
 author: JVQ.net
 branding:
   icon: clock
@@ -42,6 +42,30 @@ inputs:
     description: The Actions cache key prefix for the history. Empty uses one per workflow, job and runner OS, so separate jobs keep separate histories.
     required: false
     default: ""
+  flaky:
+    description: "Run the flaky test gate instead of the benchmark gate: the test results of this job, JUnit XML or go test -json files or folders, separated by spaces or new lines (such as go-test.json). The test history is kept in the Actions cache."
+    required: false
+    default: ""
+  flaky-history:
+    description: With flaky, the test history file, relative to working-directory.
+    required: false
+    default: jvq-tests.jsonl
+  flaky-write:
+    description: "With flaky, which runs add to the test history. auto, the default, is push, workflow_dispatch and schedule runs on the default branch (a pull request is judged against it but doesn't add to it); true is every run; false is none."
+    required: false
+    default: auto
+  flaky-key:
+    description: With flaky, the Actions cache key prefix for the test history. Empty uses one per workflow, job and runner OS.
+    required: false
+    default: ""
+  flaky-args:
+    description: With flaky, more flags for `jvq flaky`, such as `-json flaky.json`.
+    required: false
+    default: ""
+  jvq-path:
+    description: A folder holding a jvq binary to use instead of downloading one (for testing this action).
+    required: false
+    default: ""
   version:
     description: The jvq release to use, such as v0.7.1. Empty uses the tag this action was referenced by, or the latest release when referenced by a branch.
     required: false
@@ -54,9 +78,15 @@ runs:
       shell: bash
       env:
         INPUT_VERSION: ${{ inputs.version }}
+        INPUT_JVQ_PATH: ${{ inputs.jvq-path }}
         ACTION_REF: ${{ github.action_ref }}
       run: |
         set -euo pipefail
+        if [ -n "$INPUT_JVQ_PATH" ]; then
+          echo "$INPUT_JVQ_PATH" >> "$GITHUB_PATH"
+          "$INPUT_JVQ_PATH/jvq" version
+          exit 0
+        fi
         ver="$INPUT_VERSION"
         if [ -z "$ver" ]; then
           if [[ "$ACTION_REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then ver="$ACTION_REF"; else ver=latest; fi
@@ -99,7 +129,7 @@ runs:
 
     - name: Decide about the jvq history
       id: hist
-      if: inputs.history != ''
+      if: inputs.history != '' && inputs.flaky == ''
       shell: bash
       env:
         WRITE: ${{ inputs.history-write }}
@@ -116,7 +146,7 @@ runs:
         echo "key=${KEY:-$DEFAULT_KEY}" >> "$GITHUB_OUTPUT"
 
     - name: Restore the jvq history
-      if: inputs.history != ''
+      if: inputs.history != '' && inputs.flaky == ''
       uses: actions/cache/restore@v5
       with:
         path: ${{ inputs.working-directory }}/${{ inputs.history }}
@@ -124,6 +154,7 @@ runs:
         restore-keys: ${{ steps.hist.outputs.key }}-
 
     - name: Run jvq
+      if: inputs.flaky == ''
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
@@ -151,14 +182,14 @@ runs:
         jvq "${args[@]}"
 
     - name: Save the jvq history
-      if: ${{ !cancelled() && inputs.history != '' && steps.hist.outputs.write == 'true' }}
+      if: ${{ !cancelled() && inputs.history != '' && inputs.flaky == '' && steps.hist.outputs.write == 'true' }}
       uses: actions/cache/save@v5
       with:
         path: ${{ inputs.working-directory }}/${{ inputs.history }}
         key: ${{ steps.hist.outputs.key }}-${{ github.run_id }}-${{ github.run_attempt }}
 
     - name: Show the jvq history
-      if: ${{ !cancelled() && inputs.history != '' }}
+      if: ${{ !cancelled() && inputs.history != '' && inputs.flaky == '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
@@ -179,3 +210,63 @@ runs:
         # default branch doesn't fail every pull request after it.
         [ -n "$INPUT_FAIL_OVER" ] && [ "$HISTORY_WRITE" = true ] && args+=(-fail-over "$INPUT_FAIL_OVER")
         jvq "${args[@]}" "$INPUT_HISTORY"
+
+    - name: Decide about the test history
+      id: flaky
+      if: inputs.flaky != ''
+      shell: bash
+      env:
+        WRITE: ${{ inputs.flaky-write }}
+        AUTO: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule') && github.ref_name == github.event.repository.default_branch }}
+        KEY: ${{ inputs.flaky-key }}
+        DEFAULT_KEY: jvq-tests-${{ github.workflow }}-${{ github.job }}-${{ runner.os }}
+        HIST: ${{ inputs.flaky-history }}
+      run: |
+        case "$(printf '%s' "$WRITE" | tr '[:upper:]' '[:lower:]')" in
+          auto) write="$AUTO" ;;
+          true) write=true ;;
+          false) write=false ;;
+          *) echo "::error title=jvq::flaky-write must be auto, true or false"; exit 2 ;;
+        esac
+        if [ -z "$HIST" ]; then echo "::error title=jvq::flaky-history can't be empty"; exit 2; fi
+        echo "write=$write" >> "$GITHUB_OUTPUT"
+        echo "key=${KEY:-$DEFAULT_KEY}" >> "$GITHUB_OUTPUT"
+
+    - name: Restore the test history
+      if: inputs.flaky != '' && steps.flaky.outcome == 'success'
+      uses: actions/cache/restore@v5
+      with:
+        path: ${{ inputs.working-directory }}/${{ inputs.flaky-history }}
+        key: ${{ steps.flaky.outputs.key }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: ${{ steps.flaky.outputs.key }}-
+
+    - name: Run jvq flaky
+      if: inputs.flaky != '' && steps.flaky.outcome == 'success'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        INPUT_RESULTS: ${{ inputs.flaky }}
+        INPUT_HISTORY: ${{ inputs.flaky-history }}
+        INPUT_ARGS: ${{ inputs.flaky-args }}
+        INPUT_CONFIG: ${{ inputs.config }}
+        WRITE: ${{ steps.flaky.outputs.write }}
+      run: |
+        set -uo pipefail
+        args=(flaky -history "$INPUT_HISTORY")
+        [ "$WRITE" = true ] || args+=(-no-write)
+        [ -n "$INPUT_CONFIG" ] && args+=(-config "$INPUT_CONFIG")
+        if [ -n "$INPUT_ARGS" ]; then
+          read -r -a extra <<< "$INPUT_ARGS"
+          args+=("${extra[@]}")
+        fi
+        # The results, one path per word or line; -- so a path that starts
+        # with - is still a path.
+        read -r -d '' -a results <<< "$INPUT_RESULTS" || true
+        jvq "${args[@]}" -- "${results[@]}"
+
+    - name: Save the test history
+      if: ${{ !cancelled() && inputs.flaky != '' && steps.flaky.outputs.write == 'true' && hashFiles(format('{0}/{1}', inputs.working-directory, inputs.flaky-history)) != '' }}
+      uses: actions/cache/save@v5
+      with:
+        path: ${{ inputs.working-directory }}/${{ inputs.flaky-history }}
+        key: ${{ steps.flaky.outputs.key }}-${{ github.run_id }}-${{ github.run_attempt }}

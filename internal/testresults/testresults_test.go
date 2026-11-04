@@ -36,6 +36,8 @@ func TestGoJSONReal(t *testing.T) {
 	}
 	want := map[string]string{
 		"example.com/cap/alpha.TestPass":         "pp",
+		"example.com/cap/alpha (package)":        "s",
+		"example.com/cap/crash (package)":        "s",
 		"example.com/cap/alpha.TestFail":         "ff",
 		"example.com/cap/alpha.TestSkip":         "ss",
 		"example.com/cap/alpha.TestSub":          "ff",
@@ -60,6 +62,7 @@ func TestGoJSONTimeout(t *testing.T) {
 	_, got := attempts(t, "testdata/go-timeout.json")
 	want := map[string]string{
 		"example.com/hang/hang.TestQuick": "p",
+		"example.com/hang/hang (package)": "s",
 		"example.com/hang/hang.TestHangs": "f",
 	}
 	if !reflect.DeepEqual(got, want) {
@@ -164,7 +167,7 @@ FAIL p 0.01s
 	for _, r := range rs {
 		got[r.ID] += string(r.Outcome)
 	}
-	want := map[string]string{"p.TestA": "fp", "p.TestB": "p", "p (package)": "p", "q (package)": "f"}
+	want := map[string]string{"p.TestA": "fp", "p.TestB": "p", "p (package)": "sp", "q (package)": "f"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v, want %v", got, want)
 	}

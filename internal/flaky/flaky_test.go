@@ -417,3 +417,42 @@ func TestBuildFailureNeverQuarantined(t *testing.T) {
 		t.Fatalf("a build failure passed the gate: %+v", r)
 	}
 }
+
+// A quarantined Go test that crashes stops the rest of its package: the
+// tests that ran in the package's last run and are missing now are
+// reported as not run, so the hole shows. They don't block; the crash is
+// in quarantine.
+func TestCrashLeavesTestsNotRun(t *testing.T) {
+	m := newSim(t)
+	const p = "example.com/shop"
+	full := map[string]string{p + ".TestFlaky": "p", p + ".TestA": "p", p + ".TestB": "p", p + " (package)": "p",
+		p + "/sub.TestC": "p", p + "/sub (package)": "p", "example.com/shop.v2.TestD": "p", "example.com/shop.v2 (package)": "p"}
+	flakyRun := func(commit string) {
+		run := map[string]string{}
+		for k, v := range full {
+			run[k] = v
+		}
+		run[p+".TestFlaky"] = "fp"
+		m.run(commit, run)
+	}
+	flakyRun("a")
+	flakyRun("b")
+	// Now in quarantine. It crashes: TestB never ran, the package failed.
+	r := m.run("c", map[string]string{p + ".TestFlaky": "f", p + ".TestA": "p",
+		p + "/sub.TestC": "p", p + "/sub (package)": "p", "example.com/shop.v2 (package)": "p"})
+	wantStatus(t, r, p+".TestFlaky", StatusQuarantined, false)
+	wantStatus(t, r, p+".TestB", StatusNotRun, false)
+	if r.NotRun != 1 || r.Verdict != VerdictPass {
+		t.Fatalf("not run %d, verdict %s; rows %+v", r.NotRun, r.Verdict, r.Rows)
+	}
+	// Tests of other packages that are missing (shop.v2's TestD shares the
+	// prefix "example.com/shop.") aren't the crashed package's.
+	if _, ok := row(r, "example.com/shop.v2.TestD"); ok {
+		t.Fatal("another package's missing test reported as not run")
+	}
+	// A package that passed is left alone: tests may come and go.
+	r = m.run("d", map[string]string{p + ".TestFlaky": "p", p + ".TestA": "p", p + " (package)": "p"})
+	if r.NotRun != 0 {
+		t.Fatalf("not run in a passing package: %+v", r.Rows)
+	}
+}

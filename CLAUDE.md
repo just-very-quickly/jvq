@@ -17,7 +17,50 @@ and push to `main`; never ask the owner to publish one.
 afterwards. This session's `gh` has no valid token, but the repository is
 public: read runs and releases from `https://api.github.com/repos/just-very-quickly/jvq/...`.
 
-## Where things stand
+## Start here
+
+- Latest release: v0.7.1 (October 31 2026). In progress: item 10 of
+  softdev-plan.md (photozeitgeist/jollyroger.biz), approved by YK on
+  2026-11-04 ("Go"): Phase A as 0.8.0, Phase B as 0.9.0; the plan and
+  its steps are under "Now" below.
+- Build here with `export PATH=/usr/lib/go-1.26/bin:$PATH GOTOOLCHAIN=local
+  GOPROXY=off GOFLAGS=-mod=mod`; go.mod says 1.26 (stdlib only).
+- The release history, one paragraph per version, is under "Releases so
+  far" further down: read it for why things are the way they are.
+
+## Now: 0.8 and 0.9, item 10 of softdev-plan.md
+
+Phase A, 0.8.0, the flaky gate without the YAML:
+- action.yml `flaky` input (results files or folders): runs `jvq flaky`
+  instead of `jvq run`, keeps the test history in the Actions cache
+  (`flaky-history`, `flaky-key`), `flaky-write` auto/true/false (auto:
+  push, workflow_dispatch, schedule on the default branch; else
+  -no-write), `flaky-args`; `jvq-path` for testing.
+- Not run: when a Go package failed in a run, its tests that ran in its
+  last run and are missing now are reported `not_run` (no block; a
+  warning). A failing package now adds a skipped `pkg (package)` attempt
+  so the history knows which tests are its. test/flakyrepo is a small
+  module with a planted flake and crash (JVQ_DEMO), used by
+  TestFlakyGateCrashReportsNotRun and action-test.yml.
+- Upkeep: README note on pytest 9 with pytest-benchmark 5.3; this
+  section first; go.mod 1.26.
+- Done when: a fixture repo uses the gate with three lines of YAML
+  (action-test.yml) and a planted crash is reported as not run.
+
+Phase B, 0.9.0: compact test history (name dictionary), opt-in submodule
+init in worktrees, `always`/`never` lists in `[flaky]`.
+
+Steps:
+1. [x] Phase A code, tests, action, action-test workflow, docs
+2. [ ] CI and action-test green; independent review (two rounds), fixes;
+       record (SKIP_ACCURACY=1 is fine: the benchmark gate is unchanged;
+       the flaky simulation runs)
+3. [ ] release 0.8.0 (README and action.yml examples say v0.7.1 until the
+       release commit: docs_test.go wants the released version); jvq.net post and pages; softdevstudio note;
+       softdev-plan.md
+4. [ ] Phase B, the same way
+
+## Releases so far
 
 v0.1.0 is the first release (October 2026): a performance budget gate for CI
 in Go, standard library only. `jvq run` checks out base and head into git

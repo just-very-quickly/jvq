@@ -340,7 +340,9 @@ func IsTest(id string) bool {
 // test is an attempt. When a package fails, every test of it that started
 // and didn't finish (a panic or a timeout) gets a failed attempt; if no
 // test of it failed at all, the package itself does, as "pkg (package)",
-// so a crash outside a test blocks like a failed test. A package that
+// so a crash outside a test blocks like a failed test; when a test is to
+// blame, the package's entry is a skip, there only to say which tests
+// are the package's. A package that
 // passes gets a passing "pkg (package)" attempt, so that entry can
 // recover. A package whose build or setup failed (Go 1.24's FailedBuild,
 // or the "[build failed]" line older Go prints) fails as "pkg (build)"
@@ -429,6 +431,11 @@ func parseGoJSON(b []byte) ([]Result, error) {
 				}
 				if !s.testFail && !hung {
 					out = append(out, Result{ID: ev.Package + PackageSuffix, Outcome: Fail})
+				} else {
+					// A test is to blame. The package's entry is still
+					// there, skipped (no evidence either way), so the
+					// history knows which tests are the package's.
+					out = append(out, Result{ID: ev.Package + PackageSuffix, Outcome: Skip})
 				}
 			case "pass":
 				out = append(out, Result{ID: ev.Package + PackageSuffix, Outcome: Pass})

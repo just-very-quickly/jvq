@@ -1,3 +1,3 @@
 module github.com/just-very-quickly/jvq
 
-go 1.24
+go 1.26

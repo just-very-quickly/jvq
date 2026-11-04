@@ -227,7 +227,9 @@ still running when its package failed (a panic, a `-timeout`) failed; a
 package that failed with no failing test (a build error, a crash before
 any test) is the entry `package (package)`, which fails like a test, and a
 package that passed adds a passing `package (package)` attempt, so that
-entry can recover. A package whose test binary didn't build, or whose
+entry can recover. A package that failed because of a test adds a skipped
+`package (package)` attempt: no evidence either way, but it says which
+tests are the package's (0.8.0). A package whose test binary didn't build, or whose
 setup failed (Go 1.24's `FailedBuild`, or the `[build failed]` line of
 older Go), is the entry `package (build)` instead: it only ever fails, so
 it can never be flaky or quarantined, and a compile error blocks even when
@@ -269,6 +271,16 @@ retry, though its failure counts towards quarantine. A quarantined test
 that didn't run is listed as not in this run; one missing for a whole
 window is no longer listed (most likely renamed or deleted).
 
+**Not run.** When a Go package failed in this run, the tests that ran in
+that package's last run and are missing now are listed as **not run**: a
+crash (a panic, a `-timeout`) or `-failfast` stopped the package before
+them. A test belongs to the longest package name it starts with, followed
+by a dot, among the packages the history knows (from their `(package)` or
+`(build)` entries). Not-run tests don't block, since the crash itself
+blocks unless it's in quarantine; the summary counts them and, in GitHub
+Actions, one warning names them. A package that failed to build is left
+out, and so are packages that passed, whose tests may come and go.
+
 Without retries, a quarantined test that broke for real is listed as a
 quarantined failure until its `broken_after`-th failure in a row, which
 blocks. With `broken_after - 1` retries for a failed test (2 by default),
@@ -292,12 +304,12 @@ history that can't be written is a warning, and the verdict stands.
 The JSON report (`-json`):
 
 ```json
-{"jvq": "0.7.0", "mode": "flaky", "commit": "4e1f0c2a…",
+{"jvq": "0.8.0", "mode": "flaky", "commit": "4e1f0c2a…",
  "history": "jvq-tests.jsonl", "history_runs": 57, "written": true,
  "files": [{"path": "go-test.json", "format": "go-json", "tests": 412}],
  "settings": {"window": 100, "quarantine_after": 2, "release_after": 30, "broken_after": 3},
  "result": {"verdict": "fail", "tests": 412, "failed": 1, "broken": 0,
-            "quarantined_failures": 1, "flaky": 1, "in_quarantine": 1,
+            "quarantined_failures": 1, "flaky": 1, "not_run": 0, "in_quarantine": 1,
             "tests_of_note": [{"test": "web.Checkout.pays by card", "attempts": "f",
               "status": "quarantined", "blocks": false, "quarantined": true,
               "quarantined_since": "2026-10-28T09:12:00Z", "flaky_commits": 3,
@@ -305,7 +317,7 @@ The JSON report (`-json`):
 ```
 
 `status` is `failed`, `broken`, `quarantined` (failed in quarantine),
-`flaky`, `passed`, `skipped` or `absent`; `event` is `entered`,
+`flaky`, `passed`, `skipped`, `absent` or `not_run`; `event` is `entered`,
 `released` or `broken` when this run moved the test in or out.
 
 ### jvq check
@@ -831,5 +843,25 @@ runs `jvq run` with the inputs:
 | `history-write` | `auto`, `true` or `false`: which runs add to the history |
 | `history-fail-over` | with `history`, `jvq history -fail-over`, on runs that write |
 | `history-key` | the cache key prefix; empty is one per workflow, job and runner OS |
+| `jvq-path` | a folder with a jvq binary to use instead of downloading one (for testing the action) |
 
 Check out with `fetch-depth: 0` so the base commit is there.
+
+With `flaky` set (0.8.0), the action runs `jvq flaky` instead of `jvq run`:
+
+| Input | Becomes |
+|---|---|
+| `flaky` | the results: files or folders, separated by spaces or new lines, after `--` |
+| `flaky-history` | `-history`, relative to `working-directory` (default `jvq-tests.jsonl`), kept in the Actions cache |
+| `flaky-write` | `auto` (default): push, `workflow_dispatch` and `schedule` runs on the default branch add to the history, others get `-no-write`; `true` every run; `false` none |
+| `flaky-key` | the cache key prefix; empty is `jvq-tests-<workflow>-<job>-<runner OS>` |
+| `flaky-args` | more flags, split on spaces, such as `-json flaky.json` |
+| `config` | `-config` |
+
+The cache is restored from the newest entry with the prefix (a pull
+request sees its base branch's), and saved under a new key after a run
+that writes, unless the run was cancelled or left no file. The step fails
+with `jvq flaky`'s exit code, so a failure outside quarantine fails the
+job; the tests' own step must not stop the job first (`|| true`, or
+`continue-on-error`). The other inputs are for the benchmark gate and are
+ignored.

@@ -220,6 +220,12 @@ for _ in range(5):
 | `pytest-benchmark` | [pytest-benchmark](https://github.com/ionelmc/pytest-benchmark) | `pytest --benchmark-json=bench.json`, with `output = "bench.json"` | each test's median |
 | `vitest` | [vitest bench](https://vitest.dev/guide/features.html#benchmarking), versions 1 to 4 | `vitest bench --run --outputJson bench.json`, with `output = "bench.json"` | each benchmark's median |
 
+pytest-benchmark 5.3 doesn't work with pytest 9 (it reads a pytest
+attribute that pytest 9.2 removed, and every test errors with `'Function'
+object has no attribute '_nodeid'`). Until a pytest-benchmark release
+supports pytest 9, pin `pytest<9` where you install them, as jvq's own
+accuracy workflow does.
+
 For example, a Rust crate:
 
 ```toml
@@ -459,24 +465,35 @@ other runs still count; a missing file starts a new history. `jvq flaky
 -history jvq-tests.jsonl` with no results shows what's in quarantine and
 why.
 
-In GitHub Actions, keep the file in the cache and let pushes to the
-default branch write it:
+In GitHub Actions the action does it all with `flaky`: it installs jvq,
+keeps the test history in the Actions cache, lets pushes (and scheduled and
+manual runs) on the default branch add to it, and judges pull requests
+against it without writing:
 
 ```yaml
       - run: go test -json ./... > go-test.json || true
-      - run: go install github.com/just-very-quickly/jvq/cmd/jvq@v0.7.1
-      - uses: actions/cache/restore@v5
+      - uses: just-very-quickly/jvq@v0.7.1
         with:
-          path: jvq-tests.jsonl
-          key: jvq-tests-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: jvq-tests-
-      - run: jvq flaky -history jvq-tests.jsonl ${{ github.ref != 'refs/heads/main' && '-no-write' || '' }} go-test.json
-      - if: always() && github.ref == 'refs/heads/main'
-        uses: actions/cache/save@v5
-        with:
-          path: jvq-tests.jsonl
-          key: jvq-tests-${{ github.run_id }}-${{ github.run_attempt }}
+          flaky: go-test.json
 ```
+
+The tests' step must not stop the job (`|| true` here), so the gate gets
+their results; the gate's step then fails when a failure isn't
+quarantined. `flaky` takes files or folders, separated by spaces or new
+lines. `flaky-history` names the file (default `jvq-tests.jsonl`),
+`flaky-write` is `auto`, `true` or `false`, `flaky-key` sets the cache key
+(default: one per workflow, job and runner OS) and `flaky-args` passes more
+flags, such as `-json flaky.json`. With `flaky` set, the action runs the
+flaky gate only; a benchmark gate is a step of its own.
+
+By hand, the same is a cache restore, `jvq flaky -history jvq-tests.jsonl`
+(with `-no-write` off the default branch) and a cache save.
+
+When a quarantined Go test crashes (a panic, a timeout), Go stops its
+package, and the tests after it don't run. jvq lists those tests as not
+run: the ones that ran in the package's last run and are missing now that
+it failed. They don't block (the crash is in quarantine) but the report
+and a warning name them, so the hole is seen rather than silent.
 
 The commit is the checkout's HEAD, else `GITHUB_SHA` or `CI_COMMIT_SHA`
 (`-commit` sets it), so a re-run of a failed job counts as the same code. The report
