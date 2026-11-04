@@ -19,16 +19,15 @@ public: read runs and releases from `https://api.github.com/repos/just-very-quic
 
 ## Start here
 
-- Latest release: v0.8.0 (November 4 2026). In progress: item 10 of
-  softdev-plan.md (photozeitgeist/jollyroger.biz), approved by YK on
-  2026-11-04 ("Go"): Phase A as 0.8.0, Phase B as 0.9.0; the plan and
-  its steps are under "Now" below.
+- Latest release: v0.9.0 (November 4 2026). Item 10 of softdev-plan.md
+  (photozeitgeist/jollyroger.biz) is complete: Phase A as 0.8.0, Phase B
+  as 0.9.0 (see "Done" below). Nothing further is agreed; ask YK.
 - Build here with `export PATH=/usr/lib/go-1.26/bin:$PATH GOTOOLCHAIN=local
   GOPROXY=off GOFLAGS=-mod=mod`; go.mod says 1.26 (stdlib only).
 - The release history, one paragraph per version, is under "Releases so
   far" further down: read it for why things are the way they are.
 
-## Now: 0.8 and 0.9, item 10 of softdev-plan.md
+## Done: 0.8 and 0.9, item 10 of softdev-plan.md
 
 Phase A, 0.8.0, the flaky gate without the YAML:
 - action.yml `flaky` input (results files or folders): runs `jvq flaky`
@@ -60,7 +59,17 @@ Steps:
        checked and run; jvq.net e43dcf7; softdevstudio note 78bd728;
        softdev-plan.md e395ff7. README and action.yml examples name the
        released version only in the release commit (docs_test.go)
-4. [ ] Phase B, the same way
+4. [x] Phase B, 0.9.0 (tag on 9567122, run 41779827272): compact
+       history (names line first and last, results as number ranges,
+       MaxResults 5M read newest first, over-budget runs noted and dropped,
+       not counted as damage); [flaky] always/never (tests only; never
+       wins; unmatched patterns noted); submodules = true / -submodules
+       (GIT_TERMINAL_PROMPT=0, ssh BatchMode unless GIT_SSH_COMMAND, GIT_SSH
+       or core.sshCommand is set; Remove falls back to delete + prune).
+       Reviews: 6, then 2 + 1 defects, tests in review090_test.go. First
+       recording failed TestGitHubBaseRef under -race (timing, VM); the
+       second passed. Linux binary checked, run on a 0.8 history; jvq.net
+       fa44521; softdevstudio note 589f023; softdev-plan.md 8d115fe
 
 ## Releases so far
 
@@ -251,7 +260,7 @@ simulation gave the same numbers as 0.7.0; a first race run and smoke
 check failed on benchmark timing while the VM was at load 6 (TestHistory
 under -race, smoke's 3x case inconclusive), both passed once it was quiet.
 
-Not done yet: submodules in worktrees.
+Submodules in worktrees: done in 0.9.0 (opt-in).
 
 ## Flaky case studies (done October 31 2026)
 
