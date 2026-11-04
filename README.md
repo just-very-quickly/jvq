@@ -510,7 +510,7 @@ tests out of quarantine however flaky they get, for the ones you won't
 let through on a coin flip. Names take `*`.
 
 The history stays small: each test's name is written once, and each run
-is a list of numbers. 2000 tests over 200 runs take 193 KB, where 0.8's
+is a list of numbers. 2000 tests over 200 runs take 319 KB, where 0.8's
 format took 26.8 MB. Older files are read and converted on the next
 write.
 

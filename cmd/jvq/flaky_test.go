@@ -166,9 +166,9 @@ func TestFlakyGateLifecycle(t *testing.T) {
 	res, _ = c.run("after", map[string]string{"TestParse": "p"}, map[string]string{"pays by card": "f"})
 	expect(t, res, 1)
 	b, _ := os.ReadFile(c.hist)
-	// 36 runs, then the names line.
-	if n := strings.Count(string(b), "\n"); n != 37 {
-		t.Errorf("history has %d lines, want 37", n)
+	// 36 runs between two copies of the names line.
+	if n := strings.Count(string(b), "\n"); n != 38 {
+		t.Errorf("history has %d lines, want 38", n)
 	}
 }
 
@@ -557,6 +557,12 @@ func TestFlakyPins(t *testing.T) {
 	s, _ := rep["settings"].(map[string]any)
 	if fmt.Sprint(s["always"]) != "[web.Checkout.* TestTypo]" || fmt.Sprint(s["never"]) != "[example.com/app.TestPay*]" {
 		t.Errorf("settings %v", s)
+	}
+	// Without a history, pins still apply, and the note says so.
+	nh := jvq(t, c.dir, nil, "flaky", "-history", "-", "-config", cfg, filepath.Join(c.dir, "junit.xml"))
+	expect(t, nh, 0)
+	if !strings.Contains(nh.stdout, "only tests pinned with [flaky] always are quarantined") {
+		t.Errorf("no-history note:\n%s", nh.stdout)
 	}
 	chk := jvq(t, c.dir, nil, "check", "-config", cfg)
 	if !strings.Contains(chk.stdout, "always in quarantine (unless broken): web.Checkout.*, TestTypo") || !strings.Contains(chk.stdout, "never quarantined: example.com/app.TestPay*") {

@@ -129,7 +129,7 @@ func TestCompactDamaged(t *testing.T) {
 	// so its entries can't be read with the wrong names.
 	tampered := strings.Replace(string(nl), "a.T2", "a.T9", 1)
 	got, bad, _ := Read(strings.NewReader(entry(id, `{"p":"0-2"}`) + "\n" + tampered + "\n"))
-	if len(got) != 0 || bad != 1 {
+	if len(got) != 0 || bad != 2 { // the entry, and the names line itself
 		t.Errorf("edited names list: entries %d bad %d", len(got), bad)
 	}
 }
@@ -176,8 +176,8 @@ func TestOlderJVQWritesIntoCompactFile(t *testing.T) {
 			oldBad++
 		}
 	}
-	if oldBad != 5 {
-		t.Errorf("0.8 would read %d of 5 lines as damaged", oldBad)
+	if oldBad != 6 {
+		t.Errorf("0.8 would read %d of 6 lines as damaged", oldBad)
 	}
 	for i := 4; i < 10; i++ {
 		oldAppend(t, path, ent(i), 10)

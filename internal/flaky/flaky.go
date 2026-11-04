@@ -205,7 +205,9 @@ func step(states map[string]*State, i int, e Entry, s Settings) {
 		st := states[id]
 		if st == nil {
 			st = &State{ID: id}
-			if s.Pin != nil {
+			// Only tests are pinned: a Go package's own entries, its build
+			// failure and its crash, always block like any failure.
+			if s.Pin != nil && testresults.IsTest(id) {
 				st.Pinned = s.Pin(id)
 			}
 			states[id] = st

@@ -87,19 +87,33 @@ func Read(r io.Reader) (entries []Entry, bad int, err error) {
 		}
 	}
 	dicts := dictionaries(ls)
-	for _, l := range ls {
+	// Newest first, so that past MaxResults it's the oldest runs that go.
+	budget := MaxResults
+	var rev []Entry
+	for i := len(ls) - 1; i >= 0; i-- {
+		l := ls[i]
 		if l.names {
 			continue
 		}
-		e, ok := decode(l, dicts)
+		e, ok := decode(l, dicts, budget)
 		if !ok {
 			bad++
 			continue
 		}
-		entries = append(entries, e)
+		budget -= len(e.Tests)
+		rev = append(rev, e)
+	}
+	for i := len(rev) - 1; i >= 0; i-- {
+		entries = append(entries, rev[i])
 	}
 	return entries, bad, nil
 }
+
+// MaxResults bounds the test results a history is read into, all runs
+// together: a compact history is small on disk and much bigger in memory,
+// and it comes from a cache a pull request may have written. Past it, the
+// oldest runs are skipped as damaged. 2000 tests over 200 runs are 400,000.
+const MaxResults = 5_000_000
 
 // line is one line of a history file, with what's needed to decode it.
 type line struct {
@@ -140,18 +154,27 @@ func readLines(r io.Reader) ([]line, error) {
 	return ls, sc.Err()
 }
 
-// dictionaries returns the file's valid names lines by id.
+// dictionaries returns the file's valid names lines by id. One that
+// doesn't match its id is marked an ordinary line, so it's counted and
+// kept as damaged.
 func dictionaries(ls []line) map[string][]string {
 	d := map[string][]string{}
-	for _, l := range ls {
-		if l.names && l.head.ID != "" && l.head.ID == namesID(l.head.List) {
+	for i := range ls {
+		l := &ls[i]
+		if !l.names {
+			continue
+		}
+		if l.head.ID != "" && l.head.ID == namesID(l.head.List) {
 			d[l.head.ID] = l.head.List
+		} else {
+			l.names = false
 		}
 	}
 	return d
 }
 
-func decode(l line, dicts map[string][]string) (Entry, bool) {
+// decode reads one entry; a compact one may hold at most budget results.
+func decode(l line, dicts map[string][]string, budget int) (Entry, bool) {
 	h := l.head
 	e := Entry{Kind: h.Kind, JVQ: h.JVQ, Date: h.Date, Commit: h.Commit, Tests: h.Tests}
 	if h.Names != "" || h.Results != nil {
@@ -160,6 +183,17 @@ func decode(l line, dicts map[string][]string) (Entry, bool) {
 		}
 		names, ok := dicts[h.Names]
 		if !ok || h.Results == nil {
+			return Entry{}, false
+		}
+		n := 0
+		for _, nums := range h.Results {
+			c, ok := count(nums, len(names))
+			if !ok {
+				return Entry{}, false
+			}
+			n += c
+		}
+		if n > len(names) || n > budget {
 			return Entry{}, false
 		}
 		e.Tests = map[string]string{}
@@ -235,6 +269,32 @@ func number(s string) (int, error) {
 	return n, nil
 }
 
+// count says how many numbers a list such as "0-41,43" holds, without
+// expanding it, and whether it's well formed.
+func count(s string, n int) (int, bool) {
+	ok := true
+	c := 0
+	next := 0
+	if s == "" {
+		return 0, false
+	}
+	for _, part := range strings.Split(s, ",") {
+		lo, hi, isRange := strings.Cut(part, "-")
+		a, err1 := number(lo)
+		b := a
+		var err2 error
+		if isRange {
+			b, err2 = number(hi)
+		}
+		if err1 != nil || err2 != nil || a < next || b < a || (isRange && b == a) || b >= n {
+			return 0, false
+		}
+		c += b - a + 1
+		next = b + 1
+	}
+	return c, ok
+}
+
 // numbers writes sorted numbers as a list such as "0-41,43".
 func numbers(ns []int) string {
 	var b strings.Builder
@@ -256,10 +316,21 @@ func numbers(ns []int) string {
 	return b.String()
 }
 
+// compactLine is a compact entry as written: results always, even empty.
+type compactLine struct {
+	Kind    string            `json:"kind"`
+	JVQ     string            `json:"jvq"`
+	Date    string            `json:"date"`
+	Commit  string            `json:"commit,omitempty"`
+	Names   string            `json:"names_id"`
+	Results map[string]string `json:"results"`
+}
+
 // compact writes entries in the compact format: each entry gives its
-// tests as numbers in one names list, written after them. The names list
-// goes last so that an older jvq, which keeps lines it can't read and
-// trims the oldest, drops it only after every entry that needs it.
+// tests as numbers in one names list, written before and after them. The
+// copy at the end means an older jvq, which keeps lines it can't read and
+// trims the oldest, drops it only after every entry that needs it; the
+// one at the start survives a file cut short.
 func compact(entries []Entry) (lines [][]byte, namesLine []byte, err error) {
 	seen := map[string]bool{}
 	var names []string
@@ -287,13 +358,17 @@ func compact(entries []Entry) (lines [][]byte, namesLine []byte, err error) {
 			sort.Ints(ns)
 			results[a] = numbers(ns)
 		}
-		l, err := json.Marshal(lineHead{Kind: Kind, JVQ: e.JVQ, Date: e.Date, Commit: e.Commit, Names: id, Results: results})
+		l, err := json.Marshal(compactLine{Kind: Kind, JVQ: e.JVQ, Date: e.Date, Commit: e.Commit, Names: id, Results: results})
 		if err != nil {
 			return nil, nil, err
 		}
 		lines = append(lines, l)
 	}
-	namesLine, err = json.Marshal(lineHead{Kind: NamesKind, ID: id, List: names})
+	namesLine, err = json.Marshal(struct {
+		Kind  string   `json:"kind"`
+		ID    string   `json:"id"`
+		Names []string `json:"names"`
+	}{NamesKind, id, names})
 	return lines, namesLine, err
 }
 
@@ -358,15 +433,24 @@ func Append(path string, e Entry, keep int) error {
 	}
 	dicts := dictionaries(ls)
 	var items []item
-	for _, l := range ls {
+	budget := MaxResults
+	for i := len(ls) - 1; i >= 0; i-- {
+		l := ls[i]
 		if l.names {
 			continue
 		}
-		if d, ok := decode(l, dicts); ok {
+		if d, ok := decode(l, dicts, budget); ok {
+			budget -= len(d.Tests)
 			items = append(items, item{e: &d})
+		} else if l.head.Kind == Kind && l.head.Names != "" && dicts[l.head.Names] == nil {
+			// A compact line whose names are gone can never be read
+			// again: dropped rather than kept to fill the history.
 		} else {
 			items = append(items, item{raw: l.raw})
 		}
+	}
+	for i, j := 0, len(items)-1; i < j; i, j = i+1, j-1 {
+		items[i], items[j] = items[j], items[i]
 	}
 	items = append(items, item{e: &e})
 	if len(items) > keep {
@@ -391,6 +475,8 @@ func Append(path string, e Entry, keep int) error {
 		return fmt.Errorf("%s: %w", path, err)
 	}
 	w := bufio.NewWriter(tmp)
+	w.Write(namesLine)
+	w.WriteByte('\n')
 	k := 0
 	for _, it := range items {
 		if it.e != nil {

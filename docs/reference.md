@@ -288,7 +288,10 @@ already decided about:
   counted and shown. Use it for tests that guard something you won't let
   through on a coin flip, such as payments.
 
-A test matching both lists is never quarantined. The same name in both is
+Pins apply to tests only: a Go package's own `(package)` and `(build)`
+entries are never pinned, so a pattern such as `example.com/shop*` can't
+quarantine a compile error or a crash in `TestMain`. A test matching both
+lists is never quarantined. The same name in both is
 an error. The pins apply to the whole history, since it's replayed each
 time: pinning or unpinning a test changes its state at once. A pattern
 that matches no test in the run or the history gets a note, since it's
@@ -805,8 +808,9 @@ shares caches between protected and unprotected branches.
 the newest `history_keep` lines. Like the run history, it's rewritten
 through a temporary file beside it, a symlink is followed, and the file
 keeps its mode. Since 0.9 the file is compact: each run's line gives its
-tests as numbers in one list of names, written once, as the file's last
-line:
+tests as numbers in one list of names, written as the file's first line
+and again as its last (so a file cut short at the end, or trimmed by an
+older jvq, still has one):
 
 ```json
 {"kind": "tests", "jvq": "0.9.0", "date": "2026-11-04T08:00:00Z",
@@ -827,6 +831,11 @@ evidence. A line that isn't a valid entry (cut short, binary junk, letters
 other than p, f and s, numbers past the list or out of order, a test
 twice, a names list that doesn't match its id, a `kind` other than
 `tests`) is skipped with a note, and left in the file until it's trimmed.
+A compact line whose names list is gone from the file can never be read
+again, so the next write drops it. A history is read into at most 5
+million test results, newest runs first; older runs past that are skipped
+as damaged, so a small crafted file can't fill the memory (2000 tests
+over 200 runs are 400,000; lower `history_keep` for suites far bigger).
 A missing file is an empty history. A file holding `jvq run`'s benchmark
 history is refused, not written. Two runs writing at once can lose one of
 their lines.
@@ -842,12 +851,12 @@ jvq 0.7 and 0.8 wrote each test's name on every line:
 Those lines are still read, and the next run that writes converts the
 file. For 2000 Go tests named like
 `github.com/acme/shop/internal/pkg07.TestSomething0123/case_4` over 200
-runs, the old format came to 26.8 MB and the compact one to 193 KB
+runs, the old format came to 26.8 MB and the compact one to 319 KB
 (`TestCompactHistorySize`). jvq 0.8 and earlier can't read compact lines:
 they see an empty history, so nothing is in quarantine and every failure
 blocks, which is the safe side. They keep the lines they can't read, and
-since the names line is last, it's trimmed only after every line that
-needs it, so going back to 0.9 later loses nothing.
+since a copy of the names line is last, it's trimmed only after every
+line that needs it, so going back to 0.9 later loses nothing.
 
 ## JUnit report
 
@@ -897,8 +906,9 @@ is cleaned up by the next run on that machine.
 **Submodules.** With `submodules = true`, each submodule is fetched from
 its URL into each worktree (git keeps a worktree's submodules apart from
 the main checkout's), with the credentials git has for that URL. jvq turns
-off git's password prompt for this, so a submodule it can't reach is an
-error that names it rather than a run that hangs. In GitHub Actions,
+off git's password prompt for this, and runs ssh in batch mode unless
+`GIT_SSH_COMMAND` or `GIT_SSH` is set, so a submodule it can't reach is an
+error that names it rather than a run that waits for an answer. In GitHub Actions,
 `actions/checkout` with `submodules: true` sets up access for submodules
 in the same organization; private ones elsewhere need a token, as they
 would for the checkout. Fetching takes time on every run, once per side.

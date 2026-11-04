@@ -256,13 +256,17 @@ func (w *Workspace) Add(ctx context.Context, name, sha string) (string, error) {
 // ones included, at the commits it records. git worktree add leaves them
 // empty. Each is fetched from its URL, with this repository's credentials
 // and settings.
-// Git never asks for a password here: with nobody to answer, the run
-// would hang.
+// Neither git nor ssh asks for a password here: with nobody to answer,
+// the run would hang.
 func (w *Workspace) Submodules(ctx context.Context, dir string) error {
 	args := []string{"submodule", "update", "--init", "--recursive"}
 	cmd := exec.CommandContext(ctx, "git", args...)
 	cmd.Dir = dir
 	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
+	if os.Getenv("GIT_SSH_COMMAND") == "" && os.Getenv("GIT_SSH") == "" {
+		// ssh asks on the terminal itself (a new host key, a passphrase).
+		cmd.Env = append(cmd.Env, "GIT_SSH_COMMAND=ssh -o BatchMode=yes")
+	}
 	var out bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &out, &out
 	if err := cmd.Run(); err != nil {

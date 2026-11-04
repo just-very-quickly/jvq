@@ -202,7 +202,11 @@ func cmdFlaky(args []string, stdout, stderr io.Writer) int {
 	}
 	rep.Commit = commit
 	if histPath == "" {
-		rep.Notes = append(rep.Notes, "no test history (-history or [flaky] history in jvq.toml), so nothing is quarantined; only this run's retries are judged")
+		if len(cfg.Flaky.Always) > 0 {
+			rep.Notes = append(rep.Notes, "no test history (-history or [flaky] history in jvq.toml), so only tests pinned with [flaky] always are quarantined, and this run's retries are judged")
+		} else {
+			rep.Notes = append(rep.Notes, "no test history (-history or [flaky] history in jvq.toml), so nothing is quarantined; only this run's retries are judged")
+		}
 	}
 
 	entry := flaky.NewEntry(Version, time.Now(), commit, run.Attempts)
@@ -284,7 +288,7 @@ func unmatchedPins(f config.Flaky, entries []flaky.Entry, run flaky.Entry) []str
 			found := false
 			for _, e := range append([]flaky.Entry{run}, entries...) {
 				for id := range e.Tests {
-					if config.Match(p, id) {
+					if testresults.IsTest(id) && config.Match(p, id) {
 						found = true
 						break
 					}
